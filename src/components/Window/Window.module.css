@@ -1,0 +1,180 @@
+.window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  min-width: 400px;
+  min-height: 300px;
+}
+
+.windowMaximized {
+  top: var(--menubar-height) !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: calc(100% - var(--menubar-height) - var(--dock-height)) !important;
+  border-radius: 0;
+}
+
+.titlebar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 38px;
+  padding: 0;
+  background: #2a2a2e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  user-select: none;
+  cursor: default;
+}
+
+.trafficLights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  justify-self: start;
+  z-index: 1;
+}
+
+.trafficBtn {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4a4a4a;
+  transition: background 120ms ease;
+}
+
+.unfocused .trafficBtn {
+  background: #4a4a4a !important;
+}
+
+.focused .trafficBtn.close {
+  background: #ff5f57;
+}
+
+.focused .trafficBtn.minimize {
+  background: #ffbd2e;
+}
+
+.focused .trafficBtn.maximize {
+  background: #28c840;
+}
+
+.trafficSymbol {
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease;
+}
+
+.focused .trafficLights:hover .trafficSymbol {
+  opacity: 1;
+}
+
+.title {
+  grid-column: 2;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #c0c0c0;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+  justify-self: center;
+}
+
+.unfocused .title {
+  color: #8e8e93;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* 8-direction resize handles */
+.resizeHandle {
+  position: absolute;
+  z-index: 3;
+}
+
+.resizeN {
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.resizeS {
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.resizeE {
+  top: 8px;
+  right: 0;
+  bottom: 8px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.resizeW {
+  top: 8px;
+  left: 0;
+  bottom: 8px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.resizeNE {
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}
+
+.resizeNW {
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+}
+
+.resizeSE {
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+}
+
+.resizeSW {
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}

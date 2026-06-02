@@ -1,0 +1,143 @@
+.menuBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(30, 30, 30, 0.72);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+  z-index: 10000;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.92);
+  user-select: none;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  min-width: 80px;
+}
+
+.logo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0d9ba8;
+  padding: 0 4px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+}
+
+.logo:hover {
+  opacity: 0.9;
+}
+
+.center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 80px;
+  justify-content: flex-end;
+  font-size: 13px;
+}
+
+.wifi {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+  padding-bottom: 1px;
+}
+
+.wifiBar {
+  width: 3px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1px;
+}
+
+.wifiBar:nth-child(1) {
+  height: 4px;
+}
+
+.wifiBar:nth-child(2) {
+  height: 7px;
+}
+
+.wifiBar:nth-child(3) {
+  height: 10px;
+}
+
+.battery {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.batteryBody {
+  width: 22px;
+  height: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 2px;
+  padding: 1px;
+  display: flex;
+}
+
+.batteryFill {
+  flex: 1;
+  background: linear-gradient(
+    90deg,
+    #0d9ba8 0%,
+    #0d9ba8 75%,
+    rgba(255, 255, 255, 0.15) 75%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  border-radius: 1px;
+}
+
+.batteryCap {
+  width: 2px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 0 1px 1px 0;
+  margin-left: 1px;
+}
+
+.batteryPct {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.trophy {
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.9;
+}
+
+.trophy:hover {
+  opacity: 1;
+}
+
+.dateTime {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: 13px;
+}

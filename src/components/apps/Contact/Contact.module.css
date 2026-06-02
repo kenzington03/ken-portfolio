@@ -1,0 +1,44 @@
+.contact {
+  padding: 28px 32px;
+  height: 100%;
+  overflow: auto;
+}
+
+.contact h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.row a {
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.cta {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 13px;
+}

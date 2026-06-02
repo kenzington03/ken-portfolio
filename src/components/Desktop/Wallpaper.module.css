@@ -1,0 +1,44 @@
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  transition: background 0.4s ease;
+}
+
+.default {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(13, 155, 168, 0.15), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(13, 155, 168, 0.08), transparent),
+    linear-gradient(160deg, #0a0a0a 0%, #121212 50%, #0a0a0a 100%);
+}
+
+.aurora {
+  background:
+    radial-gradient(circle at 30% 40%, rgba(13, 155, 168, 0.35), transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(100, 80, 200, 0.2), transparent 45%),
+    linear-gradient(180deg, #0a0a0a, #141820);
+}
+
+.midnight {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(13, 155, 168, 0.12), transparent 60%),
+    #050508;
+}
+
+.mesh {
+  background:
+    linear-gradient(135deg, rgba(13, 155, 168, 0.2) 0%, transparent 40%),
+    linear-gradient(225deg, rgba(13, 155, 168, 0.1) 0%, transparent 50%),
+    #0a0a0a;
+}
+
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}

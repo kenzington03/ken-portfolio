@@ -1,0 +1,48 @@
+.experience {
+  padding: 24px 28px;
+  height: 100%;
+  overflow: auto;
+}
+
+.experience h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.timeline {
+  padding-left: 20px;
+  border-left: 2px solid var(--accent);
+}
+
+.item {
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.item::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.company {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.role {
+  color: var(--accent);
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.dates {
+  color: var(--text-secondary);
+  font-size: 12px;
+}

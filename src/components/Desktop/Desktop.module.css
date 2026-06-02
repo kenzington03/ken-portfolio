@@ -1,0 +1,101 @@
+.desktop {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.surface {
+  position: absolute;
+  inset: 0;
+  padding-top: var(--menubar-height);
+  padding-bottom: var(--dock-height);
+  z-index: 1;
+}
+
+.icons {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+  padding: 16px;
+  height: 100%;
+  max-width: 120px;
+}
+
+.icon,
+.trashIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 88px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: center;
+  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.icon:hover,
+.trashIcon:hover {
+  transform: translateY(-2px);
+}
+
+.iconSelected {
+  background: rgba(13, 155, 168, 0.12);
+  border-color: #0d9ba8;
+}
+
+.iconGraphic {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconGraphic svg {
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.iconLabel {
+  font-size: 12px;
+  line-height: 1.2;
+  word-break: break-word;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+.trashIcon {
+  position: absolute;
+  right: 20px;
+  bottom: calc(var(--dock-height) + 12px);
+  z-index: 2;
+}
+
+.trashIcon .iconGraphic {
+  width: 52px;
+  height: 52px;
+}
+
+.trashIcon .iconGraphic svg {
+  border-radius: 0;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.windows {
+  position: absolute;
+  inset: var(--menubar-height) 0 var(--dock-height) 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.windows > * {
+  pointer-events: auto;
+}

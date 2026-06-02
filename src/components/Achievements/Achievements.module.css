@@ -1,0 +1,95 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  opacity: 0.45;
+}
+
+.itemUnlocked {
+  opacity: 1;
+  border-color: rgba(13, 155, 168, 0.35);
+}
+
+.icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.info h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.info p {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.progress {
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.progress strong {
+  color: var(--accent);
+}
+
+.toast {
+  position: fixed;
+  top: 40px;
+  right: 16px;
+  z-index: 2500;
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  animation: slideIn 0.3s ease;
+  max-width: 320px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toastIcon {
+  font-size: 28px;
+}
+
+.toastTitle {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.toastDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.reset {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: underline;
+}
