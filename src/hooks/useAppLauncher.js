@@ -19,7 +19,7 @@ const APP_REGISTRY = {
   terminal: { title: 'Terminal', component: Terminal, size: { width: 640, height: 400 } },
   minesweeper: { title: 'Minesweeper', component: Minesweeper, size: { width: 520, height: 580 } },
   pdfviewer: { title: 'cv.pdf', component: PDFViewer, size: { width: 680, height: 560 } },
-  projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 900, height: 560 } },
+  projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 800, height: 600 } },
   trash: { title: 'Trash', component: Trash, size: { width: 520, height: 380 } },
   systempreferences: {
     title: 'System Preferences',

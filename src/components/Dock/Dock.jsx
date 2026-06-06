@@ -3,18 +3,17 @@ import { useOS } from '../../context/OSContext.jsx';
 import styles from './Dock.module.css';
 
 const DOCK_APPS = [
-  { appId: 'finder', label: 'Finder', icon: '📁' },
-  { appId: 'about', label: 'About', icon: '👤' },
-  { appId: 'experience', label: 'Experience', icon: '💼' },
-  { appId: 'terminal', label: 'Terminal', icon: '⌨️' },
-  { appId: 'minesweeper', label: 'Minesweeper', icon: '💣' },
-  { appId: 'contact', label: 'Contact', icon: '✉️' },
-  { appId: 'pdfviewer', label: 'CV', icon: '📄' },
-  { appId: 'systempreferences', label: 'Settings', icon: '⚙️' },
-  { appId: 'trash', label: 'Trash', icon: '🗑️' },
+  { appId: 'finder', label: 'Finder', icon: '/assets/icons/desktop-web-ui.png' },
+  { appId: 'about', label: 'About', icon: '/assets/icons/desktop-Resume.png' },
+  { appId: 'experience', label: 'Experience', icon: '/assets/icons/desktop-milestone.png' },
+  { appId: 'terminal', label: 'Terminal', icon: '/assets/icons/dock-after-effects.png' },
+  { appId: 'minesweeper', label: 'Minesweeper', icon: '/assets/icons/desktop-fluidai.png' },
+  { appId: 'contact', label: 'Contact', icon: '/assets/icons/dock-mail.png' },
+  { appId: 'pdfviewer', label: 'CV', icon: '/assets/icons/desktop-Resume.png' },
+  { appId: 'systempreferences', label: 'Settings', icon: '/assets/icons/desktop-milestone.png' },
+  { appId: 'trash', label: 'Trash', icon: '/assets/icons/dock-trash.png' },
 ];
 
-const BASE_SIZE = 44;
 const MAX_SCALE = 1.55;
 
 export default function Dock() {
@@ -92,8 +91,6 @@ export default function Dock() {
 }
 
 function DockItem({ app, index, scale, isRunning, onLaunch }) {
-  const size = BASE_SIZE * scale;
-
   return (
     <div
       className={styles.item}
@@ -107,12 +104,14 @@ function DockItem({ app, index, scale, isRunning, onLaunch }) {
         onClick={onLaunch}
         aria-label={app.label}
       >
-        <span
+        <img
+          src={app.icon}
+          alt=""
           className={styles.icon}
-          style={{ width: size, height: size, fontSize: size * 0.5 }}
-        >
-          {app.icon}
-        </span>
+          width={48}
+          height={48}
+          draggable={false}
+        />
       </button>
       {isRunning && <span className={styles.running} aria-hidden />}
     </div>

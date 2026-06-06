@@ -59,6 +59,16 @@
   flex-shrink: 0;
 }
 
+.iconGraphic img,
+.iconImg {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  border-radius: 0;
+}
+
 .iconGraphic svg {
   display: block;
   border-radius: 10px;
@@ -80,8 +90,8 @@
 }
 
 .trashIcon .iconGraphic {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
 }
 
 .trashIcon .iconGraphic svg {

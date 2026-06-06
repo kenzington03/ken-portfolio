@@ -2,23 +2,22 @@ import { useState } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import Wallpaper from './Wallpaper.jsx';
 import WindowLayer from '../Window/WindowLayer.jsx';
-import MacFolderIcon from '../icons/MacFolderIcon.jsx';
-import {
-  AboutIcon,
-  ExperienceIcon,
-  PdfIcon,
-  ContactIcon,
-} from '../icons/DesktopIconSprites.jsx';
-import MacTrashIcon from '../icons/MacTrashIcon.jsx';
 import styles from './Desktop.module.css';
 
 const DESKTOP_ICONS = [
-  { id: 'about', label: 'About', type: 'about', appId: 'about' },
-  { id: 'work', label: 'Work', type: 'work', appId: 'finder' },
-  { id: 'experience', label: 'Experience', type: 'experience', appId: 'experience' },
-  { id: 'cv', label: 'cv.pdf', type: 'pdf', appId: 'pdfviewer' },
-  { id: 'contact', label: 'Contact', type: 'contact', appId: 'contact' },
+  { id: 'about', label: 'About', appId: 'about', icon: '/assets/icons/desktop-Resume.png' },
+  { id: 'work', label: 'Work', appId: 'finder', icon: '/assets/icons/desktop-branding.png' },
+  {
+    id: 'experience',
+    label: 'Experience',
+    appId: 'experience',
+    icon: '/assets/icons/desktop-milestone.png',
+  },
+  { id: 'cv', label: 'cv.pdf', appId: 'pdfviewer', icon: '/assets/icons/desktop-print.png' },
+  { id: 'contact', label: 'Contact', appId: 'contact', icon: '/assets/icons/dock-mail.png' },
 ];
+
+const TRASH_ICON = '/assets/icons/dock-trash.png';
 
 export default function Desktop() {
   const { launchApp } = useOS();
@@ -42,7 +41,16 @@ export default function Desktop() {
               onDoubleClick={() => openIcon(item.appId)}
               onClick={() => setSelected(item.appId)}
             >
-              <span className={styles.iconGraphic}>{renderIcon(item.type)}</span>
+              <span className={styles.iconGraphic}>
+                <img
+                  src={item.icon}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className={styles.iconImg}
+                  draggable={false}
+                />
+              </span>
               <span className={styles.iconLabel}>{item.label}</span>
             </button>
           ))}
@@ -60,7 +68,14 @@ export default function Desktop() {
           }}
         >
           <span className={styles.iconGraphic}>
-            <MacTrashIcon size={52} />
+            <img
+              src={TRASH_ICON}
+              alt=""
+              width={48}
+              height={48}
+              className={styles.iconImg}
+              draggable={false}
+            />
           </span>
           <span className={styles.iconLabel}>Trash</span>
         </button>
@@ -70,21 +85,4 @@ export default function Desktop() {
       </div>
     </div>
   );
-}
-
-function renderIcon(type) {
-  switch (type) {
-    case 'about':
-      return <AboutIcon size={48} />;
-    case 'work':
-      return <MacFolderIcon size={48} variant="work" />;
-    case 'experience':
-      return <ExperienceIcon size={48} />;
-    case 'pdf':
-      return <PdfIcon size={48} />;
-    case 'contact':
-      return <ContactIcon size={48} />;
-    default:
-      return <MacFolderIcon size={48} />;
-  }
 }
