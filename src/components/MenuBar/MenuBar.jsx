@@ -3,15 +3,15 @@ import { useOS } from '../../context/OSContext.jsx';
 import styles from './MenuBar.module.css';
 
 const APP_LABELS = {
-  about: 'About',
-  experience: 'Experience',
+  about: 'About Ken',
   contact: 'Contact',
-  finder: 'Finder',
+  finder: 'Work',
   terminal: 'Terminal',
   minesweeper: 'Minesweeper',
-  pdfviewer: 'cv.pdf',
+  pdfviewer: 'Resume',
   projectviewer: 'Project',
   trash: 'Trash',
+  claude: 'Claude — Ask me about Ken',
   systempreferences: 'System Preferences',
 };
 

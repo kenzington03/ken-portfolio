@@ -14,17 +14,21 @@
 }
 
 .icons {
+  position: absolute;
+  top: 60px;
+  right: 24px;
+  left: auto;
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  align-items: flex-end;
   gap: 8px;
-  padding: 16px;
-  height: 100%;
-  max-width: 120px;
+  padding: 0;
+  height: auto;
+  max-width: none;
+  z-index: 2;
 }
 
-.icon,
+.iconButton,
 .trashIcon {
   display: flex;
   flex-direction: column;
@@ -40,7 +44,7 @@
   transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 
-.icon:hover,
+.iconButton:hover,
 .trashIcon:hover {
   transform: translateY(-2px);
 }
@@ -69,12 +73,6 @@
   border-radius: 0;
 }
 
-.iconGraphic svg {
-  display: block;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
 .iconLabel {
   font-size: 12px;
   line-height: 1.2;
@@ -94,9 +92,34 @@
   height: 48px;
 }
 
-.trashIcon .iconGraphic svg {
-  border-radius: 0;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+.contextMenu {
+  position: fixed;
+  z-index: 1500;
+  min-width: 160px;
+  padding: 4px;
+  background: rgba(40, 40, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.contextItem {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 13px;
+  color: #e8e8e8;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.contextItem:hover {
+  background: rgba(13, 155, 168, 0.2);
+  color: #fff;
 }
 
 .windows {
@@ -107,5 +130,16 @@
 }
 
 .windows > * {
+  pointer-events: auto;
+}
+
+.petMount {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.petMount :global(.oneko-pet) {
   pointer-events: auto;
 }

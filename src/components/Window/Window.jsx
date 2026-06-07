@@ -1,8 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { applyScaleOrigin } from '../../utils/animationOrigin.js';
 import { useOS } from '../../context/OSContext.jsx';
 import styles from './Window.module.css';
 
-const MIN_WIDTH = 400;
+const MIN_WIDTH = 480;
 const MIN_HEIGHT = 300;
 
 export default function Window({ win }) {
@@ -16,8 +17,46 @@ export default function Window({ win }) {
     updateWindowSize,
   } = useOS();
 
+  const windowRef = useRef(null);
+  const [scaleReady, setScaleReady] = useState(!win.opening);
   const isActive = activeWindowId === win.id;
   const Component = win.component;
+
+  const syncOrigin = useCallback(() => {
+    if (windowRef.current && win.animationOrigin) {
+      applyScaleOrigin(windowRef.current, win.animationOrigin);
+    }
+  }, [win.animationOrigin]);
+
+  useLayoutEffect(() => {
+    const el = windowRef.current;
+    if (!el) return;
+
+    if (win.animationOrigin) {
+      applyScaleOrigin(el, win.animationOrigin);
+    }
+
+    if (win.opening) {
+      setScaleReady(false);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setScaleReady(true));
+      });
+    }
+
+    if (win.closing) {
+      syncOrigin();
+    }
+  }, [win.opening, win.closing, win.animationOrigin, win.position, win.size, win.maximized, syncOrigin]);
+
+  const setWindowRef = useCallback(
+    (node) => {
+      windowRef.current = node;
+      if (node && win.animationOrigin) {
+        applyScaleOrigin(node, win.animationOrigin);
+      }
+    },
+    [win.animationOrigin]
+  );
 
   const onTitleMouseDown = useCallback(
     (e) => {
@@ -100,6 +139,15 @@ export default function Window({ win }) {
     [win, focusWindow, updateWindowPosition, updateWindowSize]
   );
 
+  const onClose = useCallback(
+    (e) => {
+      e.stopPropagation();
+      syncOrigin();
+      closeWindow(win.id);
+    },
+    [syncOrigin, win.id, closeWindow]
+  );
+
   const style = win.maximized
     ? { zIndex: win.zIndex }
     : {
@@ -112,24 +160,32 @@ export default function Window({ win }) {
 
   const resizeDirs = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
 
+  const animClass = win.closing
+    ? styles.windowClosing
+    : win.minimizing
+      ? styles.windowMinimizing
+      : win.opening && scaleReady
+        ? styles.windowOpening
+        : win.opening
+          ? styles.windowPreOpen
+          : '';
+
   return (
     <div
-      className={`${styles.window} ${win.maximized ? styles.windowMaximized : ''} ${isActive ? styles.focused : styles.unfocused}`}
+      ref={setWindowRef}
+      className={`${styles.window} ${win.maximized ? styles.windowMaximized : ''} ${isActive ? styles.focused : styles.unfocused} ${animClass}`}
       style={style}
       onMouseDown={() => focusWindow(win.id)}
       role="dialog"
       aria-label={win.title}
     >
-      <div className={styles.titlebar} onMouseDown={onTitleMouseDown}>
+      <div className={styles.titlebar} data-window-titlebar onMouseDown={onTitleMouseDown}>
         <div className={styles.trafficLights}>
           <button
             type="button"
             className={`${styles.trafficBtn} ${styles.close}`}
             aria-label="Close"
-            onClick={(e) => {
-              e.stopPropagation();
-              closeWindow(win.id);
-            }}
+            onClick={onClose}
           >
             <span className={styles.trafficSymbol} aria-hidden>
               ×

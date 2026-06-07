@@ -7,8 +7,59 @@
   border-radius: 10px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   overflow: hidden;
-  min-width: 400px;
+  min-width: 480px;
   min-height: 300px;
+}
+
+.windowPreOpen {
+  opacity: 0;
+  transform: translate(var(--scale-tx, 0), var(--scale-ty, 0)) scale(0.04);
+}
+
+.windowOpening {
+  animation: windowScaleOpen 280ms ease-out forwards;
+}
+
+.windowClosing {
+  animation: windowScaleClose 260ms ease-in forwards;
+}
+
+.windowMinimizing {
+  animation: windowMinimize 200ms ease-in forwards;
+  transform-origin: bottom center;
+}
+
+@keyframes windowScaleOpen {
+  from {
+    transform: translate(var(--scale-tx, 0), var(--scale-ty, 0)) scale(0.04);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes windowScaleClose {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--scale-tx, 0), var(--scale-ty, 0)) scale(0.04);
+    opacity: 0;
+  }
+}
+
+@keyframes windowMinimize {
+  from {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.35) translateY(42vh);
+    opacity: 0;
+  }
 }
 
 .windowMaximized {
@@ -17,14 +68,15 @@
   width: 100% !important;
   height: calc(100% - var(--menubar-height) - var(--dock-height)) !important;
   border-radius: 0;
+  min-width: 0;
 }
 
 .titlebar {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  position: relative;
+  display: flex;
   align-items: center;
   height: 38px;
-  padding: 0;
+  padding: 0 80px;
   background: #2a2a2e;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
@@ -33,11 +85,14 @@
 }
 
 .trafficLights {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   gap: 8px;
   padding-left: 12px;
-  justify-self: start;
   z-index: 1;
 }
 
@@ -86,17 +141,15 @@
 }
 
 .title {
-  grid-column: 2;
+  flex: 1;
   text-align: center;
   font-size: 13px;
   font-weight: 500;
   color: #c0c0c0;
   pointer-events: none;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60%;
-  justify-self: center;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .unfocused .title {
@@ -109,7 +162,6 @@
   min-height: 0;
 }
 
-/* 8-direction resize handles */
 .resizeHandle {
   position: absolute;
   z-index: 3;

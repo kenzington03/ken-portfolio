@@ -1,17 +1,39 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useOS } from '../../../context/OSContext.jsx';
+import { WALLPAPER_OPTIONS } from '../../../data/wallpapers.js';
 import styles from './SystemPreferences.module.css';
 
-const WALLPAPERS = [
-  { id: 'default', label: 'Default', className: styles.wDefault },
-  { id: 'aurora', label: 'Aurora', className: styles.wAurora },
-  { id: 'midnight', label: 'Midnight', className: styles.wMidnight },
-  { id: 'mesh', label: 'Mesh', className: styles.wMesh },
-];
+function probeImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = src;
+  });
+}
 
 export default function SystemPreferences() {
   const { wallpaper, setWallpaper, unlock } = useOS();
   const [section, setSection] = useState('desktop');
+  const [availableIds, setAvailableIds] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const ids = new Set(['default', 'aurora', 'bg1', 'bg2', 'bg3']);
+      const tubesOk = await probeImage('/assets/ui/wallpaper-tubes.jpg');
+      if (tubesOk) ids.add('tubes');
+      if (!cancelled) setAvailableIds(ids);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const wallpapers = useMemo(() => {
+    if (!availableIds) return WALLPAPER_OPTIONS.filter((w) => !w.optional);
+    return WALLPAPER_OPTIONS.filter((w) => !w.optional || availableIds.has(w.id));
+  }, [availableIds]);
 
   const selectWallpaper = (id) => {
     setWallpaper(id);
@@ -41,15 +63,18 @@ export default function SystemPreferences() {
           <>
             <h2>Wallpaper</h2>
             <div className={styles.wallpapers}>
-              {WALLPAPERS.map((w) => (
+              {wallpapers.map((w) => (
                 <button
                   key={w.id}
                   type="button"
-                  className={`${styles.wallOption} ${w.className} ${
-                    wallpaper === w.id ? styles.wallSelected : ''
-                  }`}
+                  className={`${styles.wallOption} ${wallpaper === w.id ? styles.wallSelected : ''}`}
                   onClick={() => selectWallpaper(w.id)}
                 >
+                  {w.type === 'image' ? (
+                    <img src={w.src} alt="" className={styles.wallThumbImg} />
+                  ) : (
+                    <span className={`${styles.wallThumbCss} ${styles[`thumb_${w.cssClass}`]}`} />
+                  )}
                   <span className={styles.wallLabel}>{w.label}</span>
                 </button>
               ))}
@@ -59,7 +84,7 @@ export default function SystemPreferences() {
         {section === 'about' && (
           <>
             <h2>About Kenneth OS</h2>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <p className={styles.aboutText}>
               Portfolio v1.0 — React 19 + Vite. A macOS-inspired desktop experience built as a
               design lead showcase.
             </p>

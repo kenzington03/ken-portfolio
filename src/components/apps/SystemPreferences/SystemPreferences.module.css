@@ -39,6 +39,12 @@
   margin-bottom: 12px;
 }
 
+.aboutText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
 .wallpapers {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -52,6 +58,8 @@
   cursor: pointer;
   overflow: hidden;
   position: relative;
+  padding: 0;
+  background: #0a0a0a;
 }
 
 .wallOption:hover {
@@ -62,6 +70,31 @@
   border-color: var(--accent);
 }
 
+.wallThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wallThumbCss {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.thumb_default {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(13, 155, 168, 0.15), transparent),
+    linear-gradient(160deg, #0a0a0a, #121212);
+}
+
+.thumb_aurora {
+  background:
+    radial-gradient(circle at 30% 40%, rgba(13, 155, 168, 0.35), transparent 50%),
+    linear-gradient(180deg, #0a0a0a, #141820);
+}
+
 .wallLabel {
   position: absolute;
   bottom: 6px;
@@ -69,17 +102,5 @@
   font-size: 11px;
   font-weight: 500;
   text-shadow: 0 1px 4px #000;
-}
-
-.wDefault {
-  background: linear-gradient(160deg, #0a0a0a, #121212);
-}
-.wAurora {
-  background: linear-gradient(180deg, #0a0a0a, #141820);
-}
-.wMidnight {
-  background: #050508;
-}
-.wMesh {
-  background: linear-gradient(135deg, rgba(13, 155, 168, 0.3), #0a0a0a);
+  color: #fff;
 }

@@ -1,0 +1,164 @@
+.viewer {
+  height: 100%;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.scroll {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: rgba(10, 10, 10, 0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 32px 0;
+}
+
+.logoBadge {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+.headerText {
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+  line-height: 1.15;
+}
+
+.headerTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.headerTag {
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+.content {
+  padding: 0 32px 40px;
+}
+
+.overview {
+  scroll-margin-top: 140px;
+  padding: 24px 0 8px;
+}
+
+.overviewText {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #e8e8e8;
+  max-width: 720px;
+}
+
+.loading {
+  padding: 32px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.campaignSection {
+  scroll-margin-top: 140px;
+  margin-bottom: 40px;
+  padding: 24px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.emptyMedia {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.sectionHero {
+  margin-bottom: 16px;
+}
+
+.reelGroup {
+  margin-bottom: 20px;
+}
+
+.reelGroup:last-child {
+  margin-bottom: 0;
+}
+
+.reelGroupTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.footer {
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nextLink {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.nextLink:hover {
+  color: var(--accent-hover);
+}
+
+@media (max-width: 640px) {
+  .headerTop,
+  .content {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .campaignSection {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+}

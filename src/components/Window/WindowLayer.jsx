@@ -3,7 +3,7 @@ import Window from './Window.jsx';
 
 export default function WindowLayer() {
   const { windows } = useOS();
-  const visible = windows.filter((w) => !w.minimized);
+  const visible = windows.filter((w) => !w.minimized || w.minimizing || w.closing);
 
   return (
     <>

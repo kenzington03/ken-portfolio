@@ -1,0 +1,96 @@
+.dropdowns {
+  display: flex;
+  gap: 6px;
+  position: relative;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdownTrigger {
+  cursor: pointer;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #c0c0c0;
+  background: #3a3a3e;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  user-select: none;
+}
+
+.dropdownTrigger:hover,
+.dropdownTriggerOpen {
+  background: #45454a;
+  color: #fff;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  min-width: 180px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 6px;
+  background: #2a2a2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #d0d0d0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.checkRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.checkRow input {
+  accent-color: var(--accent);
+}
+
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(13, 155, 168, 0.15);
+  border: 1px solid rgba(13, 155, 168, 0.35);
+  border-radius: 999px;
+}
+
+.chip button {
+  padding: 0;
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chip button:hover {
+  color: #fff;
+}

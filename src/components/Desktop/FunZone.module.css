@@ -1,0 +1,50 @@
+.funZone {
+  position: absolute;
+  bottom: calc(var(--dock-height) + 12px);
+  left: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 4px;
+  z-index: 2;
+}
+
+.iconButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 72px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: center;
+  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.iconButton:hover {
+  transform: translateY(-2px);
+}
+
+.iconSelected {
+  background: rgba(13, 155, 168, 0.12);
+  border-color: #0d9ba8;
+}
+
+.iconGraphic {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconLabel {
+  font-size: 11px;
+  line-height: 1.2;
+  word-break: break-word;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}

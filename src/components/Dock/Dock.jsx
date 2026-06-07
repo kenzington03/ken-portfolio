@@ -1,119 +1,130 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { getOriginFromEvent } from '../../utils/animationOrigin.js';
 import { useOS } from '../../context/OSContext.jsx';
+import DockIcon from './DockIcon.jsx';
 import styles from './Dock.module.css';
 
-const DOCK_APPS = [
-  { appId: 'finder', label: 'Finder', icon: '/assets/icons/desktop-web-ui.png' },
-  { appId: 'about', label: 'About', icon: '/assets/icons/desktop-Resume.png' },
-  { appId: 'experience', label: 'Experience', icon: '/assets/icons/desktop-milestone.png' },
-  { appId: 'terminal', label: 'Terminal', icon: '/assets/icons/dock-after-effects.png' },
-  { appId: 'minesweeper', label: 'Minesweeper', icon: '/assets/icons/desktop-fluidai.png' },
-  { appId: 'contact', label: 'Contact', icon: '/assets/icons/dock-mail.png' },
-  { appId: 'pdfviewer', label: 'CV', icon: '/assets/icons/desktop-Resume.png' },
-  { appId: 'systempreferences', label: 'Settings', icon: '/assets/icons/desktop-milestone.png' },
-  { appId: 'trash', label: 'Trash', icon: '/assets/icons/dock-trash.png' },
+const DOCK_MAIN = [
+  { id: 'finder', label: 'Work', appId: 'finder', src: '/assets/icons/desktop-web-ui.png', action: 'app' },
+  { id: 'terminal', label: 'Terminal', appId: 'terminal', src: '/assets/icons/dock-terminal.png', action: 'app' },
+  { id: 'illustrator', label: 'Illustrator', src: '/assets/icons/dock-Illustrator.png', action: 'none' },
+  { id: 'aftereffects', label: 'After Effects', src: '/assets/icons/dock-after-effects.png', action: 'none' },
+  {
+    id: 'instagram',
+    label: 'Instagram',
+    src: '/assets/icons/dock-Instagram.png',
+    action: 'url',
+    url: 'https://instagram.com/nathanaelkenneth',
+  },
+  { id: 'claude', label: 'Claude', appId: 'claude', src: '/assets/icons/dock-claude-logo.png', action: 'app' },
+  { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.png', action: 'app' },
+  {
+    id: 'settings',
+    label: 'Settings',
+    appId: 'systempreferences',
+    src: '/assets/icons/dock-settings.png',
+    action: 'app',
+  },
 ];
 
-const MAX_SCALE = 1.55;
+const DOCK_TRASH = {
+  id: 'trash',
+  label: 'Trash',
+  appId: 'trash',
+  src: '/assets/icons/dock-trash.png',
+  action: 'app',
+};
+
+const SPRING = { stiffness: 300, damping: 30, mass: 0.1 };
+
+function DockMagnifyItem({ mouseX, item, isRunning, onLaunch }) {
+  const ref = useRef(null);
+
+  const distance = useTransform(mouseX, (val) => {
+    const bounds = ref.current?.getBoundingClientRect();
+    if (!bounds || val === Infinity) return 1000;
+    return val - bounds.x - bounds.width / 2;
+  });
+
+  const scaleSync = useTransform(distance, [-150, -50, 0, 50, 150], [1, 1.3, 1.6, 1.3, 1]);
+  const scale = useSpring(scaleSync, SPRING);
+
+  return (
+    <motion.div
+      ref={ref}
+      className={styles.item}
+      style={{ scale, originY: 1 }}
+    >
+      <span className={styles.tooltip}>{item.label}</span>
+      <button
+        type="button"
+        className={`${styles.itemBtn} ${item.action === 'none' ? styles.itemBtnDecorative : ''}`}
+        onClick={onLaunch}
+        aria-label={item.label}
+        data-animation-origin
+      >
+        <DockIcon src={item.src} label={item.label} />
+      </button>
+      {isRunning && <span className={styles.running} aria-hidden />}
+    </motion.div>
+  );
+}
 
 export default function Dock() {
   const { windows, launchFromDock } = useOS();
-  const dockRef = useRef(null);
-  const [magnifyIndex, setMagnifyIndex] = useState(null);
-
+  const mouseX = useMotionValue(Infinity);
   const runningApps = new Set(windows.map((w) => w.appId));
 
-  const getScale = useCallback(
-    (index) => {
-      if (magnifyIndex === null) return 1;
-      const dist = Math.abs(index - magnifyIndex);
-      if (dist === 0) return MAX_SCALE;
-      if (dist === 1) return 1.25;
-      if (dist === 2) return 1.1;
-      return 1;
+  const handleMouseMove = useCallback(
+    (e) => {
+      mouseX.set(e.clientX);
     },
-    [magnifyIndex]
+    [mouseX]
   );
 
-  const handleMouseMove = useCallback((e) => {
-    const dock = dockRef.current;
-    if (!dock) return;
-    const items = dock.querySelectorAll('[data-dock-index]');
-    let closest = null;
-    let minDist = Infinity;
-    items.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const center = rect.left + rect.width / 2;
-      const dist = Math.abs(e.clientX - center);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = Number(el.dataset.dockIndex);
+  const handleMouseLeave = useCallback(() => {
+    mouseX.set(Infinity);
+  }, [mouseX]);
+
+  const handleLaunch = useCallback(
+    (item, event) => {
+      if (item.action === 'none') return;
+      if (item.action === 'url' && item.url) {
+        window.open(item.url, '_blank', 'noopener,noreferrer');
+        return;
       }
-    });
-    setMagnifyIndex(minDist < 80 ? closest : null);
-  }, []);
+      if (item.appId) {
+        launchFromDock(item.appId, { animationOrigin: getOriginFromEvent(event) });
+      }
+    },
+    [launchFromDock]
+  );
 
   return (
     <div className={styles.dockWrap}>
       <div
-        ref={dockRef}
         className={styles.dock}
         onMouseMove={handleMouseMove}
-        onMouseLeave={() => setMagnifyIndex(null)}
+        onMouseLeave={handleMouseLeave}
       >
-        {DOCK_APPS.slice(0, 7).map((app, i) => (
-          <DockItem
-            key={app.appId}
-            app={app}
-            index={i}
-            scale={getScale(i)}
-            isRunning={runningApps.has(app.appId)}
-            onLaunch={() => launchFromDock(app.appId)}
+        {DOCK_MAIN.map((item) => (
+          <DockMagnifyItem
+            key={item.id}
+            mouseX={mouseX}
+            item={item}
+            isRunning={item.appId ? runningApps.has(item.appId) : false}
+            onLaunch={(e) => handleLaunch(item, e)}
           />
         ))}
         <div className={styles.divider} aria-hidden />
-        {DOCK_APPS.slice(7).map((app, i) => {
-          const index = i + 7;
-          return (
-            <DockItem
-              key={app.appId}
-              app={app}
-              index={index}
-              scale={getScale(index)}
-              isRunning={runningApps.has(app.appId)}
-              onLaunch={() => launchFromDock(app.appId)}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function DockItem({ app, index, scale, isRunning, onLaunch }) {
-  return (
-    <div
-      className={styles.item}
-      data-dock-index={index}
-      style={{ transform: `scale(${scale})` }}
-    >
-      <span className={styles.tooltip}>{app.label}</span>
-      <button
-        type="button"
-        className={styles.itemBtn}
-        onClick={onLaunch}
-        aria-label={app.label}
-      >
-        <img
-          src={app.icon}
-          alt=""
-          className={styles.icon}
-          width={48}
-          height={48}
-          draggable={false}
+        <DockMagnifyItem
+          mouseX={mouseX}
+          item={DOCK_TRASH}
+          isRunning={runningApps.has(DOCK_TRASH.appId)}
+          onLaunch={(e) => handleLaunch(DOCK_TRASH, e)}
         />
-      </button>
-      {isRunning && <span className={styles.running} aria-hidden />}
+      </div>
     </div>
   );
 }

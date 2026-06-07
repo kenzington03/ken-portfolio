@@ -1,0 +1,14 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #061a30;
+}
+
+.canvas {
+  display: block;
+  border-radius: 8px;
+  cursor: pointer;
+  max-width: 100%;
+}

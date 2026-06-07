@@ -50,3 +50,31 @@
 .success {
   color: #4ade80;
 }
+
+.muted {
+  color: #888;
+}
+
+.skill {
+  color: var(--accent);
+}
+
+.helpGrid {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) 1fr;
+  column-gap: 16px;
+  row-gap: 8px;
+  margin-bottom: 8px;
+}
+
+.helpRow {
+  display: contents;
+}
+
+.helpCmd {
+  color: var(--accent);
+}
+
+.helpDesc {
+  color: #fff;
+}

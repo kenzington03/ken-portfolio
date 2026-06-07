@@ -1,0 +1,39 @@
+.tabBar {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0 32px;
+  margin-top: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: #fff;
+}
+
+.tabActive {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .tabBar {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
