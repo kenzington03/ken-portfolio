@@ -14,6 +14,7 @@ import {
 import FilterBar, { FilterChips } from './FilterBar.jsx';
 import FinderListView from './FinderListView.jsx';
 import { useOS } from '../../../context/OSContext.jsx';
+import ContactCta from '../../shared/ContactCta.jsx';
 import styles from './Finder.module.css';
 
 const LOCATIONS = [{ id: 'portfolio', label: 'Portfolio' }];
@@ -211,6 +212,7 @@ export default function Finder() {
             <p className={styles.emptyState}>No projects match the current filters.</p>
           )}
         </div>
+        <ContactCta />
       </main>
     </div>
   );

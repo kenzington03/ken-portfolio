@@ -1,0 +1,22 @@
+.contactCta {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(13, 155, 168, 0.25);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.contactCta:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}

@@ -51,8 +51,11 @@ function skillBar(name, rating, max = 10) {
 
 export default function Terminal({ windowId }) {
   const { openProject, closeWindow, play: playMusic, petVisible, showPet } = useOS();
-  const [lines, setLines] = useState([
-    { type: 'out', text: "Kenneth's Portfolio OS v1.0 — type 'help' or 'ls' to explore" },
+  const [lines, setLines] = useState(() => [
+    { type: 'out', text: "Kenneth's Portfolio OS v1.0" },
+    { type: 'out', text: '' },
+    { type: 'helpGrid', rows: COMMANDS },
+    { type: 'out', text: '' },
   ]);
   const [input, setInput] = useState('');
   const inputRef = useRef(null);
@@ -125,8 +128,12 @@ export default function Terminal({ windowId }) {
           print('current status: caffeinated, creative, and mildly obsessed with kerning.');
           break;
         case 'play':
-          playMusic();
-          print('▶ music player engaged — enjoy the vibes.', styles.success);
+          if (typeof playMusic === 'function') {
+            playMusic();
+            print('▶ music player engaged — enjoy the vibes.', styles.success);
+          } else {
+            print('music player is currently offline.', styles.error);
+          }
           break;
         case 'hire':
           print('bold of you. here\'s what you need to know:');

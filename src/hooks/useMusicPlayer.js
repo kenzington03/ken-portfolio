@@ -4,6 +4,9 @@ import { useCallback, useRef, useState } from 'react';
 export const LOFI_FALLBACK_SRC =
   'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3';
 
+/** Hide player until real per-track audio URLs are wired in. */
+export const MUSIC_PLAYER_ENABLED = false;
+
 export const MUSIC_TRACKS = [
   {
     id: 'thinkin-bout-you',

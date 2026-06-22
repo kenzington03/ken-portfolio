@@ -63,6 +63,7 @@
   flex-direction: column;
   min-width: 0;
   background: #1e1e1e;
+  position: relative;
 }
 
 .toolbar {

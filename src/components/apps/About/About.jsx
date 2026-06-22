@@ -1,4 +1,5 @@
 import RecognitionCards from './RecognitionCards.jsx';
+import ContactCta from '../../shared/ContactCta.jsx';
 import styles from './About.module.css';
 
 const SKILLS = [
@@ -72,6 +73,7 @@ export default function About() {
           <RecognitionCards />
         </section>
       </div>
+      <ContactCta />
     </div>
   );
 }

@@ -1,0 +1,123 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  pointer-events: none;
+  padding: 24px;
+}
+
+.splashWrap {
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  transform: scale(0.92) translateY(10px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.splashWrapVisible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.splashFrame {
+  width: min(640px, 86vw);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.splashImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: top;
+}
+
+.errorDialog {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(360px, 88vw);
+  padding: 20px 22px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  z-index: 1;
+  animation: errorIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes errorIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.errorTitle {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.errorMessage {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #444;
+}
+
+.errorActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.errorPrimary,
+.errorSecondary {
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.errorPrimary {
+  background: #0078d4;
+  color: #fff;
+  border-color: #0078d4;
+}
+
+.errorPrimary:hover {
+  background: #106ebe;
+}
+
+.errorSecondary {
+  background: #fff;
+  color: #333;
+  border-color: #ccc;
+}
+
+.errorSecondary:hover {
+  background: #eee;
+}

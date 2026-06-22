@@ -1,15 +1,61 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { getOriginFromEvent } from '../../utils/animationOrigin.js';
+import { PORTFOLIO_ICON_SRC } from '../../data/funZone.js';
 import { useOS } from '../../context/OSContext.jsx';
 import DockIcon from './DockIcon.jsx';
+import IllustratorIcon from './IllustratorIcon.jsx';
+import PhotoshopIcon from './PhotoshopIcon.jsx';
+import AdobeSplashOverlay from './AdobeSplashOverlay.jsx';
 import styles from './Dock.module.css';
 
-const DOCK_MAIN = [
-  { id: 'finder', label: 'Work', appId: 'finder', src: '/assets/icons/desktop-web-ui.png', action: 'app' },
-  { id: 'terminal', label: 'Terminal', appId: 'terminal', src: '/assets/icons/dock-terminal.png', action: 'app' },
-  { id: 'illustrator', label: 'Illustrator', src: '/assets/icons/dock-Illustrator.png', action: 'none' },
-  { id: 'aftereffects', label: 'After Effects', src: '/assets/icons/dock-after-effects.png', action: 'none' },
+const NUDGE_TEXT = "Explore more after you've seen the work 👀";
+
+const SPLASH_SCREENS = {
+  illustrator: '/assets/splash-screens/illustrator-splashscreen.png',
+  photoshop: '/assets/splash-screens/photoshop-splashscreen.png',
+};
+
+const DOCK_PRIMARY = [
+  {
+    id: 'finder',
+    label: 'Portfolio',
+    appId: 'finder',
+    src: PORTFOLIO_ICON_SRC,
+    action: 'app',
+    pulse: true,
+  },
+  {
+    id: 'about',
+    label: 'About',
+    appId: 'about',
+    src: '/assets/icons/desktop-Resume.png',
+    action: 'app',
+  },
+  {
+    id: 'contact',
+    label: 'Contact',
+    appId: 'contact',
+    src: '/assets/icons/dock-contacts.png',
+    action: 'app',
+  },
+];
+
+const DOCK_SECONDARY = [
+  {
+    id: 'illustrator',
+    label: 'Illustrator',
+    action: 'splash',
+    splashId: 'illustrator',
+    customIcon: 'illustrator',
+  },
+  {
+    id: 'photoshop',
+    label: 'Photoshop',
+    action: 'splash',
+    splashId: 'photoshop',
+    customIcon: 'photoshop',
+  },
   {
     id: 'instagram',
     label: 'Instagram',
@@ -38,7 +84,7 @@ const DOCK_TRASH = {
 
 const SPRING = { stiffness: 300, damping: 30, mass: 0.1 };
 
-function DockMagnifyItem({ mouseX, item, isRunning, onLaunch }) {
+function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, showPulse, showNudge }) {
   const ref = useRef(null);
 
   const distance = useTransform(mouseX, (val) => {
@@ -50,29 +96,33 @@ function DockMagnifyItem({ mouseX, item, isRunning, onLaunch }) {
   const scaleSync = useTransform(distance, [-150, -50, 0, 50, 150], [1, 1.3, 1.6, 1.3, 1]);
   const scale = useSpring(scaleSync, SPRING);
 
+  const renderIcon = () => {
+    if (item.customIcon === 'illustrator') return <IllustratorIcon />;
+    if (item.customIcon === 'photoshop') return <PhotoshopIcon />;
+    return <DockIcon src={item.src} label={item.label} />;
+  };
+
   return (
-    <motion.div
-      ref={ref}
-      className={styles.item}
-      style={{ scale, originY: 1 }}
-    >
-      <span className={styles.tooltip}>{item.label}</span>
+    <motion.div ref={ref} className={styles.item} style={{ scale, originY: 1 }}>
+      {showNudge && <span className={styles.nudgeTooltip}>{NUDGE_TEXT}</span>}
       <button
         type="button"
-        className={`${styles.itemBtn} ${item.action === 'none' ? styles.itemBtnDecorative : ''}`}
+        className={styles.itemBtn}
         onClick={onLaunch}
         aria-label={item.label}
         data-animation-origin
       >
-        <DockIcon src={item.src} label={item.label} />
+        {renderIcon()}
       </button>
+      <span className={styles.label}>{item.label}</span>
       {isRunning && <span className={styles.running} aria-hidden />}
     </motion.div>
   );
 }
 
 export default function Dock() {
-  const { windows, launchFromDock } = useOS();
+  const { windows, launchFromDock, portfolioPulseActive, showEasterEggNudge } = useOS();
+  const [activeSplash, setActiveSplash] = useState(null);
   const mouseX = useMotionValue(Infinity);
   const runningApps = new Set(windows.map((w) => w.appId));
 
@@ -89,7 +139,13 @@ export default function Dock() {
 
   const handleLaunch = useCallback(
     (item, event) => {
-      if (item.action === 'none') return;
+      if (item.action === 'splash') {
+        const src = SPLASH_SCREENS[item.splashId];
+        if (src) {
+          setActiveSplash({ label: item.label, imageSrc: src });
+        }
+        return;
+      }
       if (item.action === 'url' && item.url) {
         window.open(item.url, '_blank', 'noopener,noreferrer');
         return;
@@ -101,30 +157,36 @@ export default function Dock() {
     [launchFromDock]
   );
 
+  const renderItem = (item) => (
+    <DockMagnifyItem
+      key={item.id}
+      mouseX={mouseX}
+      item={item}
+      isRunning={item.appId ? runningApps.has(item.appId) : false}
+      onLaunch={(e) => handleLaunch(item, e)}
+      showPulse={Boolean(item.pulse && portfolioPulseActive)}
+      showNudge={Boolean(item.nudge && showEasterEggNudge)}
+    />
+  );
+
   return (
-    <div className={styles.dockWrap}>
-      <div
-        className={styles.dock}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
-        {DOCK_MAIN.map((item) => (
-          <DockMagnifyItem
-            key={item.id}
-            mouseX={mouseX}
-            item={item}
-            isRunning={item.appId ? runningApps.has(item.appId) : false}
-            onLaunch={(e) => handleLaunch(item, e)}
-          />
-        ))}
-        <div className={styles.divider} aria-hidden />
-        <DockMagnifyItem
-          mouseX={mouseX}
-          item={DOCK_TRASH}
-          isRunning={runningApps.has(DOCK_TRASH.appId)}
-          onLaunch={(e) => handleLaunch(DOCK_TRASH, e)}
-        />
+    <>
+      <div className={styles.dockWrap}>
+        <div className={styles.dock} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+          {DOCK_PRIMARY.map(renderItem)}
+          <div className={styles.divider} aria-hidden />
+          {DOCK_SECONDARY.map(renderItem)}
+          <div className={styles.divider} aria-hidden />
+          {renderItem(DOCK_TRASH)}
+        </div>
       </div>
-    </div>
+      {activeSplash && (
+        <AdobeSplashOverlay
+          label={activeSplash.label}
+          imageSrc={activeSplash.imageSrc}
+          onClose={() => setActiveSplash(null)}
+        />
+      )}
+    </>
   );
 }

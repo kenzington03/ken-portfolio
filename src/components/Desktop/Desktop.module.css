@@ -1,5 +1,6 @@
 .desktop {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -42,16 +43,33 @@
   color: var(--text-primary);
   text-align: center;
   transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+  outline: none;
 }
 
 .iconButton:hover,
 .trashIcon:hover {
   transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.iconButton:focus,
+.trashIcon:focus {
+  outline: none;
+}
+
+.iconButton:focus-visible,
+.trashIcon:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .iconSelected {
   background: rgba(13, 155, 168, 0.12);
   border-color: #0d9ba8;
+}
+
+.iconSelected:hover {
+  background: rgba(13, 155, 168, 0.16);
 }
 
 .iconGraphic {

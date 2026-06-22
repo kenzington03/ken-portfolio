@@ -16,7 +16,7 @@ import { getProjectById } from '../data/projects.js';
 const APP_REGISTRY = {
   about: { title: 'About Ken', component: About, size: { width: 820, height: 520 } },
   contact: { title: 'Contact', component: Contact, size: { width: 480, height: 620 } },
-  finder: { title: 'Work', component: Finder, size: { width: 920, height: 580 } },
+  finder: { title: 'Portfolio', component: Finder, size: { width: 920, height: 580 } },
   terminal: { title: 'Terminal', component: Terminal, size: { width: 640, height: 420 } },
   minesweeper: { title: 'Minesweeper', component: Minesweeper, size: { width: 520, height: 580 } },
   pdfviewer: { title: 'Resume', component: PDFViewer, size: { width: 680, height: 560 } },

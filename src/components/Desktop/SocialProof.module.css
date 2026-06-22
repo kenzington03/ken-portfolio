@@ -1,0 +1,20 @@
+.socialProof {
+  position: absolute;
+  bottom: calc(var(--dock-height) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  max-width: min(90vw, 520px);
+  padding: 0 16px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.hidden {
+  opacity: 0;
+}

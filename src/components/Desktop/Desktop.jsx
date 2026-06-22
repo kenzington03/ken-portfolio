@@ -1,32 +1,28 @@
 import { useState, useRef } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import { getOriginFromEvent } from '../../utils/animationOrigin.js';
-import {
-  DESKTOP_BACKGROUNDS,
-  DESKTOP_BG_STORAGE_KEY,
-  getNextDesktopBgIndex,
-  loadDesktopBgIndex,
-} from '../../data/wallpapers.js';
+import { PORTFOLIO_ICON_SRC } from '../../data/funZone.js';
+import { MUSIC_PLAYER_ENABLED } from '../../hooks/useMusicPlayer.js';
 import Wallpaper from './Wallpaper.jsx';
 import WindowLayer from '../Window/WindowLayer.jsx';
 import DesktopIcon from './DesktopIcon.jsx';
 import MusicPlayer from './MusicPlayer.jsx';
 import FunZone from './FunZone.jsx';
 import OnekoPet from './OnekoPet.jsx';
+import SocialProof from './SocialProof.jsx';
 import styles from './Desktop.module.css';
 
 const DESKTOP_ICONS = [
   { id: 'aboutken', label: 'About Ken', appId: 'about', src: '/assets/icons/desktop-Resume.png' },
-  { id: 'work', label: 'Work', appId: 'finder', src: '/assets/icons/desktop-branding.png' },
+  { id: 'portfolio', label: 'Portfolio', appId: 'finder', src: PORTFOLIO_ICON_SRC },
   { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.png' },
   { id: 'contact', label: 'Contact', appId: 'contact', src: '/assets/icons/dock-contacts.png' },
 ];
 
 export default function Desktop() {
-  const { launchApp, setWallpaper } = useOS();
+  const { launchApp } = useOS();
   const petMountRef = useRef(null);
   const [selected, setSelected] = useState(null);
-  const [bgIndex, setBgIndex] = useState(loadDesktopBgIndex);
   const [contextMenu, setContextMenu] = useState(null);
 
   const openIcon = (item, event) => {
@@ -34,16 +30,8 @@ export default function Desktop() {
     setSelected(item.id);
   };
 
-  const cycleWallpaper = () => {
-    const next = getNextDesktopBgIndex(bgIndex);
-    setBgIndex(next);
-    const bg = DESKTOP_BACKGROUNDS[next];
-    if (bg) setWallpaper(bg.id);
-    try {
-      localStorage.setItem(DESKTOP_BG_STORAGE_KEY, String(next));
-    } catch {
-      /* ignore */
-    }
+  const openSettingsFromContext = () => {
+    launchApp('systempreferences');
     setContextMenu(null);
   };
 
@@ -63,10 +51,11 @@ export default function Desktop() {
       onContextMenu={onContextMenu}
     >
       <Wallpaper />
-      <MusicPlayer />
+      {MUSIC_PLAYER_ENABLED && <MusicPlayer />}
       <div className={styles.surface}>
         <div ref={petMountRef} className={styles.petMount} aria-hidden />
         <OnekoPet mountRef={petMountRef} />
+        <SocialProof />
         <FunZone />
         <div className={styles.icons} onClick={(e) => e.stopPropagation()}>
           {DESKTOP_ICONS.map((item) => (
@@ -74,8 +63,7 @@ export default function Desktop() {
               key={item.id}
               type="button"
               className={`${styles.iconButton} ${selected === item.id ? styles.iconSelected : ''}`}
-              onDoubleClick={(e) => openIcon(item, e)}
-              onClick={() => setSelected(item.id)}
+              onClick={(e) => openIcon(item, e)}
             >
               <span className={styles.iconGraphic} data-animation-origin>
                 <DesktopIcon src={item.src} label={item.label} />
@@ -91,7 +79,7 @@ export default function Desktop() {
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <button type="button" className={styles.contextItem} onClick={cycleWallpaper}>
+          <button type="button" className={styles.contextItem} onClick={openSettingsFromContext}>
             Change Wallpaper
           </button>
         </div>

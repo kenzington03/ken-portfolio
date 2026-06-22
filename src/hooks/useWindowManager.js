@@ -3,13 +3,12 @@ import {
   WALLPAPER_STORAGE_KEY,
   loadStoredWallpaper,
 } from '../data/wallpapers.js';
-import { clampWindowPosition, getWindowPositionFromOrigin } from '../utils/animationOrigin.js';
+import { getCenteredWindowPosition } from '../utils/animationOrigin.js';
 
 let nextZIndex = 10;
 let nextWindowId = 1;
 
 const DEFAULT_SIZE = { width: 720, height: 480 };
-const DEFAULT_POSITION = { x: 120, y: 80 };
 const SCALE_CLOSE_MS = 260;
 const SCALE_OPEN_MS = 280;
 
@@ -47,15 +46,8 @@ export function useWindowManager() {
   const openWindow = useCallback(
     ({ appId, title, component, size, position, data, animationOrigin }) => {
       const id = `win-${nextWindowId++}`;
-      const offset = (windows.length % 6) * 24;
       const winSize = size ?? DEFAULT_SIZE;
-      const originPosition =
-        position ??
-        getWindowPositionFromOrigin(winSize, animationOrigin, offset) ??
-        clampWindowPosition(
-          { x: DEFAULT_POSITION.x + offset, y: DEFAULT_POSITION.y + offset },
-          winSize
-        );
+      const originPosition = position ?? getCenteredWindowPosition(winSize);
       const win = {
         id,
         appId,

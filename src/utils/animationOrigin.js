@@ -71,5 +71,18 @@ export function clampWindowPosition(position, size) {
   return { x, y };
 }
 
+/** Centre a window in the viewport, respecting menubar and right dock. */
+export function getCenteredWindowPosition(size) {
+  if (typeof window === 'undefined') return { x: 120, y: 80 };
+  const margin = 16;
+  const menubar = 28;
+  const maxRight = window.innerWidth - RIGHT_DOCK_RESERVE;
+  let x = (window.innerWidth - size.width) / 2;
+  let y = (window.innerHeight - size.height) / 2;
+  x = Math.max(margin, Math.min(x, maxRight - size.width));
+  y = Math.max(menubar, Math.min(y, window.innerHeight - size.height - margin));
+  return { x, y };
+}
+
 /** @deprecated alias */
 export const applyGenieOriginToElement = applyScaleOrigin;

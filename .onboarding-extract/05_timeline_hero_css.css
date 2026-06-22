@@ -1,0 +1,137 @@
+@keyframes pingRing{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(1.8);opacity:0;}}
+
+/* RULES */
+
+/* ════════════════════════════════
+   HERO — full-bleed, editorial
+════════════════════════════════ */
+.hero{
+  min-height:100vh;
+  display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;gap:0;
+  overflow:hidden;position:relative;
+}
+
+/* Left half — content */
+.hero-left{
+  padding:10rem 5rem 8rem 5.5rem;
+  position:relative;z-index:2;
+}
+
+/* Right half — visual panel */
+.hero-right{
+  position:relative;height:100%;min-height:100vh;
+  background:var(--kl);
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Mesh inside right panel */
+.hero-right-mesh{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(112,84,176,0.3) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(247,217,120,0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 60% 40%, rgba(255,255,255,0.5) 0%, transparent 50%);
+}
+
+/* Floating day cards inside right panel */
+.hero-card-cluster{
+  position:relative;width:360px;height:380px;z-index:2;
+}
+
+/* Left side eyebrow */
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--kd);margin-bottom:2.2rem;
+  opacity:0;
+}
+
+.hero-h1{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(3.2rem,5vw,5.5rem);
+  line-height:1.04;letter-spacing:-0.025em;
+  margin-bottom:1.8rem;
+}
+
+.hero-h1 em{font-style:italic;color:var(--kd);}
+
+.hero-h1-line{display:block;overflow:hidden;}
+
+.hero-h1-word{display:inline-block;transform:translateY(110%);}
+
+.hero-body{
+  font-size:1.05rem;font-weight:400;line-height:1.82;
+  color:var(--muted);max-width:440px;
+  margin-bottom:2.8rem;opacity:0;
+}
+
+/* ════════════════════════════════
+   WHAT TO EXPECT
+════════════════════════════════ */
+.expect-section{
+  padding:9rem 5rem;
+  background:var(--ink);
+  position:relative;overflow:hidden;
+}
+
+/* Radial glow */
+.expect-section::before{
+  content:'';position:absolute;
+  width:800px;height:800px;border-radius:50%;
+  background:radial-gradient(circle,rgba(178,153,255,0.12) 0%,transparent 65%);
+  top:-200px;right:-200px;pointer-events:none;
+}
+
+/* Noise texture */
+.expect-section::after{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:160px;pointer-events:none;
+}
+
+.expect-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1;}
+
+.expect-top{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:4rem;flex-wrap:wrap;gap:2rem;
+}
+
+/* ════════════════════════════════
+   TIMELINE
+════════════════════════════════ */
+.timeline-section{padding:9rem 5rem;background:var(--kf);position:relative;}
+
+/* ════════════════════════════════
+   DEPT PAGE
+════════════════════════════════ */
+.dept-hero{
+  padding:9.5rem 5rem 6rem;
+  position:relative;overflow:hidden;
+  border-bottom:0.5px solid rgba(30,24,48,0.07);
+}
+
+.dept-hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 55% 70% at 85% 20%,rgba(178,153,255,0.12) 0%,transparent 60%),
+    radial-gradient(ellipse 35% 45% at 10% 90%,rgba(247,217,120,0.08) 0%,transparent 55%);
+}
+
+.dept-hero-inner{
+  max-width:1200px;margin:0 auto;position:relative;z-index:1;
+  display:grid;grid-template-columns:1fr 380px;gap:5rem;align-items:end;
+}
+
+.hero{grid-template-columns:1fr;}
+
+.hero-right{display:none;}
+
+.hero-left{padding:8rem 1.5rem 5rem;}
+
+.depts-section,.expect-section,.timeline-section{padding:5rem 1.5rem;}
+
+.dept-hero{padding:8rem 1.5rem 4rem;}
+
+.dept-hero-inner{grid-template-columns:1fr;}

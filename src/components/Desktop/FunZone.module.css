@@ -22,6 +22,22 @@
   color: var(--text-primary);
   text-align: center;
   transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+  position: relative;
+  outline: none;
+}
+
+.iconButton:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.iconButton:focus {
+  outline: none;
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .iconButton:hover {
@@ -47,4 +63,27 @@
   line-height: 1.2;
   word-break: break-word;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+.nudgeTooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 3;
+}
+
+.iconButton:hover .nudgeTooltip {
+  opacity: 1;
 }
