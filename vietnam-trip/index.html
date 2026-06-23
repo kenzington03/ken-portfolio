@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#070707" />
+  <title>Vietnam '26 — Ken & Darshan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================
+       RESET & BASE
+    ============================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --font-ui:    'Space Grotesk', system-ui, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-mono:  'DM Mono', 'Courier New', monospace;
+
+      /* Global */
+      --bg:         #070707;
+      --fg:         #ede8db;
+      --fg-muted:   rgba(237,232,219,0.38);
+      --gold:       #c8a33c;
+
+      /* Pho path */
+      --pho-bg:     #0d0300;
+      --pho-accent: #d45a14;
+
+      /* Beer path */
+      --beer-bg:    #060d18;
+      --beer-green: #3f9468;
+
+      /* Speakeasy */
+      --sk-bg:      #040009;
+      --sk-red:     #6b1010;
+      --sk-amber:   #c26515;
+
+      /* Easings */
+      --spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-out:   cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Film grain overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.038;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ============================================
+       SCREEN SYSTEM
+    ============================================ */
+    .screen {
+      position: fixed; inset: 0;
+      will-change: transform, opacity;
+    }
+
+    .screen.s-active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+      transition: opacity 0.45s var(--ease-out), transform 0.45s var(--spring);
+    }
+
+    .screen.s-below {
+      opacity: 0;
+      transform: translateY(55px);
+      pointer-events: none;
+      transition: opacity 0.4s var(--ease-out), transform 0.4s var(--spring);
+    }
+
+    .screen.s-above {
+      opacity: 0;
+      transform: translateY(-35px);
+      pointer-events: none;
+      transition: opacity 0.35s var(--ease-out), transform 0.35s var(--ease-in, ease-in);
+    }
+
+    .scroll-area {
+      height: 100%; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+    }
+
+    /* ============================================
+       BACK BUTTON
+    ============================================ */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 16px;
+      background: none; border: none;
+      color: var(--fg-muted);
+      font-family: var(--font-ui); font-size: 12px;
+      font-weight: 500; letter-spacing: 0.07em;
+      text-transform: uppercase; cursor: pointer;
+      transition: color 0.2s, transform 0.18s var(--spring);
+    }
+    .back-btn:hover  { color: var(--fg); }
+    .back-btn:active { transform: scale(0.94) translateX(-2px); }
+    .back-btn svg    { width: 14px; height: 14px; transition: transform 0.2s var(--spring); }
+    .back-btn:hover svg { transform: translateX(-3px); }
+
+    /* ============================================
+       LANDING SCREEN
+    ============================================ */
+    #landing {
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 20px;
+      min-height: 100svh;
+    }
+
+    .lnd-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 13px;
+      border: 1px solid rgba(200,163,60,0.28);
+      border-radius: 999px;
+      font-size: 10.5px; font-weight: 500;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 22px;
+      animation: fadeDown 0.6s var(--ease-out) 0.1s both;
+    }
+    .lnd-tag::before {
+      content: '';
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold);
+      animation: blink 2.2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .lnd-question {
+      font-family: var(--font-serif);
+      font-size: clamp(34px, 9vw, 56px);
+      font-weight: 700; line-height: 1.12;
+      text-align: center; color: var(--fg);
+      animation: fadeUp 0.7s var(--ease-out) 0.25s both;
+    }
+    .lnd-question em { font-style: italic; color: var(--gold); }
+
+    .lnd-hint {
+      margin-top: 10px; font-size: 13px;
+      color: var(--fg-muted); font-weight: 400;
+      text-align: center;
+      animation: fadeUp 0.7s var(--ease-out) 0.38s both;
+    }
+
+    .lnd-header { margin-bottom: 44px; text-align: center; }
+
+    /* Option cards */
+    .options {
+      display: flex; flex-direction: column; gap: 11px;
+      width: 100%; max-width: 400px;
+      animation: fadeUp 0.7s var(--ease-out) 0.5s both;
+    }
+
+    .opt-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 17px 18px;
+      background: rgba(255,255,255,0.038);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; cursor: pointer;
+      transition:
+        background 0.22s var(--ease-out),
+        border-color 0.22s var(--ease-out),
+        transform 0.22s var(--spring),
+        box-shadow 0.22s var(--ease-out);
+      text-align: left;
+      -webkit-user-select: none; user-select: none;
+    }
+    .opt-card:hover {
+      background: rgba(255,255,255,0.065);
+      border-color: rgba(255,255,255,0.13);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+    }
+    .opt-card:active { transform: scale(0.962); box-shadow: none; }
+
+    .opt-card.c-pho:hover  { border-color: rgba(212,90,20,0.45); background: rgba(212,90,20,0.09); }
+    .opt-card.c-beer:hover { border-color: rgba(63,148,104,0.4);  background: rgba(63,148,104,0.08); }
+    .opt-card.c-sk:hover   { border-color: rgba(107,16,16,0.65);  background: rgba(107,16,16,0.12); }
+
+    .opt-icon {
+      width: 52px; height: 52px;
+      background: rgba(255,255,255,0.055);
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 28px;
+      position: relative;
+    }
+    .c-sk .opt-icon { background: rgba(107,16,16,0.18); }
+
+    .opt-text { flex: 1; }
+    .opt-label { font-size: 15.5px; font-weight: 600; color: var(--fg); line-height: 1.25; }
+    .opt-sub   { font-size: 11.5px; color: var(--fg-muted); margin-top: 3px; }
+
+    .opt-arrow {
+      color: var(--fg-muted);
+      transition: transform 0.2s var(--spring), color 0.2s;
+      flex-shrink: 0;
+    }
+    .opt-card:hover .opt-arrow { transform: translateX(4px); color: var(--fg); }
+
+    /* Bottles icon (Option 3) */
+    .bottles-wrap {
+      position: relative; width: 52px; height: 52px;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .bottle { position: absolute; bottom: 4px; }
+    .b-silver { right: 4px;  font-size: 16px; opacity: 0.42; transform: scale(0.82); }
+    .b-gold   { left: 4px;   font-size: 18px; opacity: 0.6;  transform: scale(0.88); }
+    .b-black  { left: 50%; transform: translateX(-50%); font-size: 24px; z-index: 2; }
+
+    /* ============================================
+       PHO SCREEN — "The Lie"
+    ============================================ */
+    #path-pho { background: var(--pho-bg); }
+
+    .pho-nav {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 14px 8px;
+    }
+
+    .pho-body {
+      min-height: 100svh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 80px 28px 48px;
+      text-align: center;
+      max-width: 460px; margin: 0 auto;
+    }
+
+    .pho-emoji {
+      font-size: 68px; display: block;
+      margin-bottom: 30px;
+      animation: wobble 1s var(--spring) 0.3s both;
+    }
+    @keyframes wobble {
+      0%   { transform: scale(0.7) rotate(0deg); opacity: 0; }
+      40%  { transform: scale(1.15) rotate(-8deg); }
+      65%  { transform: scale(0.95) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .pho-eyebrow {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--pho-accent); opacity: 0.75;
+      margin-bottom: 18px;
+    }
+
+    .pho-headline {
+      font-family: var(--font-serif);
+      font-size: clamp(26px, 7vw, 40px);
+      font-weight: 700; line-height: 1.2;
+      color: var(--fg); margin-bottom: 8px;
+    }
+
+    .pho-rule {
+      width: 36px; height: 2px;
+      background: var(--pho-accent); opacity: 0.45;
+      border-radius: 2px; margin: 24px auto;
+    }
+
+    .pho-copy {
+      font-size: 15px; color: rgba(237,232,219,0.62);
+      line-height: 1.75; max-width: 340px;
+    }
+    .pho-copy strong { color: var(--pho-accent); font-weight: 600; }
+
+    .pho-receipt {
+      margin-top: 32px;
+      font-family: var(--font-mono); font-size: 11.5px;
+      color: rgba(237,232,219,0.25); line-height: 2;
+      border: 1px dashed rgba(237,232,219,0.1);
+      padding: 16px 20px; border-radius: 8px;
+      text-align: left; width: 100%; max-width: 300px;
+    }
+    .pho-receipt .r-label { color: rgba(212,90,20,0.55); }
+
+    /* ============================================
+       BEER SCREEN — Gallery
+    ============================================ */
+    #path-beer { background: var(--beer-bg); }
+
+    .beer-sticky-nav {
+      position: sticky; top: 0; z-index: 20;
+      padding: 14px 8px;
+      background: linear-gradient(to bottom, var(--beer-bg) 55%, transparent);
+    }
+
+    .beer-header {
+      padding: 0 22px 28px;
+      max-width: 620px; margin: 0 auto;
+    }
+    .beer-title {
+      font-family: var(--font-serif);
+      font-size: clamp(28px, 7vw, 46px);
+      font-weight: 700; line-height: 1.15; color: var(--fg);
+    }
+    .beer-subtitle {
+      margin-top: 8px; font-size: 14px;
+      color: rgba(237,232,219,0.42); line-height: 1.6;
+    }
+
+    /* Photo grid */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3px; padding: 0 3px 60px;
+    }
+    @media (min-width: 600px) {
+      .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 12px 60px; }
+    }
+    @media (min-width: 900px) {
+      .photo-grid { grid-template-columns: repeat(4, 1fr); max-width: 1100px; margin: 0 auto; }
+    }
+
+    .p-card {
+      position: relative; border-radius: 5px;
+      overflow: hidden; cursor: pointer;
+      aspect-ratio: 4/5;
+      /* stagger reveal — start hidden */
+      opacity: 0; transform: translateY(12px);
+    }
+    .p-card.wide { grid-column: span 2; aspect-ratio: 16/9; }
+
+    .p-card.revealed {
+      opacity: 1; transform: translateY(0);
+      transition: opacity 0.4s var(--ease-out), transform 0.4s var(--spring);
+    }
+    /* After revealed, override transition for fast interactions */
+    .p-card.done {
+      transition: transform 0.2s var(--spring), box-shadow 0.22s var(--ease-out);
+    }
+    .p-card.done:hover    { transform: scale(1.02); box-shadow: 0 6px 22px rgba(0,0,0,0.5); }
+    .p-card.done:active   { transform: scale(0.965); box-shadow: none; }
+
+    .p-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block;
+      transition: transform 0.38s var(--ease-out);
+    }
+    .p-card.done:hover img { transform: scale(1.06); }
+
+    .p-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 36px 13px 13px;
+      background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
+      font-size: 12.5px; color: rgba(255,255,255,0.9);
+      line-height: 1.48; font-weight: 400;
+      opacity: 0;
+      transition: opacity 0.25s var(--ease-out);
+    }
+    .p-card:hover .p-overlay,
+    .p-card.cap-on .p-overlay { opacity: 1; }
+
+    /* Photo placeholder */
+    .p-ph {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0c1520 0%, #0a111c 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 7px;
+    }
+    .p-ph .p-ph-icon { font-size: 20px; opacity: 0.22; }
+    .p-ph .p-ph-num  {
+      font-family: var(--font-mono); font-size: 10px;
+      color: rgba(255,255,255,0.15); letter-spacing: 0.08em;
+    }
+
+    /* ============================================
+       LIGHTBOX
+    ============================================ */
+    #lightbox {
+      position: fixed; inset: 0;
+      background: rgba(3,3,6,0.96);
+      z-index: 2000;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s var(--ease-out);
+    }
+    #lightbox.lb-on { opacity: 1; pointer-events: all; }
+
+    .lb-img {
+      max-width: min(92vw, 820px);
+      max-height: 72svh;
+      object-fit: contain; border-radius: 4px;
+      transform: scale(0.94);
+      transition: transform 0.35s var(--spring);
+    }
+    #lightbox.lb-on .lb-img { transform: scale(1); }
+
+    .lb-cap {
+      margin-top: 18px;
+      font-size: 13.5px; color: rgba(237,232,219,0.65);
+      max-width: min(380px, 88vw); text-align: center;
+      line-height: 1.55; padding: 0 16px;
+    }
+
+    .lb-close {
+      position: absolute; top: 18px; right: 18px;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); border: none;
+      color: var(--fg); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.18s var(--spring);
+    }
+    .lb-close:hover  { background: rgba(255,255,255,0.18); }
+    .lb-close:active { transform: scale(0.88); }
+
+    /* Swipe hint on mobile */
+    .lb-hint {
+      position: absolute; bottom: 28px;
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(237,232,219,0.2);
+    }
+
+    /* ============================================
+       SPEAKEASY GATE
+    ============================================ */
+    #speakeasy-gate {
+      background: var(--sk-bg);
+      background-image:
+        radial-gradient(ellipse 60% 50% at 50% 65%, #1a0510 0%, transparent 70%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+
+    .gate-back {
+      position: absolute; top: 14px; left: 0; z-index: 2;
+    }
+
+    .gate-inner {
+      display: flex; flex-direction: column;
+      align-items: center; text-align: center;
+      padding: 24px 28px; max-width: 360px;
+    }
+
+    .gate-eyebrow {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(194,101,21,0.45);
+      margin-bottom: 28px;
+    }
+
+    .gate-title {
+      font-family: var(--font-serif);
+      font-size: clamp(30px, 9vw, 44px);
+      font-style: italic; color: rgba(237,232,219,0.88);
+      line-height: 1.18; margin-bottom: 10px;
+    }
+
+    .gate-sub {
+      font-size: 13px; color: rgba(237,232,219,0.28);
+      margin-bottom: 48px; line-height: 1.55;
+    }
+
+    /* Tap dots */
+    .tap-dots { display: flex; gap: 10px; margin-bottom: 28px; }
+    .td {
+      width: 9px; height: 9px; border-radius: 50%;
+      border: 1px solid rgba(194,101,21,0.25);
+      background: transparent;
+      transition: background 0.35s var(--spring), border-color 0.35s, transform 0.35s var(--spring), box-shadow 0.35s;
+    }
+    .td.lit {
+      background: var(--sk-amber);
+      border-color: var(--sk-amber);
+      transform: scale(1.3);
+      box-shadow: 0 0 10px rgba(194,101,21,0.7);
+    }
+
+    /* Knock button */
+    .knock {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: rgba(107,16,16,0.16);
+      border: 1.5px solid rgba(107,16,16,0.45);
+      color: rgba(237,232,219,0.35); font-size: 34px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 28px;
+      transition:
+        background 0.3s var(--ease-out),
+        border-color 0.3s,
+        box-shadow 0.3s var(--ease-out),
+        transform 0.18s var(--spring);
+      position: relative;
+    }
+    .knock::after {
+      content: '';
+      position: absolute; inset: -5px;
+      border-radius: 50%;
+      border: 1px solid rgba(107,16,16,0.15);
+    }
+    .knock:hover {
+      background: rgba(107,16,16,0.28);
+      border-color: rgba(107,16,16,0.75);
+      box-shadow: 0 0 40px rgba(107,16,16,0.35), inset 0 0 20px rgba(107,16,16,0.1);
+    }
+    .knock:active { transform: scale(0.87); }
+
+    .gate-status {
+      font-family: var(--font-mono); font-size: 11.5px;
+      color: rgba(194,101,21,0.55); letter-spacing: 0.07em;
+      min-height: 22px;
+      transition: opacity 0.25s;
+    }
+
+    @keyframes knock-anim {
+      0%   { transform: scale(1); }
+      25%  { transform: scale(0.86); }
+      65%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes gate-shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-9px) rotate(-0.5deg); }
+      40%     { transform: translateX(9px) rotate(0.5deg); }
+      60%     { transform: translateX(-5px); }
+      80%     { transform: translateX(5px); }
+    }
+
+    /* ============================================
+       SPEAKEASY INSIDE
+    ============================================ */
+    #speakeasy-inside { background: #030006; }
+
+    .sk-header {
+      padding: 56px 20px 20px;
+      text-align: center;
+    }
+
+    .sk-neon {
+      font-family: var(--font-serif);
+      font-size: clamp(22px, 5.5vw, 32px);
+      font-style: italic; color: var(--sk-amber);
+      text-shadow:
+        0 0 8px rgba(194,101,21,0.9),
+        0 0 30px rgba(194,101,21,0.45),
+        0 0 80px rgba(194,101,21,0.15);
+      animation: neon-flicker 4s ease-in-out 1s infinite;
+    }
+    @keyframes neon-flicker {
+      0%,100%  { opacity: 1; }
+      92%      { opacity: 1; }
+      93%      { opacity: 0.6; }
+      94%      { opacity: 1; }
+      96%      { opacity: 0.75; }
+      97%      { opacity: 1; }
+    }
+
+    .sk-eyebrow {
+      font-family: var(--font-mono); font-size: 9.5px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(194,101,21,0.3); margin-top: 6px;
+    }
+
+    /* Speakeasy photo grid */
+    .sk-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px; padding: 10px 2px;
+    }
+    @media (min-width: 600px) {
+      .sk-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 10px 12px; max-width: 740px; margin: 0 auto; }
+    }
+    @media (min-width: 900px) {
+      .sk-grid { grid-template-columns: repeat(4, 1fr); max-width: 900px; }
+    }
+
+    .sk-photo {
+      aspect-ratio: 1/1; overflow: hidden;
+      position: relative; cursor: pointer;
+      /* stagger */
+      opacity: 0; transform: translateY(10px);
+    }
+    .sk-photo.revealed {
+      opacity: 1; transform: translateY(0);
+      transition: opacity 0.45s var(--ease-out), transform 0.45s var(--spring);
+    }
+    .sk-photo.done { transition: transform 0.2s var(--spring); }
+    .sk-photo.done:active { transform: scale(0.95); }
+
+    .sk-photo img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      filter: brightness(0.68) contrast(1.15) saturate(0.72);
+      transition: filter 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+    }
+    .sk-photo:hover img {
+      filter: brightness(0.88) contrast(1.1) saturate(0.95);
+      transform: scale(1.06);
+    }
+
+    /* Speakeasy photo placeholder */
+    .sk-ph {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0c0012 0%, #080010 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 7px;
+    }
+    .sk-ph-icon { font-size: 18px; opacity: 0.2; }
+    .sk-ph-num  {
+      font-family: var(--font-mono); font-size: 9px;
+      color: rgba(194,101,21,0.2); letter-spacing: 0.08em;
+    }
+
+    /* Exit button */
+    .exit-btn {
+      display: block; width: 100%; padding: 28px 20px;
+      text-align: center;
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(194,101,21,0.32);
+      background: none; border: none; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .exit-btn:hover { color: rgba(194,101,21,0.7); }
+
+    /* ============================================
+       BLACKOUT OVERLAY (speakeasy transition)
+    ============================================ */
+    #blackout {
+      position: fixed; inset: 0; background: #000;
+      z-index: 500; opacity: 0; pointer-events: none;
+      transition: opacity 0.55s var(--ease-out);
+    }
+    #blackout.on { opacity: 1; pointer-events: all; }
+
+    /* ============================================
+       KEYFRAMES
+    ============================================ */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================
+       DESKTOP
+    ============================================ */
+    @media (min-width: 768px) {
+      #landing  { padding: 48px 40px; }
+      .options  { max-width: 460px; }
+      .opt-card { padding: 20px 22px; }
+      .opt-label { font-size: 16px; }
+      .pho-body { padding: 100px 40px 60px; }
+      .beer-header { padding: 0 40px 32px; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     BLACKOUT (speakeasy transition overlay)
+============================================================ -->
+<div id="blackout"></div>
+
+
+<!-- ============================================================
+     SCREEN 1 · LANDING
+============================================================ -->
+<section class="screen s-active" id="landing">
+  <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;">
+
+    <div class="lnd-header">
+      <div class="lnd-tag">Ken &amp; Darshan &nbsp;·&nbsp; Vietnam &nbsp;·&nbsp; June 2026</div>
+      <h1 class="lnd-question">How was<br>the <em>trip?</em></h1>
+      <p class="lnd-hint">pick one. be honest.</p>
+    </div>
+
+    <div class="options">
+
+      <!-- Option 1: Pho / The Lie -->
+      <button class="opt-card c-pho" onclick="goTo('pho')">
+        <div class="opt-icon">🍜</div>
+        <div class="opt-text">
+          <div class="opt-label">We'll be under budget dw</div>
+          <div class="opt-sub">confident. very confident.</div>
+        </div>
+        <svg class="opt-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 8h10M9 4l4 4-4 4"/>
+        </svg>
+      </button>
+
+      <!-- Option 2: Beer / Real Trip -->
+      <button class="opt-card c-beer" onclick="goTo('beer')">
+        <div class="opt-icon" style="font-size:24px;letter-spacing:-5px;overflow:hidden;">🍺🍺</div>
+        <div class="opt-text">
+          <div class="opt-label">We'll figure it out</div>
+          <div class="opt-sub">the real trip. more or less.</div>
+        </div>
+        <svg class="opt-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 8h10M9 4l4 4-4 4"/>
+        </svg>
+      </button>
+
+      <!-- Option 3: Speakeasy -->
+      <button class="opt-card c-sk" onclick="goTo('gate')">
+        <div class="opt-icon">
+          <div class="bottles-wrap">
+            <span class="bottle b-silver">🍾</span>
+            <span class="bottle b-gold">🥃</span>
+            <span class="bottle b-black">🍶</span>
+          </div>
+        </div>
+        <div class="opt-text">
+          <div class="opt-label">ermmmmm bro(?)</div>
+          <div class="opt-sub">...</div>
+        </div>
+        <svg class="opt-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 8h10M9 4l4 4-4 4"/>
+        </svg>
+      </button>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     SCREEN 2 · PHO — "The Lie"
+============================================================ -->
+<section class="screen s-below" id="path-pho">
+
+  <div class="pho-nav">
+    <button class="back-btn" onclick="goTo('landing')">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+      Back
+    </button>
+  </div>
+
+  <div class="scroll-area">
+    <div class="pho-body">
+
+      <span class="pho-emoji">🍜</span>
+
+      <div class="pho-eyebrow">ERROR 404 — BUDGET NOT FOUND</div>
+
+      <h2 class="pho-headline">This version of the trip<br>does not exist.</h2>
+
+      <div class="pho-rule"></div>
+
+      <p class="pho-copy">
+        You both said this on the way to the airport.<br><br>
+        <strong>Ken</strong> — you ordered three iced coffees before 10am on day one.<br>
+        <strong>Darshan</strong> — you suggested the boat tour.<br><br>
+        The budget didn't die during the trip.<br>
+        It died at the departure gate.
+      </p>
+
+      <div class="pho-receipt">
+        <span class="r-label">TRIP RECEIPT (partial)</span><br>
+        ─────────────────────<br>
+        Intentions &nbsp;&nbsp;&nbsp;&nbsp;: ✓ noble<br>
+        Budget &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: — not found —<br>
+        Iced coffees &nbsp;: way too many<br>
+        Boat tour &nbsp;&nbsp;&nbsp;&nbsp;: suggested<br>
+        Regrets &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: zero, actually<br>
+        ─────────────────────<br>
+        TOTAL SPENT &nbsp;&nbsp;: yes<br>
+        ─────────────────────
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     SCREEN 3 · BEER — The Real Trip (Gallery)
+============================================================ -->
+<section class="screen s-below" id="path-beer">
+  <div class="scroll-area">
+
+    <div class="beer-sticky-nav">
+      <button class="back-btn" onclick="goTo('landing')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+        Back
+      </button>
+    </div>
+
+    <div class="beer-header">
+      <h2 class="beer-title">we'll figure it out</h2>
+      <p class="beer-subtitle">and somehow we did.</p>
+    </div>
+
+    <!--
+      ═══════════════════════════════════════════════════════════
+      HOW TO ADD YOUR PHOTOS
+      ───────────────────────────────────────────────────────────
+      1. Open Google Drive and go to a photo file
+      2. Right-click → "Share" → set to "Anyone with link"
+      3. Copy the file URL: drive.google.com/file/d/FILE_ID/view
+      4. Take the FILE_ID part from that URL
+      5. Replace the <div class="p-ph"> block inside each .p-card with:
+         <img src="https://drive.google.com/uc?export=view&id=YOUR_FILE_ID" alt="">
+      ═══════════════════════════════════════════════════════════
+    -->
+    <div class="photo-grid" id="photo-grid">
+
+      <!-- Photo 1 -->
+      <div class="p-card" data-cap="bro ordered this by pointing at someone else's bowl. no idea what it was. ordered it again the next day.">
+        <!-- ↓ REPLACE with: <img src="https://drive.google.com/uc?export=view&id=YOUR_FILE_ID" alt=""> -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 01</span></div>
+        <div class="p-overlay">bro ordered this by pointing at someone else's bowl. no idea what it was. ordered it again the next day.</div>
+      </div>
+
+      <!-- Photo 2 — wide landscape -->
+      <div class="p-card wide" data-cap="the beach was empty at 8am. we didn't deserve it.">
+        <!-- ↓ REPLACE -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 02</span></div>
+        <div class="p-overlay">the beach was empty at 8am. we didn't deserve it.</div>
+      </div>
+
+      <!-- Photo 3 -->
+      <div class="p-card" data-cap="this street goes forever. we never found the end of it.">
+        <!-- ↓ REPLACE -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 03</span></div>
+        <div class="p-overlay">this street goes forever. we never found the end of it.</div>
+      </div>
+
+      <!-- Photo 4 -->
+      <div class="p-card" data-cap="darshan said 'just one more shot.' this was the fourteenth.">
+        <!-- ↓ REPLACE -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 04</span></div>
+        <div class="p-overlay">darshan said 'just one more shot.' this was the fourteenth.</div>
+      </div>
+
+      <!-- Photo 5 — wide, neon tunnel -->
+      <div class="p-card wide" data-cap="we genuinely stumbled into this. not on google maps. not on anything.">
+        <!-- ↓ REPLACE -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 05 — neon tunnel</span></div>
+        <div class="p-overlay">we genuinely stumbled into this. not on google maps. not on anything.</div>
+      </div>
+
+      <!-- Photo 6 -->
+      <div class="p-card" data-cap="came back at night just to see it lit up. no regrets.">
+        <!-- ↓ REPLACE -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 06 — arch at night</span></div>
+        <div class="p-overlay">came back at night just to see it lit up. no regrets.</div>
+      </div>
+
+      <!-- Photo 7 -->
+      <div class="p-card" data-cap="the lady looked at our empty plates and made two more. we said yes immediately.">
+        <!-- ↓ REPLACE -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 07</span></div>
+        <div class="p-overlay">the lady looked at our empty plates and made two more. we said yes immediately.</div>
+      </div>
+
+      <!-- Photo 8 -->
+      <div class="p-card" data-cap="somewhere between the third coffee and the fourth grab ride. a good day.">
+        <!-- ↓ REPLACE -->
+        <div class="p-ph"><span class="p-ph-icon">📷</span><span class="p-ph-num">photo 08</span></div>
+        <div class="p-overlay">somewhere between the third coffee and the fourth grab ride. a good day.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     SCREEN 4 · SPEAKEASY GATE
+============================================================ -->
+<section class="screen s-below" id="speakeasy-gate">
+
+  <div class="gate-back">
+    <button class="back-btn" onclick="goTo('landing'); resetKnock();">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+      Back
+    </button>
+  </div>
+
+  <div class="gate-inner" id="gate-inner">
+    <div class="gate-eyebrow">knock three times</div>
+    <h2 class="gate-title">ermmmmm<br>bro(?)</h2>
+    <p class="gate-sub">you know what's behind this door.</p>
+
+    <div class="tap-dots">
+      <div class="td" id="td1"></div>
+      <div class="td" id="td2"></div>
+      <div class="td" id="td3"></div>
+    </div>
+
+    <button class="knock" id="knock-btn" onclick="handleKnock()">🚪</button>
+
+    <div class="gate-status" id="gate-status">tap to enter</div>
+  </div>
+
+</section>
+
+
+<!-- ============================================================
+     SCREEN 5 · SPEAKEASY INSIDE
+============================================================ -->
+<section class="screen s-below" id="speakeasy-inside">
+  <div class="scroll-area">
+
+    <div class="sk-header">
+      <div class="sk-neon">The Third Round</div>
+      <div class="sk-eyebrow">you asked for this</div>
+    </div>
+
+    <!--
+      ═══════════════════════════════════════════════════════════
+      PARTY PHOTOS — same process as above.
+      Replace each <div class="sk-ph"> with your img tag.
+      ═══════════════════════════════════════════════════════════
+    -->
+    <div class="sk-grid" id="sk-grid">
+
+      <div class="sk-photo" data-cap="">
+        <!-- ↓ REPLACE -->
+        <div class="sk-ph"><span class="sk-ph-icon">🎉</span><span class="sk-ph-num">party 01</span></div>
+      </div>
+
+      <div class="sk-photo" data-cap="">
+        <!-- ↓ REPLACE -->
+        <div class="sk-ph"><span class="sk-ph-icon">🎉</span><span class="sk-ph-num">party 02</span></div>
+      </div>
+
+      <div class="sk-photo" data-cap="">
+        <!-- ↓ REPLACE -->
+        <div class="sk-ph"><span class="sk-ph-icon">🎉</span><span class="sk-ph-num">party 03</span></div>
+      </div>
+
+      <div class="sk-photo" data-cap="">
+        <!-- ↓ REPLACE -->
+        <div class="sk-ph"><span class="sk-ph-icon">🎉</span><span class="sk-ph-num">party 04</span></div>
+      </div>
+
+      <div class="sk-photo" data-cap="">
+        <!-- ↓ REPLACE -->
+        <div class="sk-ph"><span class="sk-ph-icon">🎉</span><span class="sk-ph-num">party 05</span></div>
+      </div>
+
+      <div class="sk-photo" data-cap="">
+        <!-- ↓ REPLACE -->
+        <div class="sk-ph"><span class="sk-ph-icon">🎉</span><span class="sk-ph-num">party 06</span></div>
+      </div>
+
+    </div>
+
+    <button class="exit-btn" onclick="goTo('landing'); resetKnock();">
+      ← exit the building
+    </button>
+
+  </div>
+</section>
+
+
+<!-- ============================================================
+     LIGHTBOX
+============================================================ -->
+<div id="lightbox" onclick="closeLb()">
+  <button class="lb-close" onclick="closeLb(event)">✕</button>
+  <img class="lb-img" id="lb-img" src="" alt="" />
+  <div class="lb-cap" id="lb-cap"></div>
+  <div class="lb-hint">tap anywhere to close</div>
+</div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+  /* ─── State ─── */
+  let current = 'landing';
+  let knocks  = 0;
+  const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+  const IDs = {
+    landing: 'landing',
+    pho:     'path-pho',
+    beer:    'path-beer',
+    gate:    'speakeasy-gate',
+    speak:   'speakeasy-inside'
+  };
+
+  /* ─── Navigation ─── */
+  function goTo(name) {
+    if (name === current) return;
+
+    const fromEl = document.getElementById(IDs[current]);
+    const toEl   = document.getElementById(IDs[name]);
+
+    // Exit current screen
+    fromEl.classList.remove('s-active');
+    if (name === 'landing') {
+      fromEl.classList.add('s-below');
+    } else {
+      fromEl.classList.add('s-above');
+    }
+
+    // Enter new screen
+    toEl.classList.remove('s-below', 's-above');
+    toEl.classList.add('s-active');
+
+    // Reset scroll
+    const sa = toEl.querySelector('.scroll-area');
+    if (sa) sa.scrollTop = 0;
+
+    current = name;
+
+    // Trigger stagger animations
+    if (name === 'beer')  scheduleStagger('photo-grid',  '.p-card',    60);
+    if (name === 'speak') scheduleStagger('sk-grid',     '.sk-photo',  55);
+  }
+
+  /* ─── Photo stagger ─── */
+  function scheduleStagger(gridId, sel, delay) {
+    const grid  = document.getElementById(gridId);
+    const cards = grid.querySelectorAll(sel);
+    cards.forEach((card, i) => {
+      card.classList.remove('revealed', 'done');
+      setTimeout(() => {
+        card.classList.add('revealed');
+        // Switch to fast interaction transitions after reveal completes
+        setTimeout(() => card.classList.add('done'), 450);
+      }, i * delay);
+    });
+  }
+
+  /* ─── Photo card interactions ─── */
+  document.querySelectorAll('.p-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const img = card.querySelector('img');
+      const cap = card.dataset.cap || '';
+      if (img) {
+        openLb(img.src, cap);
+      } else if (isMobile) {
+        // No image yet — toggle caption on mobile
+        document.querySelectorAll('.p-card.cap-on')
+          .forEach(c => { if (c !== card) c.classList.remove('cap-on'); });
+        card.classList.toggle('cap-on');
+      }
+    });
+  });
+
+  document.querySelectorAll('.sk-photo').forEach(photo => {
+    photo.addEventListener('click', () => {
+      const img = photo.querySelector('img');
+      if (img) openLb(img.src, '');
+    });
+  });
+
+  /* ─── Lightbox ─── */
+  function openLb(src, caption) {
+    document.getElementById('lb-img').src  = src;
+    document.getElementById('lb-cap').textContent = caption;
+    document.getElementById('lightbox').classList.add('lb-on');
+  }
+
+  function closeLb(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('lightbox').classList.remove('lb-on');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLb();
+  });
+
+  /* ─── Speakeasy gate ─── */
+  const statusLines = ['tap to enter', '...', 'you sure about this?'];
+
+  function handleKnock() {
+    if (knocks >= 3) return;
+
+    knocks++;
+
+    // Animate button
+    const btn = document.getElementById('knock-btn');
+    btn.style.animation = 'none';
+    void btn.offsetWidth; // reflow
+    btn.style.animation = 'knock-anim 0.38s cubic-bezier(0.34,1.56,0.64,1)';
+
+    // Light up dot
+    document.getElementById(`td${knocks}`).classList.add('lit');
+
+    // Update status text
+    document.getElementById('gate-status').textContent = statusLines[knocks] || '';
+
+    // Shake on second knock
+    if (knocks === 2) {
+      const gi = document.getElementById('gate-inner');
+      gi.style.animation = 'none';
+      void gi.offsetWidth;
+      gi.style.animation = 'gate-shake 0.42s ease-out';
+    }
+
+    // Third knock — blackout → reveal
+    if (knocks === 3) {
+      setTimeout(() => {
+        const bo = document.getElementById('blackout');
+        bo.classList.add('on');
+        setTimeout(() => {
+          goTo('speak');
+          setTimeout(() => bo.classList.remove('on'), 450);
+        }, 620);
+      }, 280);
+    }
+  }
+
+  function resetKnock() {
+    knocks = 0;
+    ['td1','td2','td3'].forEach(id => {
+      document.getElementById(id).classList.remove('lit');
+    });
+    document.getElementById('gate-status').textContent = 'tap to enter';
+    // Reset knock button animation
+    const btn = document.getElementById('knock-btn');
+    btn.style.animation = 'none';
+  }
+
+  /* ─── Touch polish: scale feedback on option cards ─── */
+  document.querySelectorAll('.opt-card').forEach(card => {
+    card.addEventListener('touchstart', () => {
+      card.style.transform = 'scale(0.962)';
+    }, { passive: true });
+    ['touchend', 'touchcancel'].forEach(ev => {
+      card.addEventListener(ev, () => {
+        card.style.transform = '';
+      }, { passive: true });
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -12,7 +12,7 @@ import AchievementToast from './components/Achievements/AchievementToast.jsx';
 import Spotlight from './components/Spotlight/Spotlight.jsx';
 import HelloScreen from './components/HelloScreen/HelloScreen.jsx';
 import JourneyBridge from './components/JourneyBridge/JourneyBridge.jsx';
-import MobileView from './components/MobileView/MobileView.jsx';
+import IPhoneHome from './components/IPhoneHome/IPhoneHome.jsx';
 import styles from './App.module.css';
 
 function GlobalKeyboardBridge({ spotlightOpen, onSpotlightToggle }) {
@@ -62,7 +62,7 @@ function AppShell() {
   const { isMobile } = useWindowSize();
 
   if (isMobile) {
-    return <MobileView />;
+    return <IPhoneHome />;
   }
 
   return <DesktopShell />;
