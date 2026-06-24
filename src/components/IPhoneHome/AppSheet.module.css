@@ -1,71 +1,80 @@
+/* ─── Backdrop ─── */
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 200;
-  background: rgba(0, 0, 0, 0);
+  z-index: 500;
+  background: rgba(0,0,0,0);
   transition: background 0.35s ease;
+  pointer-events: none;
 }
 
 .backdropVisible {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.4);
+  pointer-events: all;
 }
 
+/* ─── Sheet ─── */
 .sheet {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  max-height: 92dvh;
+  height: 92vh;
   background: #1c1c1e;
   border-radius: 12px 12px 0 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.36s cubic-bezier(0.32, 0.72, 0, 1);
   will-change: transform;
+  /* Top shadow */
+  box-shadow: 0 -4px 30px rgba(0,0,0,0.5);
 }
 
 .sheetVisible {
   transform: translateY(0);
 }
 
+/* Drag handle */
 .handle {
+  flex-shrink: 0;
   width: 36px;
   height: 5px;
-  background: rgba(255, 255, 255, 0.3);
   border-radius: 3px;
+  background: rgba(255,255,255,0.28);
   margin: 8px auto 0;
-  flex-shrink: 0;
 }
 
+/* Header */
 .header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 14px 16px 12px;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 50px 10px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
 }
 
 .headerTitle {
-  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
   font-size: 17px;
   font-weight: 600;
-  color: #fff;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: -0.3px;
 }
 
 .closeBtn {
   position: absolute;
-  right: 12px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
   border: none;
-  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255,255,255,0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,280 +83,415 @@
 }
 
 .closeBtn:active {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255,255,255,0.18);
 }
 
-.content {
+/* Scrollable content area */
+.contentArea {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  overscroll-behavior: contain;
 }
 
-/* ─── Portfolio grid ─── */
-.portfolioGrid {
-  display: flex;
-  flex-direction: column;
+/* ─── Project grid ─── */
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  padding: 16px;
 }
 
 .projectCard {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
+  border: none;
+  background: #2c2c2e;
+  border-radius: 12px;
   overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
 }
 
-.projectThumb {
-  width: 72px;
-  height: 72px;
-  flex-shrink: 0;
+.projectCard:active {
+  opacity: 0.7;
+  transform: scale(0.97);
+}
+
+.projectCover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-size: cover;
+  background-position: center;
+  background-color: #3a3a3c;
+}
+
+.projectName {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  padding: 8px 10px 10px;
+  display: block;
+  letter-spacing: -0.1px;
+}
+
+/* ─── Project detail ─── */
+.projectDetail {
+  display: flex;
+  flex-direction: column;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  color: #0a84ff;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  padding: 12px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.projectHero {
+  width: 100%;
+  aspect-ratio: 16 / 9;
   background-size: cover;
   background-position: center;
   background-color: #2c2c2e;
 }
 
 .projectInfo {
-  flex: 1;
-  padding: 10px 10px 10px 0;
-  min-width: 0;
+  padding: 20px 16px 32px;
 }
 
-.projectName {
-  display: block;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+.projectTitle {
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  margin: 0 0 6px;
+  letter-spacing: -0.5px;
+}
+
+.projectCategory {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.55);
+  margin: 0 0 14px;
+}
+
+.projectMeta {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
   font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 5px;
+  color: rgba(255,255,255,0.45);
+  margin: 0 0 4px;
+}
+
+.projectDesc {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.7);
+  margin: 16px 0;
 }
 
 .projectTags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 14px;
 }
 
 .projectTag {
-  font-size: 10px;
-  padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.7);
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(10,132,255,0.9);
+  background: rgba(10,132,255,0.12);
+  border: 0.5px solid rgba(10,132,255,0.3);
+  border-radius: 20px;
+  padding: 4px 10px;
+  text-transform: capitalize;
+}
+
+.desktopNote {
+  margin-top: 24px;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ─── Scroll content wrapper ─── */
+.scrollContent {
+  padding: 20px 16px 40px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ─── About ─── */
-.aboutWrap {
+.aboutHero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding: 8px 0 16px;
+  padding: 24px 0 20px;
 }
 
 .aboutAvatar {
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #0d9ba8, #056d77);
+  background: #3a3a3c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
   margin-bottom: 14px;
-  border: 2px solid rgba(13, 155, 168, 0.5);
+  overflow: hidden;
 }
 
 .aboutName {
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
   font-size: 22px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 4px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  margin: 0 0 4px;
+  letter-spacing: -0.4px;
 }
 
 .aboutTitle {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 14px;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
 }
 
 .aboutBio {
-  font-size: 14px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 20px;
-  text-align: left;
+  margin-top: 20px;
 }
 
-.skillsWrap {
+.aboutBio p {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.72);
+  margin: 0;
+}
+
+.aboutSkills {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-top: 20px;
 }
 
-.skillTag {
-  padding: 5px 12px;
-  background: rgba(13, 155, 168, 0.18);
-  border: 1px solid rgba(13, 155, 168, 0.35);
-  border-radius: 999px;
-  font-size: 12px;
-  color: #0d9ba8;
-}
-
-.aboutLinks {
-  display: flex;
-  gap: 12px;
-}
-
-.aboutLink {
-  padding: 10px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
+.skillChip {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.1);
+  border: 0.5px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 5px 12px;
 }
 
 /* ─── Resume ─── */
-.resumeWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 8px 0 8px;
-}
-
-.resumeIcon { font-size: 48px; margin-bottom: 14px; }
-
-.resumeText {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
+.resumeHeader {
   margin-bottom: 16px;
 }
 
-.resumeBtn {
-  padding: 12px 28px;
-  background: #0d9ba8;
-  border-radius: 10px;
+.resumeIntro {
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.downloadBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0a84ff;
+  color: white;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
   font-size: 15px;
   font-weight: 600;
-  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
   text-decoration: none;
-  margin-bottom: 10px;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.resumeHint {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 24px;
+.downloadBtn:active {
+  opacity: 0.8;
 }
 
-.experienceList {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  overflow: hidden;
-  text-align: left;
+.resumeSection {
+  margin-top: 24px;
 }
 
-.expItem {
-  display: flex;
-  flex-direction: column;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  gap: 2px;
-}
-
-.expRole {
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.expCompany {
+.sectionHead {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
   font-size: 13px;
-  color: #0d9ba8;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
 }
 
-.expPeriod {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+.resumeItem {
+  background: #2c2c2e;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.resumeRole {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin: 0 0 4px;
+}
+
+.resumeOrg {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  margin: 0;
+}
+
+.resumeSkills {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.65);
+  margin: 0;
 }
 
 /* ─── Contact ─── */
-.contactWrap {
+.contactIntro {
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  margin: 0 0 20px;
+}
+
+.contactLinks {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.contactLink {
+  display: flex;
   align-items: center;
-  padding: 8px 0;
-}
-
-.contactIcon { font-size: 48px; margin-bottom: 12px; }
-
-.contactCta {
-  font-size: 14px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.7);
-  text-align: center;
-  margin-bottom: 20px;
-  max-width: 280px;
-}
-
-.contactList {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.contactRow {
-  display: flex;
-  flex-direction: column;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 14px;
+  background: #2c2c2e;
+  border-radius: 12px;
+  padding: 14px;
   text-decoration: none;
-  gap: 2px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.contactLabel {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.contactLink:active {
+  opacity: 0.7;
 }
 
-.contactValue {
-  font-size: 14px;
-  color: #0d9ba8;
-}
-
-/* ─── Games ─── */
-.gamesWrap {
+.contactIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 16px;
-  text-align: center;
-  gap: 14px;
 }
 
-.gamesHint {
+.contactLinkLabel {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin: 0 0 2px;
+}
+
+.contactLinkSub {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  margin: 0;
+}
+
+.chevron {
+  margin-left: auto;
+}
+
+/* ─── Game notice ─── */
+.gameNotice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 12px;
+}
+
+.gameNotice h3 {
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+}
+
+.gameNotice p {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+}
+
+/* ─── Milestone ─── */
+.milestoneHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 0;
+  gap: 10px;
+}
+
+.milestoneIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.milestoneHero h2 {
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+}
+
+.milestoneHero p {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
   font-size: 14px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255,255,255,0.45);
+  margin: 0;
 }

@@ -3,46 +3,55 @@ import StatusBar from './StatusBar.jsx';
 import AppGrid from './AppGrid.jsx';
 import MobileDock from './MobileDock.jsx';
 import AppSheet from './AppSheet.jsx';
+import FolderOverlay from './FolderOverlay.jsx';
 import MobileSpotlight from './MobileSpotlight.jsx';
+import { HOME_APPS } from './appData.jsx';
 import styles from './IPhoneHome.module.css';
-
-const WALLPAPER = '/assets/ui/background-1.jpg';
 
 export default function IPhoneHome() {
   const [activeApp, setActiveApp] = useState(null);
+  const [activeFolder, setActiveFolder] = useState(null);
   const [wiggle, setWiggle] = useState(false);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
 
-  /* ─── Swipe-down → Spotlight ───────────────────────────── */
-  const touchStartRef = useRef({ y: 0, active: false });
+  /* ─── Swipe-down → Spotlight ─── */
+  const touchRef = useRef({ y: 0, active: false });
 
   const onTouchStart = useCallback((e) => {
-    touchStartRef.current = { y: e.touches[0].clientY, active: true };
+    touchRef.current = { y: e.touches[0].clientY, active: true };
   }, []);
 
   const onTouchMove = useCallback((e) => {
-    if (!touchStartRef.current.active) return;
-    const delta = e.touches[0].clientY - touchStartRef.current.y;
+    if (!touchRef.current.active) return;
+    const delta = e.touches[0].clientY - touchRef.current.y;
     if (delta > 60) {
-      touchStartRef.current.active = false;
+      touchRef.current.active = false;
       setSpotlightOpen(true);
     }
   }, []);
 
   const onTouchEnd = useCallback(() => {
-    touchStartRef.current.active = false;
+    touchRef.current.active = false;
   }, []);
 
-  /* ─── Long press → wiggle mode ─────────────────────────── */
+  /* ─── Long press → wiggle ─── */
   const enterWiggle = useCallback(() => setWiggle(true), []);
+  const exitWiggle  = useCallback(() => setWiggle(false), []);
 
-  const exitWiggle = useCallback(() => setWiggle(false), []);
-
-  /* ─── Icon tap ──────────────────────────────────────────── */
-  const handleTap = useCallback((app) => {
+  /* ─── Icon / folder tap ─── */
+  const handleTap = useCallback((item) => {
     if (wiggle) { exitWiggle(); return; }
-    setActiveApp(app);
+    if (item.type === 'folder') {
+      setActiveFolder(item);
+    } else {
+      setActiveApp(item);
+    }
   }, [wiggle, exitWiggle]);
+
+  /* Tap inside folder → open AppSheet */
+  const handleFolderAppTap = useCallback((app) => {
+    setActiveApp(app);
+  }, []);
 
   const handleBgTap = useCallback(() => {
     if (wiggle) exitWiggle();
@@ -51,42 +60,49 @@ export default function IPhoneHome() {
   return (
     <div
       className={styles.homeScreen}
-      style={{ backgroundImage: `url("${WALLPAPER}")` }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onClick={handleBgTap}
     >
-      <div className={styles.wallpaperOverlay} aria-hidden="true" />
+      {/* Wallpaper */}
+      <div className={styles.wallpaper} />
 
+      {/* Status bar */}
       <StatusBar />
 
-      <div className={styles.scrollArea}>
-        <div
-          className={styles.gridArea}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <AppGrid
-            wiggle={wiggle}
-            onTap={handleTap}
-            onLongPress={enterWiggle}
-          />
-        </div>
+      {/* Scrollable home grid */}
+      <div className={styles.scrollArea} onClick={(e) => e.stopPropagation()}>
+        <AppGrid
+          apps={HOME_APPS}
+          wiggle={wiggle}
+          onTap={handleTap}
+          onLongPress={enterWiggle}
+        />
 
+        {/* Page dots */}
         <div className={styles.pageDots} aria-hidden="true">
           <span className={`${styles.dot} ${styles.dotActive}`} />
-          <span className={styles.dot} />
-          <span className={styles.dot} />
         </div>
       </div>
 
+      {/* Dock */}
       <MobileDock onTap={handleTap} />
 
+      {/* Folder overlay (iOS-style) */}
+      <FolderOverlay
+        folder={activeFolder}
+        onClose={() => setActiveFolder(null)}
+        onAppTap={handleFolderAppTap}
+      />
+
+      {/* App sheet */}
       <AppSheet
         app={activeApp}
         onClose={() => setActiveApp(null)}
       />
 
+      {/* Spotlight */}
       <MobileSpotlight
         open={spotlightOpen}
         onClose={() => setSpotlightOpen(false)}

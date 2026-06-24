@@ -1,8 +1,9 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 60px);
+  grid-template-columns: repeat(4, 60px);
   justify-content: space-between;
   row-gap: 28px;
-  padding: 0 16px;
-  width: 100%;
+  /* Push rows down below status bar */
+  padding-top: 8px;
+  padding-bottom: 8px;
 }

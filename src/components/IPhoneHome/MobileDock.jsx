@@ -4,19 +4,21 @@ import styles from './MobileDock.module.css';
 
 export default function MobileDock({ onTap }) {
   return (
-    <div className={styles.dockWrap}>
-      <div className={styles.dock}>
+    <div className={styles.dockOuter}>
+      <div className={styles.dockInner}>
         {DOCK_APPS.map((app) => (
           <AppIcon
             key={app.id}
-            app={{ ...app, label: '' }}
+            app={app}
+            dockMode
             wiggle={false}
             showBadge={false}
             onTap={() => onTap(app)}
           />
         ))}
       </div>
-      <div className={styles.homeIndicator} aria-hidden="true" />
+      {/* iOS home indicator */}
+      <div className={styles.homeBar} />
     </div>
   );
 }

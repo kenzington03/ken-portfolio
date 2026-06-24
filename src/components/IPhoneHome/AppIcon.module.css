@@ -1,12 +1,17 @@
-.iconWrap {
+.wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-.iconBtn {
+.dockWrap {
+  gap: 0;
+}
+
+.btn {
   position: relative;
   width: 60px;
   height: 60px;
@@ -16,56 +21,107 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  display: block;
 }
 
-.iconBtn:active .iconFace {
-  opacity: 0.75;
-  transform: scale(0.94);
+.btn:active .face {
+  opacity: 0.8;
+  transform: scale(0.92);
 }
 
-.iconFace {
+/* ─── Icon face — iOS squircle ─── */
+.face {
   width: 60px;
   height: 60px;
   border-radius: 13.5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2a2a2e;
   overflow: hidden;
   transition: transform 0.1s ease, opacity 0.1s ease;
-  /* iOS squircle shadow */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.2);
+  will-change: transform;
+  /* iOS-accurate shadow */
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 4px 12px rgba(0,0,0,0.4),
+    0 1px 3px rgba(0,0,0,0.3);
 }
 
-.iconImg {
+/* Image-based icon */
+.img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 13.5px;
+  display: block;
 }
 
+/* SVG icon */
 .iconSvg {
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  pointer-events: none;
 }
 
+/* ─── Folder face ─── */
+.folderBg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220, 220, 230, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 13.5px;
+}
+
+.folderGrid {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.folderMini {
+  width: 100%;
+  height: 100%;
+  border-radius: 2.5px;
+  background: #3a3a3c;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.folderMiniImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ─── Label ─── */
 .label {
-  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 400;
-  color: #fff;
+  color: #ffffff;
   text-align: center;
-  max-width: 72px;
+  max-width: 74px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   line-height: 1.3;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  letter-spacing: -0.1px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6), 0 0 8px rgba(0,0,0,0.3);
 }
 
+/* ─── Wiggle badge ─── */
 .badge {
   position: absolute;
   top: -4px;
@@ -73,31 +129,27 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.65);
-  border: 1.5px solid rgba(255,255,255,0.5);
+  background: rgba(60, 60, 60, 0.9);
+  border: 1.5px solid rgba(255,255,255,0.55);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1;
-  z-index: 2;
+  z-index: 10;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
 
-/* Wiggle animation */
+/* ─── Wiggle animation ─── */
 @keyframes wiggle {
-  0%   { transform: rotate(-2deg); }
-  50%  { transform: rotate(2deg); }
-  100% { transform: rotate(-2deg); }
+  0%   { transform: rotate(-1.8deg) translateY(-0.5px); }
+  50%  { transform: rotate(1.8deg) translateY(0.5px); }
+  100% { transform: rotate(-1.8deg) translateY(-0.5px); }
 }
 
-.wiggle .iconFace {
-  animation: wiggle 0.18s ease-in-out infinite;
-  transform-origin: center 80%;
+.wiggle .face {
+  animation: wiggle 0.15s ease-in-out infinite;
+  transform-origin: 50% 85%;
 }
 
-.wiggle:active .iconFace {
-  opacity: 1;
-  animation: wiggle 0.18s ease-in-out infinite;
+.wiggle:active .face {
+  opacity: 0.85;
 }

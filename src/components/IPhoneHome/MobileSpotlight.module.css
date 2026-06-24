@@ -1,37 +1,31 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 300;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  z-index: 600;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  padding-top: max(60px, calc(env(safe-area-inset-top, 0px) + 60px));
-  animation: fadeIn 0.2s ease;
+  padding-top: calc(env(safe-area-inset-top, 14px) + 56px);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.inner {
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .searchBar {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 8px;
   height: 36px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255,255,255,0.14);
   border-radius: 10px;
-  padding: 0 10px;
+  padding: 0 12px;
 }
 
 .searchIcon {
@@ -43,32 +37,24 @@
   background: none;
   border: none;
   outline: none;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 16px;
-  color: #fff;
-  caret-color: #0d9ba8;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  color: white;
+  caret-color: white;
 }
 
 .input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255,255,255,0.4);
 }
 
-.cancel {
-  background: none;
+.cancelBtn {
   border: none;
-  color: #0d9ba8;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 15px;
-  font-weight: 400;
-  padding: 0;
+  background: none;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  color: #0a84ff;
+  padding: 6px 0;
   cursor: pointer;
-  white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
-}
-
-.noResults {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
-  padding: 20px 0;
+  white-space: nowrap;
 }
