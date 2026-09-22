@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FINDER_CATEGORIES, projects, getProjectCoverUrl } from '../../../data/projects.js';
-import { getTagLabel } from '../../../data/tags.js';
+import { getTagLabel, getTagColor } from '../../../data/tags.js';
 import { filterProjects } from '../../../utils/projectFilters.js';
 import { getOriginFromEvent } from '../../../utils/animationOrigin.js';
 import {
@@ -15,6 +15,8 @@ import FilterBar, { FilterChips } from './FilterBar.jsx';
 import FinderListView from './FinderListView.jsx';
 import { useOS } from '../../../context/OSContext.jsx';
 import ContactCta from '../../shared/ContactCta.jsx';
+import Coachmark from '../../Coachmark/Coachmark.jsx';
+import { useSeenOnce } from '../../../hooks/useSeenOnce.js';
 import styles from './Finder.module.css';
 
 const LOCATIONS = [{ id: 'portfolio', label: 'Portfolio' }];
@@ -35,10 +37,11 @@ export default function Finder() {
 
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState('');
-  const [view, setView] = useState('grid');
+  const [view, setView] = useState('list');
   const [historyIndex, setHistoryIndex] = useState(0);
-  const [history, setHistory] = useState(['all']);
+  const [history, setHistory] = useState([{ catId: 'all', fromLocation: true }]);
   const [activeLocation, setActiveLocation] = useState(true);
+  const [viewTipSeen, dismissViewTip] = useSeenOnce('finder-view-toggle');
 
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
@@ -62,11 +65,30 @@ export default function Finder() {
     applySidebarFilter(catId);
     setHistory((prev) => {
       const trimmed = prev.slice(0, historyIndex + 1);
-      if (trimmed[trimmed.length - 1] === catId) return trimmed;
-      const next = [...trimmed, catId];
+      const last = trimmed[trimmed.length - 1];
+      if (last && last.catId === catId && last.fromLocation === fromLocation) return trimmed;
+      const next = [...trimmed, { catId, fromLocation }];
       setHistoryIndex(next.length - 1);
       return next;
     });
+  };
+
+  const goBack = () => {
+    if (!canGoBack) return;
+    const newIndex = historyIndex - 1;
+    const entry = history[newIndex];
+    setHistoryIndex(newIndex);
+    setActiveLocation(entry.fromLocation);
+    applySidebarFilter(entry.catId);
+  };
+
+  const goForward = () => {
+    if (!canGoForward) return;
+    const newIndex = historyIndex + 1;
+    const entry = history[newIndex];
+    setHistoryIndex(newIndex);
+    setActiveLocation(entry.fromLocation);
+    applySidebarFilter(entry.catId);
   };
 
   const isSidebarActive = (catId) => {
@@ -112,6 +134,7 @@ export default function Finder() {
               className={styles.toolBtn}
               disabled={!canGoBack}
               aria-label="Back"
+              onClick={goBack}
             >
               <IconChevronLeft className={styles.toolIcon} />
             </button>
@@ -120,6 +143,7 @@ export default function Finder() {
               className={styles.toolBtn}
               disabled={!canGoForward}
               aria-label="Forward"
+              onClick={goForward}
             >
               <IconChevronRight className={styles.toolIcon} />
             </button>
@@ -127,20 +151,29 @@ export default function Finder() {
           <div className={styles.toolbarViews}>
             <button
               type="button"
-              className={`${styles.toolBtn} ${view === 'grid' ? styles.toolBtnActive : ''}`}
-              onClick={() => setView('grid')}
-              aria-label="Grid view"
-            >
-              <IconGridView className={styles.toolIcon} />
-            </button>
-            <button
-              type="button"
               className={`${styles.toolBtn} ${view === 'list' ? styles.toolBtnActive : ''}`}
-              onClick={() => setView('list')}
+              onClick={() => {
+                setView('list');
+                dismissViewTip();
+              }}
               aria-label="List view"
             >
               <IconListView className={styles.toolIcon} />
             </button>
+            <button
+              type="button"
+              className={`${styles.toolBtn} ${view === 'grid' ? styles.toolBtnActive : ''}`}
+              onClick={() => {
+                setView('grid');
+                dismissViewTip();
+              }}
+              aria-label="Grid view"
+            >
+              <IconGridView className={styles.toolIcon} />
+            </button>
+            <Coachmark show={!viewTipSeen} onDismiss={dismissViewTip} placement="bottom">
+              Tap here to switch to Grid.
+            </Coachmark>
           </div>
           <div className={styles.toolbarRight}>
             <FilterBar
@@ -199,6 +232,11 @@ export default function Finder() {
                     <div className={styles.cardTags}>
                       {(project.tags ?? []).slice(0, 4).map((tag) => (
                         <span key={tag} className={styles.cardTag}>
+                          <span
+                            className={styles.cardTagDot}
+                            style={{ background: getTagColor(tag) }}
+                            aria-hidden
+                          />
                           {getTagLabel(tag)}
                         </span>
                       ))}

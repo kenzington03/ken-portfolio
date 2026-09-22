@@ -5,6 +5,7 @@ import MobileDock from './MobileDock.jsx';
 import AppSheet from './AppSheet.jsx';
 import FolderOverlay from './FolderOverlay.jsx';
 import MobileSpotlight from './MobileSpotlight.jsx';
+import SkillsWidget from './SkillsWidget.jsx';
 import { HOME_APPS } from './appData.jsx';
 import styles from './IPhoneHome.module.css';
 
@@ -71,8 +72,13 @@ export default function IPhoneHome() {
       {/* Status bar */}
       <StatusBar />
 
+      {/* Dynamic Island — always on top, like the real hardware cutout;
+          nothing here should ever cover it. */}
+      <div className={styles.dynamicIsland} aria-hidden="true" />
+
       {/* Scrollable home grid */}
       <div className={styles.scrollArea} onClick={(e) => e.stopPropagation()}>
+        <SkillsWidget />
         <AppGrid
           apps={HOME_APPS}
           wiggle={wiggle}

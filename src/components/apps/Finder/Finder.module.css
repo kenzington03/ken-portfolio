@@ -2,13 +2,14 @@
   display: flex;
   height: 100%;
   min-height: 0;
-  background: #1e1e1e;
+  background: transparent;
 }
 
 .sidebar {
   width: 200px;
   flex-shrink: 0;
-  background: #1c1c1e;
+  background: rgba(0, 0, 0, 0.16);
+  border-right: 1px solid var(--glass-border);
   padding: 8px 0 12px;
   overflow-y: auto;
 }
@@ -53,8 +54,8 @@
 }
 
 .sidebarItemActive {
-  background: rgba(13, 155, 168, 0.25);
-  color: #0d9ba8;
+  background: rgba(10, 132, 255, 0.25);
+  color: #0a84ff;
 }
 
 .main {
@@ -62,7 +63,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: #1e1e1e;
+  background: transparent;
   position: relative;
 }
 
@@ -73,8 +74,8 @@
   gap: 8px;
   height: 38px;
   padding: 0 12px;
-  background: #2a2a2e;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
 
@@ -84,8 +85,8 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: #2a2a2e;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
 
@@ -96,6 +97,7 @@
 }
 
 .toolbarViews {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -205,7 +207,7 @@
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  background: #1a1a1a;
+  background: rgba(255, 255, 255, 0.04);
   text-align: left;
   transition: border-color 150ms ease, transform 150ms ease;
 }
@@ -233,7 +235,7 @@
 }
 
 .projectCardSelected {
-  border-color: #0d9ba8;
+  border-color: #0a84ff;
 }
 
 .cardBody {
@@ -262,11 +264,21 @@
 }
 
 .cardTag {
-  padding: 2px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 6px;
   font-size: 10px;
   color: rgba(255, 255, 255, 0.85);
   background: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
+}
+
+.cardTagDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .emptyState {

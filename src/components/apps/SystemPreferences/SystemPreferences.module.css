@@ -7,8 +7,8 @@
 .nav {
   width: 140px;
   padding: 12px;
-  background: var(--bg-tertiary);
-  border-right: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.16);
+  border-right: 1px solid var(--glass-border);
 }
 
 .navBtn {
@@ -85,13 +85,13 @@
 
 .thumb_default {
   background:
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(13, 155, 168, 0.15), transparent),
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(10, 132, 255, 0.15), transparent),
     linear-gradient(160deg, #0a0a0a, #121212);
 }
 
 .thumb_aurora {
   background:
-    radial-gradient(circle at 30% 40%, rgba(13, 155, 168, 0.35), transparent 50%),
+    radial-gradient(circle at 30% 40%, rgba(10, 132, 255, 0.35), transparent 50%),
     linear-gradient(180deg, #0a0a0a, #141820);
 }
 

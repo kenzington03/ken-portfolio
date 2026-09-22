@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { applyScaleOrigin } from '../../utils/animationOrigin.js';
+import { getNextProject, getProjectById } from '../../data/projects.js';
 import { useOS } from '../../context/OSContext.jsx';
 import styles from './Window.module.css';
 
@@ -15,6 +16,9 @@ export default function Window({ win }) {
     toggleMaximize,
     updateWindowPosition,
     updateWindowSize,
+    updateWindowContent,
+    windows,
+    launchApp,
   } = useOS();
 
   const windowRef = useRef(null);
@@ -148,6 +152,40 @@ export default function Window({ win }) {
     [syncOrigin, win.id, closeWindow]
   );
 
+  const onBackToPortfolio = useCallback(
+    (e) => {
+      e.stopPropagation();
+      closeWindow(win.id);
+      const finderWindow = windows.find((w) => w.appId === 'finder');
+      if (finderWindow) {
+        focusWindow(finderWindow.id);
+      } else {
+        launchApp('finder');
+      }
+    },
+    [win.id, windows, closeWindow, focusWindow, launchApp]
+  );
+
+  // Project windows get a Finder-style nav bar (back + next, like a browser's
+  // back/forward pair) instead of cramming a back link into the titlebar
+  // alongside the traffic lights.
+  const project =
+    win.appId === 'projectviewer' && win.data?.projectId
+      ? getProjectById(win.data.projectId)
+      : null;
+  const nextProject = project ? getNextProject(project.id) : null;
+
+  const onOpenNext = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (!nextProject) return;
+      // Navigate to the next project in THIS window (like Finder moving
+      // between folders), instead of stacking a new window per click.
+      updateWindowContent(win.id, { title: nextProject.name, data: { projectId: nextProject.id } });
+    },
+    [win.id, nextProject, updateWindowContent]
+  );
+
   const style = win.maximized
     ? { zIndex: win.zIndex }
     : {
@@ -180,6 +218,9 @@ export default function Window({ win }) {
       aria-label={win.title}
     >
       <div className={styles.titlebar} data-window-titlebar onMouseDown={onTitleMouseDown}>
+        <div className="glassDistort" aria-hidden />
+        <div className={`glassTint ${styles.titlebarTint}`} aria-hidden />
+        <div className="glassShine" aria-hidden />
         <div className={styles.trafficLights}>
           <button
             type="button"
@@ -220,8 +261,53 @@ export default function Window({ win }) {
         </div>
         <span className={styles.title}>{win.title}</span>
       </div>
+      {project && (
+        <div className={styles.navBar}>
+          <div className="glassDistort" aria-hidden />
+          <div className={`glassTint ${styles.navBarTint}`} aria-hidden />
+          <div className="glassShine" aria-hidden />
+          <button type="button" className={styles.navBtn} onClick={onBackToPortfolio}>
+            <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
+              <path
+                d="M7 1L2 6L7 11"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Portfolio
+          </button>
+          {nextProject && (
+            <button
+              type="button"
+              className={`${styles.navBtn} ${styles.navBtnNext}`}
+              onClick={onOpenNext}
+            >
+              {nextProject.name}
+              <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
+                <path
+                  d="M1 1L6 6L1 11"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
       <div className={styles.content}>
-        <Component windowId={win.id} data={win.data} isActive={isActive} />
+        {/* Keyed by project so navigating in place (Next/Back) remounts the
+            viewer fresh — scroll position and active tab reset like a real
+            folder change, instead of carrying over from the last project. */}
+        <Component
+          key={win.data?.projectId ?? win.id}
+          windowId={win.id}
+          data={win.data}
+          isActive={isActive}
+        />
       </div>
       {!win.maximized &&
         resizeDirs.map((dir) => (

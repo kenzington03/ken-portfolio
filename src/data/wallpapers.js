@@ -1,11 +1,16 @@
 export const WALLPAPER_STORAGE_KEY = 'kenneth-os-wallpaper';
 export const DESKTOP_BG_STORAGE_KEY = 'kenneth-os-desktop-bg-index';
 
-/** Image files in public/assets/backgrounds/ */
+/** Image files in public/assets/backgrounds/ — Apple's own macOS 26 "Tahoe"
+    default wallpapers (light + dark Liquid Glass renders, plus the Lake
+    Tahoe photo). These are Apple's copyrighted images, used here at the
+    user's explicit direction overriding this project's earlier "don't
+    reuse Apple wallpapers" note — a real licensing risk on a public site,
+    accepted knowingly rather than silently. */
 export const DESKTOP_BACKGROUNDS = [
-  { id: 'bg1', label: 'Background 1', src: '/assets/backgrounds/background-1.jpg' },
-  { id: 'bg2', label: 'Background 2', src: '/assets/backgrounds/background-2.avif' },
-  { id: 'bg3', label: 'Background 3', src: '/assets/backgrounds/background-3.jpg' },
+  { id: 'tahoe-light', label: 'Tahoe (Light)', src: '/assets/backgrounds/tahoe-light.jpg' },
+  { id: 'tahoe-dark', label: 'Tahoe (Dark)', src: '/assets/backgrounds/tahoe-dark.jpg' },
+  { id: 'tahoe-beach', label: 'Tahoe (Beach)', src: '/assets/backgrounds/tahoe-beach-day.jpg' },
 ];
 
 export const WALLPAPER_OPTIONS = [
@@ -30,6 +35,10 @@ export function getWallpaperById(id) {
   return WALLPAPER_OPTIONS.find((w) => w.id === id) ?? WALLPAPER_OPTIONS[0];
 }
 
+/** Tahoe's dark Liquid Glass render — matches the dark dock/menu-bar
+ * chrome better than the light or photo variants as an out-of-box default. */
+const DEFAULT_WALLPAPER_ID = 'tahoe-dark';
+
 export function loadStoredWallpaper() {
   try {
     const stored = localStorage.getItem(WALLPAPER_STORAGE_KEY);
@@ -39,7 +48,7 @@ export function loadStoredWallpaper() {
   } catch {
     /* ignore */
   }
-  return DESKTOP_BACKGROUNDS[0]?.id ?? 'bg1';
+  return DEFAULT_WALLPAPER_ID;
 }
 
 export function loadDesktopBgIndex() {

@@ -1,5 +1,5 @@
 import { getOriginFromEvent } from '../../utils/animationOrigin.js';
-import { FUN_ZONE_ITEMS } from '../../data/funZone.js';
+import { FUN_ZONE_ITEMS } from '../../data/funZone.jsx';
 import { useOS } from '../../context/OSContext.jsx';
 import DesktopIcon from './DesktopIcon.jsx';
 import styles from './FunZone.module.css';
@@ -33,7 +33,7 @@ export default function FunZone() {
           >
             {showNudge && <span className={styles.nudgeTooltip}>{NUDGE_TEXT}</span>}
             <span className={styles.iconGraphic} data-animation-origin>
-              <DesktopIcon src={item.src} label={item.label} />
+              <DesktopIcon src={item.src} label={item.label} icon={item.icon} bg={item.bg} />
             </span>
             <span className={styles.iconLabel}>{item.label}</span>
           </button>

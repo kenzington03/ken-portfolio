@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { GAME_APP_IDS } from '../data/funZone.js';
+import { GAME_APP_IDS } from '../data/funZone.jsx';
 
-function isTypingTarget(target) {
+export function isTypingTarget(target) {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName.toLowerCase();
   if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;

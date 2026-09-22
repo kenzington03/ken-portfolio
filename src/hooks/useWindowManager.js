@@ -126,6 +126,15 @@ export function useWindowManager() {
     setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, size } : w)));
   }, []);
 
+  // Swaps a window's title/data in place — used to move between projects
+  // in the SAME window (like Finder navigating folders), instead of
+  // stacking a new window per click.
+  const updateWindowContent = useCallback((id, { title, data }) => {
+    setWindows((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, title, data } : w))
+    );
+  }, []);
+
   const restoreFromDock = useCallback(
     (appId) => {
       const win = windows.find((w) => w.appId === appId);
@@ -154,6 +163,7 @@ export function useWindowManager() {
     focusWindow,
     updateWindowPosition,
     updateWindowSize,
+    updateWindowContent,
     restoreFromDock,
     windowCount,
   };

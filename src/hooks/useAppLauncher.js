@@ -11,6 +11,8 @@ import SystemPreferences from '../components/apps/SystemPreferences/SystemPrefer
 import ClaudeFaq from '../components/apps/ClaudeFaq/ClaudeFaq.jsx';
 import FlappyBird from '../components/apps/FlappyBird/FlappyBird.jsx';
 import ChromeDino from '../components/apps/ChromeDino/ChromeDino.jsx';
+import TumbleBlocks from '../components/apps/TumbleBlocks/TumbleBlocks.jsx';
+import MazeMuncher from '../components/apps/MazeMuncher/MazeMuncher.jsx';
 import { getProjectById } from '../data/projects.js';
 
 const APP_REGISTRY = {
@@ -25,6 +27,8 @@ const APP_REGISTRY = {
   claude: { title: 'Claude — Ask me about Ken', component: ClaudeFaq, size: { width: 720, height: 560 } },
   flappybird: { title: 'Flappy Bird', component: FlappyBird, size: { width: 400, height: 580 } },
   chromedino: { title: 'New Tab', component: ChromeDino, size: { width: 680, height: 320 } },
+  tumbleblocks: { title: 'Tetris', component: TumbleBlocks, size: { width: 460, height: 500 } },
+  mazemuncher: { title: 'Pac-Man', component: MazeMuncher, size: { width: 420, height: 420 } },
   systempreferences: {
     title: 'System Preferences',
     component: SystemPreferences,

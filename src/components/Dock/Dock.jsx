@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { getOriginFromEvent } from '../../utils/animationOrigin.js';
-import { PORTFOLIO_ICON_SRC } from '../../data/funZone.js';
+import { PORTFOLIO_ICON_SRC } from '../../data/funZone.jsx';
 import { useOS } from '../../context/OSContext.jsx';
 import DockIcon from './DockIcon.jsx';
 import IllustratorIcon from './IllustratorIcon.jsx';
@@ -24,6 +24,7 @@ const DOCK_PRIMARY = [
     src: PORTFOLIO_ICON_SRC,
     action: 'app',
     pulse: true,
+    tourId: 'dock-portfolio',
   },
   {
     id: 'about',
@@ -84,6 +85,10 @@ const DOCK_TRASH = {
 
 const SPRING = { stiffness: 300, damping: 30, mass: 0.1 };
 
+const BASE_SIZE = 48;
+const MAX_SIZE = 76;
+const NEIGHBOR_SIZE = 58;
+
 function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, showPulse, showNudge }) {
   const ref = useRef(null);
 
@@ -93,8 +98,16 @@ function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, showPulse, showNud
     return val - bounds.x - bounds.width / 2;
   });
 
-  const scaleSync = useTransform(distance, [-150, -50, 0, 50, 150], [1, 1.3, 1.6, 1.3, 1]);
-  const scale = useSpring(scaleSync, SPRING);
+  // Animate real box size (not just a visual scale transform) so the flex
+  // layout actually reflows and neighboring icons are pushed apart —
+  // matching real macOS dock magnification instead of overlapping in place.
+  const sizeSync = useTransform(
+    distance,
+    [-140, -70, 0, 70, 140],
+    [BASE_SIZE, NEIGHBOR_SIZE, MAX_SIZE, NEIGHBOR_SIZE, BASE_SIZE]
+  );
+  const size = useSpring(sizeSync, SPRING);
+  const radius = useTransform(size, [BASE_SIZE, MAX_SIZE], [12, 18]);
 
   const renderIcon = () => {
     if (item.customIcon === 'illustrator') return <IllustratorIcon />;
@@ -103,20 +116,22 @@ function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, showPulse, showNud
   };
 
   return (
-    <motion.div ref={ref} className={styles.item} style={{ scale, originY: 1 }}>
+    <div ref={ref} className={styles.item}>
       {showNudge && <span className={styles.nudgeTooltip}>{NUDGE_TEXT}</span>}
-      <button
+      <motion.button
         type="button"
-        className={styles.itemBtn}
+        className={`${styles.itemBtn} ${showPulse ? styles.pulse : ''}`}
+        style={{ width: size, height: size, borderRadius: radius }}
         onClick={onLaunch}
         aria-label={item.label}
         data-animation-origin
+        data-tour={item.tourId}
       >
         {renderIcon()}
-      </button>
-      <span className={styles.label}>{item.label}</span>
+      </motion.button>
+      <span className={styles.label} aria-hidden>{item.label}</span>
       {isRunning && <span className={styles.running} aria-hidden />}
-    </motion.div>
+    </div>
   );
 }
 
@@ -173,11 +188,16 @@ export default function Dock() {
     <>
       <div className={styles.dockWrap}>
         <div className={styles.dock} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
-          {DOCK_PRIMARY.map(renderItem)}
-          <div className={styles.divider} aria-hidden />
-          {DOCK_SECONDARY.map(renderItem)}
-          <div className={styles.divider} aria-hidden />
-          {renderItem(DOCK_TRASH)}
+          <div className="glassDistort" aria-hidden />
+          <div className={`glassTint ${styles.dockTint}`} aria-hidden />
+          <div className="glassShine" aria-hidden />
+          <div className={styles.dockContent}>
+            {DOCK_PRIMARY.map(renderItem)}
+            <div className={styles.divider} aria-hidden />
+            {DOCK_SECONDARY.map(renderItem)}
+            <div className={styles.divider} aria-hidden />
+            {renderItem(DOCK_TRASH)}
+          </div>
         </div>
       </div>
       {activeSplash && (

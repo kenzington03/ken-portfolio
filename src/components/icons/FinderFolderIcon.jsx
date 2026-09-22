@@ -32,7 +32,7 @@ export default function FinderFolderIcon({ size = 64 }) {
       {/* Teal overlay 30% */}
       <path
         d="M4 18 H56 Q58 18 58 20 V44 Q58 47 55 47 H9 Q6 47 6 44 V18 Z"
-        fill="#0d9ba8"
+        fill="#0a84ff"
         opacity="0.3"
       />
       {/* Highlight edge */}

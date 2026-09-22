@@ -4,8 +4,8 @@
   padding: 36px 28px 32px;
   background: linear-gradient(
     180deg,
-    rgba(13, 155, 168, 0.45) 0%,
-    rgba(13, 155, 168, 0.12) 28%,
+    rgba(10, 132, 255, 0.45) 0%,
+    rgba(10, 132, 255, 0.12) 28%,
     #0a0a0a 62%
   );
   display: flex;
@@ -99,7 +99,7 @@
 }
 
 .infoRow:hover {
-  background: rgba(13, 155, 168, 0.08);
+  background: rgba(10, 132, 255, 0.08);
 }
 
 .infoLabel {

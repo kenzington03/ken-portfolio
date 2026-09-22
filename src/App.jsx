@@ -12,7 +12,9 @@ import AchievementToast from './components/Achievements/AchievementToast.jsx';
 import Spotlight from './components/Spotlight/Spotlight.jsx';
 import HelloScreen from './components/HelloScreen/HelloScreen.jsx';
 import JourneyBridge from './components/JourneyBridge/JourneyBridge.jsx';
+import OnboardingTour from './components/OnboardingTour/OnboardingTour.jsx';
 import IPhoneHome from './components/IPhoneHome/IPhoneHome.jsx';
+import GlassFilterDefs from './components/GlassFilterDefs/GlassFilterDefs.jsx';
 import styles from './App.module.css';
 
 function GlobalKeyboardBridge({ spotlightOpen, onSpotlightToggle }) {
@@ -44,6 +46,7 @@ function DesktopShell() {
       <Desktop />
       <Dock />
       <HelloScreen />
+      <OnboardingTour />
       <Spotlight open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
       <Screensaver />
       <AchievementToast />
@@ -71,6 +74,7 @@ function AppShell() {
 export default function App() {
   return (
     <OSProvider>
+      <GlassFilterDefs />
       <AppShell />
     </OSProvider>
   );

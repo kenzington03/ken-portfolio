@@ -13,22 +13,38 @@
   touch-action: pan-y;
 }
 
-/* Wallpaper layer */
+/* Wallpaper layer — high-res Apple-style gradient wave (avoids blur from upscaling low-res sources) */
 .wallpaper {
   position: absolute;
   inset: 0;
-  background-image: url('/assets/ui/background-1.jpg');
+  background-image: url('/assets/ui/background-2.avif');
   background-size: cover;
   background-position: center;
   z-index: 0;
 }
 
-/* Add a very subtle dark scrim so icons are always legible */
+/* Subtle dark scrim so icons/labels stay legible over bright wallpaper areas */
 .wallpaper::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.06) 18%, rgba(0, 0, 0, 0.08) 70%, rgba(0, 0, 0, 0.32) 100%);
+}
+
+/* ─── Dynamic Island — iPhone 15/16 Pro proportions, scaled to this
+   simulated viewport. Sits above every screen (folder, app sheet,
+   spotlight all have lower z-index), same as the real hardware cutout. */
+.dynamicIsland {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 14px) + 11px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 37px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 9999;
+  pointer-events: none;
 }
 
 /* ─── Scrollable home area ─── */

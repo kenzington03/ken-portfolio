@@ -12,7 +12,9 @@
   height: 22px;
   padding: 0 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: #252528;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -74,12 +76,12 @@
 }
 
 .rowSelected {
-  background: rgba(13, 155, 168, 0.28);
+  background: rgba(10, 132, 255, 0.28);
   color: #fff;
 }
 
 .rowSelected:hover {
-  background: rgba(13, 155, 168, 0.32);
+  background: rgba(10, 132, 255, 0.32);
 }
 
 .cell {

@@ -8,16 +8,33 @@
 }
 
 .dock {
+  position: relative;
+  height: 62px;
+  padding: 6px 8px;
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  pointer-events: auto;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 0 0.5px rgba(0, 0, 0, 0.4),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
+  /* icons magnify past the top edge, like real macOS — the bar itself never resizes */
+  overflow: visible;
+}
+
+.dockTint {
+  background: rgba(30, 30, 32, 0.45);
+}
+
+/* Real content sits above .glassDistort/.glassTint/.glassShine, so the
+   icons never get warped by the refraction filter — only the backdrop does. */
+.dockContent {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: flex-end;
-  gap: 16px;
-  padding: 6px 14px 4px;
-  background: rgba(30, 30, 30, 0.75);
-  backdrop-filter: blur(24px);
-  border: 1px solid var(--border-strong);
-  border-radius: 18px;
-  pointer-events: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  gap: 6px;
+  height: 100%;
 }
 
 .item {
@@ -25,9 +42,11 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  transform-origin: bottom center;
   flex-shrink: 0;
-  gap: 2px;
+}
+
+.item:hover {
+  z-index: 2;
 }
 
 .itemBtn {
@@ -36,8 +55,6 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 12px;
-  transition: background 0.15s;
   flex-shrink: 0;
   outline: none;
   border: none;
@@ -59,14 +76,6 @@
   opacity: 0.85;
 }
 
-.itemBtn:hover:not(.itemBtnDecorative) {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.itemBtnDecorative:hover {
-  background: transparent;
-}
-
 .pulse {
   animation: portfolioPulse 2s ease-in-out infinite;
 }
@@ -74,17 +83,17 @@
 @keyframes portfolioPulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(13, 155, 168, 0.35);
+    box-shadow: 0 0 0 0 rgba(10, 132, 255, 0.35);
   }
   50% {
-    box-shadow: 0 0 14px 4px rgba(13, 155, 168, 0.45);
+    box-shadow: 0 0 14px 4px rgba(10, 132, 255, 0.45);
   }
 }
 
 .dockImg {
   display: block;
-  width: 48px;
-  height: 48px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   border-radius: 0;
   pointer-events: none;
@@ -92,22 +101,38 @@
 
 .running {
   position: absolute;
-  bottom: 18px;
+  bottom: -5px;
   width: 4px;
   height: 4px;
   border-radius: 50%;
   background: var(--text-secondary);
 }
 
+/* Name tooltip: macOS only shows a dock item's name on hover, in a small
+   translucent pill above the icon (not as a permanent caption). */
 .label {
-  font-size: 10px;
-  line-height: 1.1;
-  color: rgba(255, 255, 255, 0.72);
-  text-align: center;
-  max-width: 72px;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 10px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.92);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: rgba(40, 40, 42, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.item:hover .label {
+  opacity: 1;
 }
 
 .nudgeTooltip {
@@ -135,8 +160,8 @@
 
 .divider {
   width: 1px;
-  height: 52px;
+  height: 40px;
   margin: 0 4px;
-  background: var(--border);
+  background: rgba(255, 255, 255, 0.22);
   align-self: center;
 }

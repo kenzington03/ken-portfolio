@@ -36,38 +36,44 @@ export default function MenuBar({ onOpenAchievements }) {
 
   return (
     <header className={styles.menuBar}>
-      <div className={styles.left}>
-        <button type="button" className={styles.logo} aria-label="KN Menu">
-          KN
-        </button>
-      </div>
-      <div className={styles.center}>{activeAppName}</div>
-      <div className={styles.right}>
-        <span className={styles.wifi} title="Wi-Fi" aria-hidden>
-          <span className={styles.wifiBar} />
-          <span className={styles.wifiBar} />
-          <span className={styles.wifiBar} />
-        </span>
-        <span className={styles.battery} title="Battery" aria-hidden>
-          <span className={styles.batteryBody}>
-            <span className={styles.batteryFill} />
-          </span>
-          <span className={styles.batteryCap} />
-          <span className={styles.batteryPct}>100%</span>
-        </span>
-        {onOpenAchievements && (
-          <button
-            type="button"
-            className={styles.trophy}
-            onClick={onOpenAchievements}
-            aria-label="Achievements"
-          >
-            🏆
+      <div className="glassDistort" aria-hidden />
+      <div className={`glassTint ${styles.menuBarTint}`} aria-hidden />
+      <div className="glassShine" aria-hidden />
+      <div className={styles.menuBarContent}>
+        <div className={styles.left}>
+          <button type="button" className={styles.logo} aria-label="KN Menu">
+            KN
           </button>
-        )}
-        <time className={styles.dateTime} dateTime={now.toISOString()}>
-          {dateTime}
-        </time>
+        </div>
+        <div className={styles.center}>{activeAppName}</div>
+        <div className={styles.right}>
+          <span className={styles.wifi} title="Wi-Fi" aria-hidden>
+            <span className={styles.wifiBar} />
+            <span className={styles.wifiBar} />
+            <span className={styles.wifiBar} />
+          </span>
+          <span className={styles.battery} title="Battery" aria-hidden>
+            <span className={styles.batteryBody}>
+              <span className={styles.batteryFill} />
+            </span>
+            <span className={styles.batteryCap} />
+            <span className={styles.batteryPct}>100%</span>
+          </span>
+          {onOpenAchievements && (
+            <button
+              type="button"
+              className={styles.trophy}
+              onClick={onOpenAchievements}
+              aria-label="Achievements"
+              data-tour="menu-achievements"
+            >
+              🏆
+            </button>
+          )}
+          <time className={styles.dateTime} dateTime={now.toISOString()}>
+            {dateTime}
+          </time>
+        </div>
       </div>
     </header>
   );

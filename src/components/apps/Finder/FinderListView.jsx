@@ -121,10 +121,7 @@ export default function FinderListView({ projects, selectedId, onSelect, onOpenP
               <span className={styles.name}>{project.name}</span>
             </span>
             <span className={`${styles.cell} ${styles.colTags}`}>
-              {(project.tags ?? [])
-                .slice(0, 3)
-                .map((tag) => getTagLabel(tag))
-                .join(', ')}
+              {(project.tags ?? []).slice(0, 3).map(getTagLabel).join(', ')}
             </span>
             <span className={`${styles.cell} ${styles.colDate}`}>
               {formatDateModified(project)}

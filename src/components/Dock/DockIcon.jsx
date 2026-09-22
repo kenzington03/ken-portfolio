@@ -5,10 +5,7 @@ export default function DockIcon({ src, label }) {
     <img
       src={src}
       alt={label}
-      width={48}
-      height={48}
       className={styles.dockImg}
-      style={{ objectFit: 'contain', borderRadius: 0 }}
       draggable={false}
     />
   );

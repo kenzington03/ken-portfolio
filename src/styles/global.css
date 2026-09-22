@@ -1,14 +1,17 @@
 :root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #141414;
-  --bg-tertiary: #1c1c1c;
-  --bg-elevated: #242424;
-  --accent: #0d9ba8;
-  --accent-hover: #0bb5c4;
-  --accent-muted: rgba(13, 155, 168, 0.2);
-  --text-primary: #f5f5f5;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
+  /* Apple's actual dark-mode system palette: a near-black canvas with
+     System Blue as the one interactive accent, plus the full system-color
+     set available for deliberate "colorful pops" (tags, icons, states). */
+  --bg-primary: #000000;
+  --bg-secondary: #1c1c1e;
+  --bg-tertiary: #232325;
+  --bg-elevated: #2c2c2e;
+  --accent: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-muted: rgba(10, 132, 255, 0.2);
+  --text-primary: #f5f5f7;
+  --text-secondary: #a3a3a8;
+  --text-muted: #737378;
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.15);
   --shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
@@ -20,8 +23,25 @@
   --menubar-height: 24px;
   --dock-height: 72px;
   --traffic-close: #ff5f57;
-  --traffic-minimize: #ffbd2e;
+  --traffic-minimize: #febc2e;
   --traffic-maximize: #28c840;
+
+  /* Apple system colors — the "colorful pops" against the black canvas */
+  --sys-blue: #0a84ff;
+  --sys-green: #30d158;
+  --sys-indigo: #5e5ce6;
+  --sys-orange: #ff9f0a;
+  --sys-pink: #ff375f;
+  --sys-purple: #bf5af2;
+  --sys-red: #ff453a;
+  --sys-teal: #40c8e0;
+  --sys-yellow: #ffd60a;
+
+  /* Frosted-glass surface used for windows, dock, sheets, popovers */
+  --glass-bg: rgba(28, 28, 30, 0.6);
+  --glass-bg-strong: rgba(28, 28, 30, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-blur: blur(28px) saturate(180%);
 }
 
 *,
@@ -70,4 +90,49 @@ a:hover {
 ::selection {
   background: var(--accent-muted);
   color: var(--text-primary);
+}
+
+/* Liquid Glass, ported layer-for-layer from lucasromerodb's
+   liquid-glass-effect-macos (.liquidGlass-effect/-tint/-shine): a glass
+   surface (dock, menu bar, window toolbars) is `position: relative` with
+   three stacked children —
+     .glassDistort (z0) — the refraction + blur, via GlassFilterDefs
+     .glassTint    (z1) — a flat color wash (each surface sets its own
+                           background via a modifier, e.g. .dockTint)
+     .glassShine   (z2) — the inset specular highlight, universal
+   — then the real content at `position: relative; z-index: 3`, so the
+   effect only ever touches the backdrop, never the UI drawn on top of it.
+   Chrome-only-ish: browsers without SVG-filter-on-backdrop support just
+   fall back to the plain blur, which still looks fine. */
+.glassDistort {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  filter: url(#glass-distortion);
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.glassTint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.glassShine {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow:
+    inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+    inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
 }

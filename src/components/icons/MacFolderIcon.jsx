@@ -31,7 +31,7 @@ export default function MacFolderIcon({ size = 48, className, variant = 'default
       {/* Tab */}
       <path
         d="M8 14 L8 11 Q8 9 10 9 L18 9 Q20 9 21 10 L24 14 Z"
-        fill="rgba(13, 155, 168, 0.4)"
+        fill="rgba(10, 132, 255, 0.4)"
       />
       <path
         d="M8 14 L8 11.5 Q8 10 9.5 10 L17 10 Q18.5 10 19.5 11 L22 14 Z"

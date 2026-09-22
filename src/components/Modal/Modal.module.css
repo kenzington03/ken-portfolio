@@ -14,8 +14,10 @@
   width: 100%;
   max-width: 480px;
   max-height: 80vh;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-strong);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   display: flex;
@@ -28,7 +30,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .title {
@@ -40,7 +42,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--bg-elevated);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
   font-size: 18px;
   line-height: 1;

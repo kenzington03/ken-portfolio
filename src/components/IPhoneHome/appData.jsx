@@ -1,4 +1,5 @@
 import { projects, getProjectCoverUrl } from '../../data/projects.js';
+import { PacManGlyph, TetrisGlyph, FlappyBirdGlyph } from '../icons/GameGlyphs.jsx';
 
 /* ─── SVG Icons (filled, iOS-style white on gradient bg) ─── */
 const PersonIcon = () => (
@@ -54,6 +55,26 @@ const GamepadIcon = () => (
   </svg>
 );
 
+const IMessageIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+    <path
+      d="M16 2C7.72 2 1 7.94 1 15.3c0 4.06 2.06 7.7 5.3 10.13-.18 2-1.02 3.7-1.72 4.8-.16.26.05.6.36.55 2.2-.37 4.5-1.34 6.06-2.32 1.55.45 3.24.7 5 .7 8.28 0 15-5.94 15-13.3S24.28 2 16 2z"
+      fill="white"
+      fillOpacity="0.96"
+    />
+  </svg>
+);
+
+const ClaudeSparkIcon = () => (
+  <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+    <path
+      d="M15 3l3 9.5L27.5 15 18 18l-3 9.5-3-9.5L2.5 15 12 12.5z"
+      fill="white"
+      fillOpacity="0.95"
+    />
+  </svg>
+);
+
 const MilestoneIcon = () => (
   <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
     <path d="M5 25L15 5l10 20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
@@ -78,7 +99,7 @@ export const HOME_APPS = [
     id: 'portfolio',
     label: 'Portfolio',
     type: 'folder',
-    folderColor: 'linear-gradient(145deg, #0d9ba8 0%, #056d77 100%)',
+    folderColor: 'linear-gradient(145deg, #0a84ff 0%, #0059c9 100%)',
     apps: PROJECT_APPS,
   },
   {
@@ -104,6 +125,23 @@ export const HOME_APPS = [
     appKey: 'resume',
     style: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
     icon: <DocIcon />,
+  },
+  {
+    id: 'imessage',
+    label: 'iMessage',
+    type: 'app',
+    appKey: 'imessage',
+    style: 'linear-gradient(135deg, #63e550 0%, #24c227 100%)',
+    icon: <IMessageIcon />,
+  },
+  {
+    id: 'claude',
+    label: 'Claude',
+    type: 'app',
+    appKey: 'claude',
+    imgSrc: '/assets/icons/dock-claude-logo.png',
+    style: 'linear-gradient(135deg, #da7756 0%, #bd5b3a 100%)',
+    icon: <ClaudeSparkIcon />,
   },
   {
     id: 'milestone',
@@ -151,7 +189,7 @@ export const HOME_APPS = [
         type: 'app',
         appKey: 'flappy',
         style: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-        icon: <GamepadIcon />,
+        icon: <FlappyBirdGlyph />,
       },
       {
         id: 'chrome',
@@ -162,6 +200,22 @@ export const HOME_APPS = [
         style: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
         icon: <GamepadIcon />,
       },
+      {
+        id: 'tumbleblocks',
+        label: 'Tetris',
+        type: 'app',
+        appKey: 'tumbleblocks',
+        style: 'linear-gradient(135deg, #5e5ce6 0%, #3a38a0 100%)',
+        icon: <TetrisGlyph />,
+      },
+      {
+        id: 'mazemuncher',
+        label: 'Pac-Man',
+        type: 'app',
+        appKey: 'mazemuncher',
+        style: 'linear-gradient(135deg, #1b2a6b 0%, #0d1533 100%)',
+        icon: <PacManGlyph />,
+      },
     ],
   },
 ];
@@ -169,6 +223,6 @@ export const HOME_APPS = [
 export const DOCK_APPS = [
   HOME_APPS.find((a) => a.id === 'portfolio'),
   HOME_APPS.find((a) => a.id === 'about'),
-  HOME_APPS.find((a) => a.id === 'contact'),
-  HOME_APPS.find((a) => a.id === 'resume'),
+  HOME_APPS.find((a) => a.id === 'imessage'),
+  HOME_APPS.find((a) => a.id === 'claude'),
 ];

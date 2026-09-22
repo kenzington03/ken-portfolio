@@ -4,13 +4,6 @@
   left: 0;
   right: 0;
   height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: rgba(30, 30, 30, 0.72);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
   border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
   z-index: 10000;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', sans-serif;
@@ -18,6 +11,22 @@
   font-weight: 400;
   color: rgba(255, 255, 255, 0.92);
   user-select: none;
+}
+
+.menuBarTint {
+  background: rgba(28, 28, 30, 0.55);
+}
+
+/* Real content sits above .glassDistort/.glassTint/.glassShine so the
+   effect only touches the backdrop, never the text/icons. */
+.menuBarContent {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 16px;
 }
 
 .left {
@@ -29,7 +38,7 @@
 .logo {
   font-size: 14px;
   font-weight: 700;
-  color: #0d9ba8;
+  color: #0a84ff;
   padding: 0 4px;
   line-height: 24px;
   letter-spacing: -0.02em;
@@ -104,8 +113,8 @@
   flex: 1;
   background: linear-gradient(
     90deg,
-    #0d9ba8 0%,
-    #0d9ba8 75%,
+    #0a84ff 0%,
+    #0a84ff 75%,
     rgba(255, 255, 255, 0.15) 75%,
     rgba(255, 255, 255, 0.15) 100%
   );

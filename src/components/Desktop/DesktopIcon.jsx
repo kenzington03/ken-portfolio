@@ -1,6 +1,22 @@
+import { useState } from 'react';
 import styles from './Desktop.module.css';
 
-export default function DesktopIcon({ src, label }) {
+/** App icon: an image file when one exists, otherwise a generic macOS-style
+ * squircle glyph (gradient + SVG icon) so new apps don't need custom art. */
+export default function DesktopIcon({ src, label, icon, bg }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
+    if (icon) {
+      return (
+        <div className={styles.iconFallback} style={{ background: bg }}>
+          {icon}
+        </div>
+      );
+    }
+    return null;
+  }
+
   return (
     <img
       src={src}
@@ -10,6 +26,7 @@ export default function DesktopIcon({ src, label }) {
       className={styles.iconImg}
       style={{ objectFit: 'contain', borderRadius: 0 }}
       draggable={false}
+      onError={() => setFailed(true)}
     />
   );
 }

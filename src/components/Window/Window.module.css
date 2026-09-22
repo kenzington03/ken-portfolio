@@ -2,13 +2,23 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  background: var(--bg-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   border-radius: 10px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   overflow: hidden;
   min-width: 480px;
   min-height: 300px;
+}
+
+/* Focused windows sit higher: a large soft shadow plus a tight contact
+   shadow. Unfocused windows flatten out. */
+.focused {
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .windowPreOpen {
@@ -77,11 +87,14 @@
   align-items: center;
   height: 38px;
   padding: 0 80px;
-  background: #2a2a2e;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
   user-select: none;
   cursor: default;
+}
+
+.titlebarTint {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .trafficLights {
@@ -93,7 +106,7 @@
   align-items: center;
   gap: 8px;
   padding-left: 12px;
-  z-index: 1;
+  z-index: 3;
 }
 
 .trafficBtn {
@@ -119,7 +132,7 @@
 }
 
 .focused .trafficBtn.minimize {
-  background: #ffbd2e;
+  background: #febc2e;
 }
 
 .focused .trafficBtn.maximize {
@@ -140,12 +153,66 @@
   opacity: 1;
 }
 
+/* Project windows get a second toolbar row under the titlebar — back and
+   next sit here, never in the titlebar itself. That row is reserved for
+   traffic lights + a centered title on every window, same as real macOS
+   (Finder's own back/forward pair lives in its toolbar, not its titlebar);
+   the look matches Finder's .toolbar so both feel like the same OS chrome. */
+.navBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.navBarTint {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.navBtn {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 45%;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--accent, #0a84ff);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 120ms ease;
+}
+
+.navBtn svg {
+  flex-shrink: 0;
+}
+
+.navBtn:hover {
+  background: rgba(10, 132, 255, 0.12);
+}
+
+.navBtnNext {
+  margin-left: auto;
+}
+
 .title {
+  position: relative;
+  z-index: 3;
   flex: 1;
   text-align: center;
   font-size: 13px;
-  font-weight: 500;
-  color: #c0c0c0;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
   pointer-events: none;
   white-space: nowrap;
   overflow: visible;
@@ -153,7 +220,7 @@
 }
 
 .unfocused .title {
-  color: #8e8e93;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .content {

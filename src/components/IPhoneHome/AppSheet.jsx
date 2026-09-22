@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { projects, getProjectCoverUrl } from '../../data/projects.js';
+import { CLAUDE_GREETING, getClaudeResponse } from '../../utils/claudeBot.js';
 import styles from './AppSheet.module.css';
 
 /* ─── Project card grid shown inside Portfolio ─── */
@@ -135,7 +136,7 @@ function ContactContent() {
     <div className={styles.scrollContent}>
       <p className={styles.contactIntro}>Let's work together</p>
       <div className={styles.contactLinks}>
-        <a href="mailto:kenneth@example.com" className={styles.contactLink}>
+        <a href="mailto:kennethnathanael@gmail.com" className={styles.contactLink}>
           <div className={styles.contactIcon} style={{ background: 'linear-gradient(135deg,#0ea5e9,#0284c7)' }}>
             <svg width="20" height="15" viewBox="0 0 20 15" fill="none">
               <path d="M0 0h20L10 8z" fill="white" fillOpacity="0.9"/>
@@ -173,7 +174,13 @@ function ContactContent() {
 
 /* ─── Game content (desktop only) ─── */
 function GameContent({ appKey }) {
-  const names = { minesweeper: 'Minesweeper', flappy: 'Flappy Bird', chrome: 'Chrome Dino' };
+  const names = {
+    minesweeper: 'Minesweeper',
+    flappy: 'Flappy Bird',
+    chrome: 'Chrome Dino',
+    tumbleblocks: 'Tetris',
+    mazemuncher: 'Pac-Man',
+  };
   return (
     <div className={styles.scrollContent}>
       <div className={styles.gameNotice}>
@@ -189,6 +196,140 @@ function GameContent({ appKey }) {
         <p>This game is optimised for the desktop experience.</p>
         <p style={{ marginTop: 8, opacity: 0.5, fontSize: 13 }}>Visit on a larger screen to play.</p>
       </div>
+    </div>
+  );
+}
+
+/* ─── iMessage content ─── */
+function IMessageContent() {
+  const [draft, setDraft] = useState('');
+
+  const onSend = (e) => {
+    e.preventDefault();
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    window.location.href = `mailto:kennethnathanael@gmail.com?subject=${encodeURIComponent('Hey Ken 👋')}&body=${encodeURIComponent(trimmed)}`;
+    setDraft('');
+  };
+
+  return (
+    <div className={styles.imessageWrap}>
+      <div className={styles.imessageThread}>
+        <div className={styles.imessageContact}>
+          <div className={styles.imessageAvatar}>KA</div>
+          <p className={styles.imessageContactName}>Ken Anandan</p>
+        </div>
+        <span className={styles.imessageTimestamp}>iMessage</span>
+        <div className={styles.imessageRow}>
+          <div className={styles.imessageBubbleIn}>Hey! 👋 Thanks for stopping by my portfolio.</div>
+        </div>
+        <div className={styles.imessageRow}>
+          <div className={styles.imessageBubbleIn}>
+            Have a project in mind, or just want to say hi? Send me a message and I'll get back to you.
+          </div>
+        </div>
+      </div>
+      <form className={styles.imessageInputBar} onSubmit={onSend}>
+        <input
+          type="text"
+          className={styles.imessageInput}
+          placeholder="iMessage"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+        <button
+          type="submit"
+          className={styles.imessageSendBtn}
+          disabled={!draft.trim()}
+          aria-label="Send"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="9" fill={draft.trim() ? '#0a84ff' : 'rgba(255,255,255,0.15)'} />
+            <path d="M9 12.5V5.5M9 5.5L5.5 9M9 5.5L12.5 9" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/* ─── Claude content (mobile) ─── */
+function ClaudeMobileContent() {
+  const [messages, setMessages] = useState([{ role: 'claude', text: CLAUDE_GREETING }]);
+  const [input, setInput] = useState('');
+  const [typing, setTyping] = useState(false);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages, typing]);
+
+  const sendMessage = (text) => {
+    const trimmed = text.trim();
+    if (!trimmed || typing) return;
+    setMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
+    setInput('');
+    setTyping(true);
+    setTimeout(() => {
+      const reply = getClaudeResponse(trimmed);
+      setMessages((prev) => [...prev, { role: 'claude', text: reply }]);
+      setTyping(false);
+    }, 800);
+  };
+
+  return (
+    <div className={styles.imessageWrap}>
+      <div className={styles.imessageThread} ref={scrollRef}>
+        {messages.map((msg, i) => (
+          <div
+            key={`${msg.role}-${i}`}
+            className={styles.imessageRow}
+            style={msg.role === 'user' ? { justifyContent: 'flex-end' } : undefined}
+          >
+            <div className={msg.role === 'user' ? styles.imessageBubbleOut : styles.imessageBubbleIn}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        {typing && (
+          <div className={styles.imessageRow}>
+            <div className={styles.imessageBubbleIn}>
+              <span className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+      <form
+        className={styles.imessageInputBar}
+        onSubmit={(e) => {
+          e.preventDefault();
+          sendMessage(input);
+        }}
+      >
+        <input
+          type="text"
+          className={styles.imessageInput}
+          placeholder="Ask about Ken..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={typing}
+        />
+        <button
+          type="submit"
+          className={styles.imessageSendBtn}
+          disabled={!input.trim() || typing}
+          aria-label="Send"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="9" fill={input.trim() ? '#0a84ff' : 'rgba(255,255,255,0.15)'} />
+            <path d="M9 12.5V5.5M9 5.5L5.5 9M9 5.5L12.5 9" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </form>
     </div>
   );
 }
@@ -288,11 +429,15 @@ export default function AppSheet({ app, onClose }) {
     content = <ResumeContent />;
   } else if (appKey === 'contact') {
     content = <ContactContent />;
+  } else if (appKey === 'imessage') {
+    content = <IMessageContent />;
+  } else if (appKey === 'claude') {
+    content = <ClaudeMobileContent />;
   } else if (appKey === 'milestone') {
     content = <MilestoneContent />;
   } else if (appKey === 'social' || appKey === 'print') {
     content = <CategoryContent appKey={appKey} />;
-  } else if (['minesweeper', 'flappy', 'chrome'].includes(appKey)) {
+  } else if (['minesweeper', 'flappy', 'chrome', 'tumbleblocks', 'mazemuncher'].includes(appKey)) {
     content = <GameContent appKey={appKey} />;
   } else if (appKey && appKey.startsWith('project-')) {
     const projectSlug = appKey.replace('project-', '');

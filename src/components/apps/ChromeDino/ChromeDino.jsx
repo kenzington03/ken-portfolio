@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import GameOverScreen from '../../shared/games/GameOverScreen.jsx';
+import { getLocalBest } from '../../../utils/leaderboard.js';
 import styles from './ChromeDino.module.css';
+import { isTypingTarget } from '../../../hooks/useGlobalKeyboard.js';
 
 const W = 640;
 const H = 240;
@@ -8,6 +11,11 @@ const DINO_X = 60;
 const GRAVITY = 0.9;
 const JUMP_V = -14;
 const INITIAL_SPEED = 5.5;
+const POINTS_PER_LEVEL = 15;
+
+function levelForScore(score) {
+  return 1 + Math.floor(score / POINTS_PER_LEVEL);
+}
 
 /* ── Draw a proper Chrome T-Rex silhouette ── */
 function drawDino(ctx, dinoY, frame, isDead) {
@@ -85,12 +93,19 @@ function drawCloud(ctx, x, y) {
   ctx.fillRect(x + 20, y - 4, 12, 4);
 }
 
+// Older builds stored the high score directly under 'dino-hi'.
+function readLegacyHi() {
+  try {
+    return Number(localStorage.getItem('dino-hi')) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default function ChromeDino() {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
-  const [hi, setHi] = useState(() => {
-    try { return Number(localStorage.getItem('dino-hi') || 0); } catch { return 0; }
-  });
+  const [hi, setHi] = useState(() => getLocalBest('chromedino') ?? readLegacyHi());
   const [gameOver, setGameOver] = useState(false);
   const [started, setStarted] = useState(false);
 
@@ -116,15 +131,16 @@ export default function ChromeDino() {
     score: 0,
   });
 
+  const playAgain = useCallback(() => {
+    stateRef.current = resetState();
+    setScore(0);
+    setGameOver(false);
+    setStarted(false);
+  }, []);
+
   const jump = useCallback(() => {
     const s = stateRef.current;
-    if (gameOver) {
-      stateRef.current = resetState();
-      setScore(0);
-      setGameOver(false);
-      setStarted(false);
-      return;
-    }
+    if (gameOver) return;
     setStarted(true);
     if (s.onGround) {
       s.dinoV = JUMP_V;
@@ -193,10 +209,7 @@ export default function ChromeDino() {
             dinoBottom - 4 > cactusTop
           ) {
             const finalScore = s.score;
-            if (finalScore > hi) {
-              setHi(finalScore);
-              try { localStorage.setItem('dino-hi', String(finalScore)); } catch { /* ignore */ }
-            }
+            if (finalScore > hi) setHi(finalScore);
             setGameOver(true);
           }
 
@@ -236,18 +249,17 @@ export default function ChromeDino() {
       const scoreLabel = String(stateRef.current.score).padStart(5, '0');
       ctx.fillText(`${hiLabel}  ${scoreLabel}`, W - 16, 24);
 
+      const level = levelForScore(stateRef.current.score);
+      if (level > 1) {
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(`LVL ${level}`, W - 16, 40);
+      }
+
       if (!started && !gameOver) {
         ctx.fillStyle = '#535353';
         ctx.font = '14px system-ui';
         ctx.textAlign = 'center';
         ctx.fillText('Press Space or click to start', W / 2, 110);
-      }
-      if (gameOver) {
-        ctx.font = 'bold 16px system-ui';
-        ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', W / 2, 90);
-        ctx.font = '13px system-ui';
-        ctx.fillText('Press Space or click to restart', W / 2, 112);
       }
 
       raf = requestAnimationFrame(loop);
@@ -258,7 +270,10 @@ export default function ChromeDino() {
   }, [started, gameOver, hi]);
 
   useEffect(() => {
+    if (gameOver) return undefined;
     const onKey = (e) => {
+      // Let text fields (Terminal, Claude, name entry) keep Space and arrows.
+      if (isTypingTarget(e.target)) return;
       if (e.code === 'Space' || e.code === 'ArrowUp') {
         e.preventDefault();
         e.stopPropagation();
@@ -267,7 +282,7 @@ export default function ChromeDino() {
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [jump]);
+  }, [jump, gameOver]);
 
   return (
     <div className={styles.page} data-game-window>
@@ -282,6 +297,14 @@ export default function ChromeDino() {
           className={styles.canvas}
           onClick={jump}
           aria-label="Chrome Dino game"
+        />
+        <GameOverScreen
+          open={gameOver}
+          gameKey="chromedino"
+          gameLabel="Chrome Dino"
+          score={score}
+          level={levelForScore(score) > 1 ? levelForScore(score) : undefined}
+          onPlayAgain={playAgain}
         />
       </div>
     </div>

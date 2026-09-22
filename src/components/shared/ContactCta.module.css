@@ -12,7 +12,7 @@
   font-weight: 500;
   font-family: var(--font-sans);
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(13, 155, 168, 0.25);
+  box-shadow: 0 4px 16px rgba(10, 132, 255, 0.25);
   transition: background 0.15s ease, transform 0.15s ease;
 }
 

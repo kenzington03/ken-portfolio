@@ -49,7 +49,7 @@ export function ContactIcon({ size = 48 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden>
       <rect width="48" height="48" rx="10" fill="#1c1c1e" />
-      <rect x="10" y="14" width="28" height="20" rx="3" fill="#0d9ba8" opacity="0.9" />
+      <rect x="10" y="14" width="28" height="20" rx="3" fill="#0a84ff" opacity="0.9" />
       <path
         d="M10 14 L24 26 L38 14"
         fill="none"

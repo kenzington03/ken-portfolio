@@ -1,11 +1,17 @@
 // Adapted from https://github.com/adryd325/oneko.js (MIT)
 
 const SPRITE = '/assets/oneko.gif';
-const SPEECH = ['meow', 'nice portfolio', 'pet me pls', 'i rate this 10/10', '...zzzz', 'wanna see my tricks?'];
+const SPEECH_BY_CHARACTER = {
+  cat: ['meow', 'nice portfolio', 'pet me pls', 'i rate this 10/10', '...zzzz', 'wanna see my tricks?'],
+  dog: ['woof!', 'good boy energy', 'nice portfolio', 'pet me pls', 'i rate this 10/10', 'wanna see my tricks?'],
+  ghost: ['booo', 'nice portfolio', '...zzzz', 'i rate this 10/10', 'wanna see my tricks?'],
+};
 
 const CHARACTER_FILTERS = {
   cat: 'none',
-  dog: 'hue-rotate(30deg) saturate(0.8)',
+  // White (Samoyed-style) instead of a brown/tan tint, which read as a
+  // bear rather than a dog at sprite size.
+  dog: 'grayscale(1) brightness(1.55) contrast(0.9)',
   ghost: 'invert(1) opacity(0.7)',
 };
 
@@ -44,7 +50,7 @@ export function createOnekoPet({ mountEl, onCharacterMenu }) {
   let idleAnimationFrame = 0;
   let lastFrameTimestamp = 0;
   let visible = false;
-  let character = 'cat';
+  let character = 'dog';
   let dragging = false;
   let dragMoved = false;
   let dragOffsetX = 0;
@@ -75,11 +81,11 @@ export function createOnekoPet({ mountEl, onCharacterMenu }) {
   ['cat', 'dog', 'ghost'].forEach((key) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.textContent = key === 'dog' ? 'Dog (coming soon)' : key.charAt(0).toUpperCase() + key.slice(1);
+    btn.textContent = key.charAt(0).toUpperCase() + key.slice(1);
     btn.style.cssText =
       'padding:6px 12px;border:none;background:transparent;color:#fff;text-align:left;border-radius:4px;cursor:pointer;';
     btn.onmouseenter = () => {
-      btn.style.background = 'rgba(13,155,168,0.2)';
+      btn.style.background = 'rgba(10, 132, 255,0.2)';
     };
     btn.onmouseleave = () => {
       btn.style.background = 'transparent';
@@ -135,7 +141,8 @@ export function createOnekoPet({ mountEl, onCharacterMenu }) {
       nekoEl.style.transition = '';
       nekoEl.style.transform = '';
     }, 500);
-    showBubble(SPEECH[Math.floor(Math.random() * SPEECH.length)]);
+    const speech = SPEECH_BY_CHARACTER[character] ?? SPEECH_BY_CHARACTER.cat;
+    showBubble(speech[Math.floor(Math.random() * speech.length)]);
   }
 
   function idle() {
@@ -284,7 +291,7 @@ export function createOnekoPet({ mountEl, onCharacterMenu }) {
   nekoEl.addEventListener('click', onClick);
   nekoEl.addEventListener('contextmenu', onContextMenu);
 
-  setCharacter('cat');
+  setCharacter('dog');
   applyPosition();
   rafId = window.requestAnimationFrame(onAnimationFrame);
 

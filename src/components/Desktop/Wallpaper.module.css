@@ -14,14 +14,14 @@
 
 .default {
   background:
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(13, 155, 168, 0.15), transparent),
-    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(13, 155, 168, 0.08), transparent),
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(10, 132, 255, 0.15), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(10, 132, 255, 0.08), transparent),
     linear-gradient(160deg, #0a0a0a 0%, #121212 50%, #0a0a0a 100%);
 }
 
 .aurora {
   background:
-    radial-gradient(circle at 30% 40%, rgba(13, 155, 168, 0.35), transparent 50%),
+    radial-gradient(circle at 30% 40%, rgba(10, 132, 255, 0.35), transparent 50%),
     radial-gradient(circle at 70% 60%, rgba(100, 80, 200, 0.2), transparent 45%),
     linear-gradient(180deg, #0a0a0a, #141820);
   animation: auroraShift 14s ease-in-out infinite alternate;

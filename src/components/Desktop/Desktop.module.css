@@ -14,23 +14,23 @@
   z-index: 1;
 }
 
+/* Full-bleed positioning container for the right-side desktop icons.
+   It must stay pointer-events:none — otherwise this invisible inset:0
+   box (same z-index as FunZone, but later in the DOM so it paints on
+   top) swallows clicks over the whole desktop, silently blocking the
+   Games/Terminal dock in the bottom-left. Individual icon buttons opt
+   back into pointer-events so they stay clickable. */
 .icons {
   position: absolute;
-  top: 60px;
-  right: 24px;
-  left: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 0;
-  height: auto;
-  max-width: none;
+  inset: 0;
   z-index: 2;
+  pointer-events: none;
 }
 
 .iconButton,
 .trashIcon {
+  pointer-events: auto;
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,13 +42,18 @@
   background: transparent;
   color: var(--text-primary);
   text-align: center;
-  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+  transition: background 150ms ease, border-color 150ms ease;
   outline: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.iconButton:active {
+  cursor: grabbing;
 }
 
 .iconButton:hover,
 .trashIcon:hover {
-  transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -64,12 +69,12 @@
 }
 
 .iconSelected {
-  background: rgba(13, 155, 168, 0.12);
-  border-color: #0d9ba8;
+  background: rgba(10, 132, 255, 0.12);
+  border-color: #0a84ff;
 }
 
 .iconSelected:hover {
-  background: rgba(13, 155, 168, 0.16);
+  background: rgba(10, 132, 255, 0.16);
 }
 
 .iconGraphic {
@@ -89,6 +94,16 @@
   display: block;
   pointer-events: none;
   border-radius: 0;
+}
+
+.iconFallback {
+  width: 48px;
+  height: 48px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .iconLabel {
@@ -136,7 +151,7 @@
 }
 
 .contextItem:hover {
-  background: rgba(13, 155, 168, 0.2);
+  background: rgba(10, 132, 255, 0.2);
   color: #fff;
 }
 

@@ -106,7 +106,7 @@ export const projects = [
     year: '2023',
     folder: '07-web-ui',
     logo: '/assets/projects/07-web-ui/cover.jpg',
-    cover: '/assets/projects/hero%20images/hero-web+ui.jpg',
+    cover: '/assets/projects/hero%20images/hero-web-ui.jpg',
     tags: ['ui-ux', 'branding'],
     description: '[ placeholder ]',
     dateModified: '2023-05-30',

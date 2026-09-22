@@ -1,13 +1,22 @@
 export const CATEGORY_TAGS = [
-  { id: 'campaign', label: 'Campaign' },
-  { id: 'branding', label: 'Branding' },
-  { id: 'social', label: 'Social Media' },
-  { id: 'motion', label: 'Motion' },
-  { id: 'print', label: 'Print' },
-  { id: 'ui-ux', label: 'UI/UX' },
-  { id: 'events', label: 'Events' },
-  { id: 'illustration', label: 'Illustration' },
+  { id: 'campaign', label: 'Campaign', color: 'var(--sys-orange)' },
+  { id: 'branding', label: 'Branding', color: 'var(--sys-purple)' },
+  { id: 'social', label: 'Social Media', color: 'var(--sys-pink)' },
+  { id: 'motion', label: 'Motion', color: 'var(--sys-indigo)' },
+  { id: 'print', label: 'Print', color: 'var(--sys-teal)' },
+  { id: 'ui-ux', label: 'UI/UX', color: 'var(--sys-blue)' },
+  { id: 'events', label: 'Events', color: 'var(--sys-yellow)' },
+  { id: 'illustration', label: 'Illustration', color: 'var(--sys-green)' },
 ];
+
+const DEFAULT_TAG_COLOR = 'var(--sys-blue)';
+
+export function getTagColor(tagId) {
+  const found = CATEGORY_TAGS.find((t) => t.id === tagId);
+  if (found) return found.color;
+  if (tagId === CONCEPT_TAG) return 'var(--sys-red)';
+  return DEFAULT_TAG_COLOR;
+}
 
 export const SIDEBAR_TAG_MAP = {
   'brand-identity': 'branding',

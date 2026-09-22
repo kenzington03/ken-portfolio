@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { projects as allProjects } from '../../../data/projects.js';
-import { CATEGORY_TAGS, getTagLabel } from '../../../data/tags.js';
+import { CATEGORY_TAGS, getTagLabel, getTagColor } from '../../../data/tags.js';
 import styles from './FilterBar.module.css';
 
 const GRID_PROJECTS = allProjects;
@@ -72,6 +72,7 @@ export default function FilterBar({
                   checked={categoryFilters.includes(tag.id)}
                   onChange={() => onToggleCategory(tag.id)}
                 />
+                <span className={styles.tagDot} style={{ background: tag.color }} aria-hidden />
                 <span>{tag.label}</span>
               </label>
             ))}
@@ -98,14 +99,22 @@ export function FilterChips({ projectFilters, categoryFilters, onRemoveProject, 
           </span>
         );
       })}
-      {categoryFilters.map((tagId) => (
-        <span key={tagId} className={styles.chip}>
-          {getTagLabel(tagId)}
-          <button type="button" onClick={() => onRemoveCategory(tagId)} aria-label="Remove">
-            ×
-          </button>
-        </span>
-      ))}
+      {categoryFilters.map((tagId) => {
+        const color = getTagColor(tagId);
+        return (
+          <span
+            key={tagId}
+            className={styles.chip}
+            style={{ color, background: `color-mix(in srgb, ${color} 16%, transparent)`, borderColor: `color-mix(in srgb, ${color} 45%, transparent)` }}
+          >
+            <span className={styles.tagDot} style={{ background: color }} aria-hidden />
+            {getTagLabel(tagId)}
+            <button type="button" onClick={() => onRemoveCategory(tagId)} aria-label="Remove">
+              ×
+            </button>
+          </span>
+        );
+      })}
     </div>
   );
 }
