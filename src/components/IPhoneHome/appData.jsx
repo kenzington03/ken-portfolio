@@ -82,6 +82,38 @@ const MilestoneIcon = () => (
   </svg>
 );
 
+/* ─── Dock glyphs ─── */
+const PhoneIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <path
+      d="M6.5 3h4.2l2 5.5-2.7 2.3c1.3 3 3.7 5.4 6.7 6.7l2.3-2.7 5.5 2v4.2c0 1.4-1.2 2.5-2.6 2.3C12.3 22.2 5.8 15.7 4.7 6.1 4.5 4.7 5.6 3 6.5 3z"
+      fill="white"
+    />
+  </svg>
+);
+
+const SafariIcon = () => (
+  <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+    <circle cx="15" cy="15" r="12.5" fill="white" />
+    <circle cx="15" cy="15" r="11" fill="#e8e8ed" />
+    <circle cx="15" cy="15" r="9.5" fill="white" />
+    {[...Array(12)].map((_, i) => (
+      <rect key={i} x="14.6" y="4.2" width="0.8" height="2.2" fill="#8e8e93" transform={`rotate(${i * 30} 15 15)`} />
+    ))}
+    <path d="M15 8L18 15L15 22L12 15Z" fill="#ff3b30" />
+    <path d="M15 15L18 15L15 22Z" fill="#0a84ff" />
+  </svg>
+);
+
+const SpotifyIcon = () => (
+  <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+    <circle cx="15" cy="15" r="14" fill="#1ED760" />
+    <path d="M8.5 11.5c4-1.2 9-1 12.5 1" stroke="#06170D" strokeWidth="2" strokeLinecap="round" fill="none" />
+    <path d="M8.8 15.5c3.4-1 7.6-.8 10.6.9" stroke="#06170D" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+    <path d="M9.2 19.3c2.8-.8 6.2-.6 8.6.8" stroke="#06170D" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+  </svg>
+);
+
 /* ─── Project icons for Portfolio folder ─── */
 export const PROJECT_APPS = projects.map((p) => ({
   id: `project-${p.id}`,
@@ -220,9 +252,58 @@ export const HOME_APPS = [
   },
 ];
 
+/* Real iOS dock: Phone / Safari / Messages / Spotify. Phone is
+   intercepted before any app sheet opens (IPhoneHome.jsx) and just
+   dials straight out via tel:. Safari reuses the Chrome Dino game's
+   appKey — "opening Safari" launches the game, the joke being the
+   point. Messages reuses the existing iMessage sheet. */
 export const DOCK_APPS = [
-  HOME_APPS.find((a) => a.id === 'portfolio'),
-  HOME_APPS.find((a) => a.id === 'about'),
+  {
+    id: 'phone',
+    label: 'Phone',
+    type: 'app',
+    appKey: 'phone',
+    style: 'linear-gradient(160deg, #6bde6b 0%, #2fb92f 100%)',
+    icon: <PhoneIcon />,
+  },
+  {
+    id: 'safari',
+    label: 'Safari',
+    type: 'app',
+    appKey: 'chrome',
+    style: 'linear-gradient(160deg, #eef3f8 0%, #d5dee6 100%)',
+    icon: <SafariIcon />,
+  },
   HOME_APPS.find((a) => a.id === 'imessage'),
-  HOME_APPS.find((a) => a.id === 'claude'),
+  {
+    id: 'spotify',
+    label: 'Spotify',
+    type: 'app',
+    appKey: 'spotify',
+    style: 'linear-gradient(160deg, #1ED760 0%, #128a3e 100%)',
+    icon: <SpotifyIcon />,
+  },
 ];
+
+/* ─── Flat, searchable list — every home-screen app plus everything
+   inside a folder, plus the dock-only apps (Phone/Safari/Spotify)
+   that don't otherwise appear on the grid. Real iOS Spotlight finds
+   apps buried in folders too, so this does the same. */
+function flattenApps(items) {
+  const out = [];
+  for (const item of items) {
+    if (item.type === 'folder') {
+      out.push(...flattenApps(item.apps || []));
+    } else {
+      out.push(item);
+    }
+  }
+  return out;
+}
+
+export const SEARCHABLE_APPS = [
+  ...flattenApps(HOME_APPS),
+  DOCK_APPS.find((a) => a.id === 'phone'),
+  DOCK_APPS.find((a) => a.id === 'safari'),
+  DOCK_APPS.find((a) => a.id === 'spotify'),
+].filter(Boolean);

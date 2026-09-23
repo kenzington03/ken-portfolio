@@ -439,6 +439,19 @@
   margin-left: auto;
 }
 
+/* ─── Real game canvas, scaled to fit the phone width ─── */
+.gameStageOuter {
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+  overflow: hidden;
+}
+
+.gameStageInner {
+  flex-shrink: 0;
+  transform-origin: top center;
+}
+
 /* ─── Game notice ─── */
 .gameNotice {
   display: flex;
@@ -462,6 +475,115 @@
   font-size: 15px;
   color: rgba(255,255,255,0.55);
   margin: 0;
+}
+
+/* ─── Spotify "Now Playing" (decorative) ─── */
+.spotifyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 28px 24px;
+  height: 100%;
+  background: linear-gradient(180deg, #1b3a26 0%, #0b0b0c 65%);
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+}
+
+.spotifyEyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.spotifyPlaylist {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  margin: 2px 0 28px;
+}
+
+.spotifyArt {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #101010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.spotifyArtSpin {
+  animation: spotifySpin 6s linear infinite;
+}
+
+@keyframes spotifySpin {
+  to { transform: rotate(360deg); }
+}
+
+.spotifyTrack {
+  font-size: 19px;
+  font-weight: 700;
+  color: white;
+  margin: 22px 0 2px;
+}
+
+.spotifyArtist {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 22px;
+}
+
+.spotifyProgress {
+  width: 100%;
+  max-width: 260px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.spotifyProgressFill {
+  width: 55%;
+  height: 100%;
+  border-radius: 2px;
+  background: white;
+}
+
+.spotifyTimes {
+  width: 100%;
+  max-width: 260px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 5px;
+}
+
+.spotifyControls {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-top: 26px;
+}
+
+.spotifyPlayBtn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spotifyFootnote {
+  margin-top: auto;
+  padding-top: 24px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.35);
 }
 
 /* ─── iMessage / Claude chat ─── */

@@ -1,11 +1,22 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { SEARCHABLE_APPS } from './appData.jsx';
 import styles from './MobileSpotlight.module.css';
 
-export default function MobileSpotlight({ open, onClose }) {
+function matchApps(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return SEARCHABLE_APPS.filter((app) => app.label.toLowerCase().includes(q)).slice(0, 8);
+}
+
+export default function MobileSpotlight({ open, onClose, onOpenApp }) {
+  const [query, setQuery] = useState('');
   const inputRef = useRef(null);
+
+  const results = useMemo(() => matchApps(query), [query]);
 
   useEffect(() => {
     if (open) {
+      setQuery('');
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [open]);
@@ -17,6 +28,11 @@ export default function MobileSpotlight({ open, onClose }) {
   }, [onClose]);
 
   if (!open) return null;
+
+  const handleResultTap = (app) => {
+    onOpenApp?.(app);
+    onClose();
+  };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -32,12 +48,47 @@ export default function MobileSpotlight({ open, onClose }) {
             type="text"
             placeholder="Search"
             autoComplete="off"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <button type="button" className={styles.cancelBtn} onClick={onClose}>
           Cancel
         </button>
       </div>
+
+      {query.trim() && (
+        <div className={styles.results} onClick={(e) => e.stopPropagation()}>
+          {results.length === 0 ? (
+            <p className={styles.noResults}>No results for &ldquo;{query}&rdquo;</p>
+          ) : (
+            results.map((app) => (
+              <button
+                key={app.id}
+                type="button"
+                className={styles.resultRow}
+                onClick={() => handleResultTap(app)}
+              >
+                <div className={styles.resultIcon} style={{ background: app.style || '#3a3a3c' }}>
+                  {app.imgSrc ? (
+                    <img
+                      src={app.imgSrc}
+                      alt=""
+                      className={styles.resultImg}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : app.cover ? (
+                    <img src={app.cover} alt="" className={styles.resultImg} />
+                  ) : (
+                    app.icon
+                  )}
+                </div>
+                <span className={styles.resultLabel}>{app.label}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

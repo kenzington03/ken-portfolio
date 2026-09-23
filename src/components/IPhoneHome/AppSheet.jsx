@@ -1,7 +1,51 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { projects, getProjectCoverUrl } from '../../data/projects.js';
 import { CLAUDE_GREETING, getClaudeResponse } from '../../utils/claudeBot.js';
+import ChromeDino from '../apps/ChromeDino/ChromeDino.jsx';
+import FlappyBird from '../apps/FlappyBird/FlappyBird.jsx';
+import Minesweeper from '../apps/Minesweeper/Minesweeper.jsx';
 import styles from './AppSheet.module.css';
+
+/* Native canvas sizes (see each game's own W/H, or grid COLS*CELL) —
+   scaled down to fit the phone width instead of overflowing it.
+   Minesweeper isn't a fixed canvas, but its widest difficulty (Expert)
+   is still bounded, so a generous assumed width keeps it from
+   overflowing without shrinking the difficulty-picker screen much. */
+const GAME_STAGE_SIZE = {
+  chrome: { width: 640, height: 240 },
+  flappy: { width: 360, height: 520 },
+  minesweeper: { width: 480, height: 560 },
+};
+
+/* Scales a fixed-size game canvas/board down to fit the phone's width,
+   the same trick used to embed a fixed-size iframe responsively. Tap
+   controls (the only input these three games need) still work fine
+   through a CSS transform. */
+function MobileGameStage({ width, height, children }) {
+  const outerRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const update = () => {
+      const available = (outerRef.current?.clientWidth ?? window.innerWidth) - 8;
+      setScale(Math.min(1, available / width));
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [width]);
+
+  return (
+    <div ref={outerRef} className={styles.gameStageOuter}>
+      <div
+        className={styles.gameStageInner}
+        style={{ width, height, transform: `scale(${scale})` }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 /* ─── Project card grid shown inside Portfolio ─── */
 function ProjectList({ onProjectTap }) {
@@ -173,14 +217,38 @@ function ContactContent() {
 }
 
 /* ─── Game content (desktop only) ─── */
+const PLAYABLE_GAMES = {
+  chrome: ChromeDino,
+  flappy: FlappyBird,
+  minesweeper: Minesweeper,
+};
+
+const GAME_NAMES = {
+  minesweeper: 'Minesweeper',
+  flappy: 'Flappy Bird',
+  chrome: 'Chrome Dino',
+  tumbleblocks: 'Tetris',
+  mazemuncher: 'Pac-Man',
+};
+
 function GameContent({ appKey }) {
-  const names = {
-    minesweeper: 'Minesweeper',
-    flappy: 'Flappy Bird',
-    chrome: 'Chrome Dino',
-    tumbleblocks: 'Tetris',
-    mazemuncher: 'Pac-Man',
-  };
+  const GameComponent = PLAYABLE_GAMES[appKey];
+
+  if (GameComponent) {
+    const size = GAME_STAGE_SIZE[appKey];
+    return (
+      <div className={styles.scrollContent}>
+        <MobileGameStage width={size.width} height={size.height}>
+          <GameComponent />
+        </MobileGameStage>
+      </div>
+    );
+  }
+
+  // Tetris and Pac-Man need arrow-key movement, not just a tap — no
+  // on-screen d-pad exists yet, so playing them here would be a canvas
+  // you can start but can't actually control. Honest placeholder until
+  // that's built, rather than shipping something broken.
   return (
     <div className={styles.scrollContent}>
       <div className={styles.gameNotice}>
@@ -192,10 +260,64 @@ function GameContent({ appKey }) {
           <circle cx="32" cy="22" r="2.5" fill="rgba(255,80,80,0.9)"/>
           <circle cx="38" cy="28" r="2.5" fill="rgba(80,200,80,0.9)"/>
         </svg>
-        <h3>{names[appKey] || 'Game'}</h3>
-        <p>This game is optimised for the desktop experience.</p>
+        <h3>{GAME_NAMES[appKey] || 'Game'}</h3>
+        <p>Needs arrow-key controls this phone doesn't have a d-pad for yet.</p>
         <p style={{ marginTop: 8, opacity: 0.5, fontSize: 13 }}>Visit on a larger screen to play.</p>
       </div>
+    </div>
+  );
+}
+
+/* ─── Spotify content — a decorative "Now Playing" card, not a real
+   stream. Made-up playlist/track name rather than borrowing a real
+   artist's name for placeholder audio, since that would misattribute
+   a real song to something it isn't. */
+function SpotifyContent() {
+  const [playing, setPlaying] = useState(true);
+
+  return (
+    <div className={styles.spotifyWrap}>
+      <p className={styles.spotifyEyebrow}>PLAYING FROM PLAYLIST</p>
+      <p className={styles.spotifyPlaylist}>Late-Night Build Sessions</p>
+
+      <div className={`${styles.spotifyArt} ${playing ? styles.spotifyArtSpin : ''}`}>
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="11" fill="#1a1a1a" stroke="#3a3a3a" />
+          <circle cx="12" cy="12" r="3" fill="#1ED760" />
+        </svg>
+      </div>
+
+      <p className={styles.spotifyTrack}>Shipping This Portfolio</p>
+      <p className={styles.spotifyArtist}>Ken Nathanael</p>
+
+      <div className={styles.spotifyProgress}>
+        <div className={styles.spotifyProgressFill} />
+      </div>
+      <div className={styles.spotifyTimes}>
+        <span>1:47</span>
+        <span>3:12</span>
+      </div>
+
+      <div className={styles.spotifyControls}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M6 6h2v12H6zM20 6L9 12l11 6z" /></svg>
+        <button
+          type="button"
+          className={styles.spotifyPlayBtn}
+          onClick={() => setPlaying((p) => !p)}
+          aria-label={playing ? 'Pause' : 'Play'}
+        >
+          {playing ? (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#06170D"><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></svg>
+          ) : (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#06170D"><path d="M7 5l14 7-14 7z" /></svg>
+          )}
+        </button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M16 6h2v12h-2zM4 6l11 6-11 6z" /></svg>
+      </div>
+
+      <p className={styles.spotifyFootnote}>
+        Not wired up to real Spotify — just Ken's dock icon having a personality.
+      </p>
     </div>
   );
 }
@@ -431,6 +553,8 @@ export default function AppSheet({ app, onClose }) {
     content = <ContactContent />;
   } else if (appKey === 'imessage') {
     content = <IMessageContent />;
+  } else if (appKey === 'spotify') {
+    content = <SpotifyContent />;
   } else if (appKey === 'claude') {
     content = <ClaudeMobileContent />;
   } else if (appKey === 'milestone') {

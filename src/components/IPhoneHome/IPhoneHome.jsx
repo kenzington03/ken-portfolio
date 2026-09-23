@@ -42,6 +42,12 @@ export default function IPhoneHome() {
   /* ─── Icon / folder tap ─── */
   const handleTap = useCallback((item) => {
     if (wiggle) { exitWiggle(); return; }
+    if (item.appKey === 'phone') {
+      // Real phone dialer, not a sheet — matches what tapping Phone
+      // actually does on a real iPhone.
+      window.location.href = 'tel:+917204662258';
+      return;
+    }
     if (item.type === 'folder') {
       setActiveFolder(item);
     } else {
@@ -129,6 +135,7 @@ export default function IPhoneHome() {
       <MobileSpotlight
         open={spotlightOpen}
         onClose={() => setSpotlightOpen(false)}
+        onOpenApp={handleTap}
       />
     </div>
   );
