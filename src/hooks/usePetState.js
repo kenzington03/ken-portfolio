@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 
 export function usePetState() {
   const [petVisible, setPetVisible] = useState(false);
-  const [petCharacter, setPetCharacter] = useState('dog');
+  const [petCharacter, setPetCharacter] = useState('cat');
 
   const togglePet = useCallback(() => {
     setPetVisible((v) => !v);

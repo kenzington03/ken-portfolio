@@ -13,11 +13,13 @@
   touch-action: pan-y;
 }
 
-/* Wallpaper layer — high-res Apple-style gradient wave (avoids blur from upscaling low-res sources) */
+/* Wallpaper layer — Apple's own macOS 26 "Tahoe" Liquid Glass render,
+   same asset used for the desktop background so both feel like one
+   consistent Apple design language instead of two different looks. */
 .wallpaper {
   position: absolute;
   inset: 0;
-  background-image: url('/assets/ui/background-2.avif');
+  background-image: url('/assets/ui/wallpaper-mobile.jpg');
   background-size: cover;
   background-position: center;
   z-index: 0;
@@ -78,4 +80,24 @@
 
 .dotActive {
   background: rgba(255, 255, 255, 0.92);
+}
+
+/* iOS Search pill, sits above the dock */
+.searchPill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px auto 6px;
+  padding: 9px 22px;
+  border: none;
+  border-radius: 18px;
+  background: rgba(118, 118, 128, 0.32);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
 }

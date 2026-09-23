@@ -188,16 +188,11 @@ export default function Dock() {
     <>
       <div className={styles.dockWrap}>
         <div className={styles.dock} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
-          <div className="glassDistort" aria-hidden />
-          <div className={`glassTint ${styles.dockTint}`} aria-hidden />
-          <div className="glassShine" aria-hidden />
-          <div className={styles.dockContent}>
-            {DOCK_PRIMARY.map(renderItem)}
-            <div className={styles.divider} aria-hidden />
-            {DOCK_SECONDARY.map(renderItem)}
-            <div className={styles.divider} aria-hidden />
-            {renderItem(DOCK_TRASH)}
-          </div>
+          {DOCK_PRIMARY.map(renderItem)}
+          <div className={styles.divider} aria-hidden />
+          {DOCK_SECONDARY.map(renderItem)}
+          <div className={styles.divider} aria-hidden />
+          {renderItem(DOCK_TRASH)}
         </div>
       </div>
       {activeSplash && (

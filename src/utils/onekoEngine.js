@@ -50,7 +50,7 @@ export function createOnekoPet({ mountEl, onCharacterMenu }) {
   let idleAnimationFrame = 0;
   let lastFrameTimestamp = 0;
   let visible = false;
-  let character = 'dog';
+  let character = 'cat';
   let dragging = false;
   let dragMoved = false;
   let dragOffsetX = 0;
@@ -291,7 +291,7 @@ export function createOnekoPet({ mountEl, onCharacterMenu }) {
   nekoEl.addEventListener('click', onClick);
   nekoEl.addEventListener('contextmenu', onContextMenu);
 
-  setCharacter('dog');
+  setCharacter('cat');
   applyPosition();
   rafId = window.requestAnimationFrame(onAnimationFrame);
 

@@ -87,14 +87,11 @@
   align-items: center;
   height: 38px;
   padding: 0 80px;
+  background: rgba(255, 255, 255, 0.04);
   border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
   user-select: none;
   cursor: default;
-}
-
-.titlebarTint {
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .trafficLights {
@@ -106,7 +103,7 @@
   align-items: center;
   gap: 8px;
   padding-left: 12px;
-  z-index: 3;
+  z-index: 1;
 }
 
 .trafficBtn {
@@ -159,24 +156,18 @@
    (Finder's own back/forward pair lives in its toolbar, not its titlebar);
    the look matches Finder's .toolbar so both feel like the same OS chrome. */
 .navBar {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   height: 34px;
   padding: 0 12px;
+  background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
 
-.navBarTint {
-  background: rgba(255, 255, 255, 0.03);
-}
-
 .navBtn {
-  position: relative;
-  z-index: 3;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -207,7 +198,7 @@
 
 .title {
   position: relative;
-  z-index: 3;
+  z-index: 1;
   flex: 1;
   text-align: center;
   font-size: 13px;

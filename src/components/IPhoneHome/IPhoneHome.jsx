@@ -90,6 +90,23 @@ export default function IPhoneHome() {
         <div className={styles.pageDots} aria-hidden="true">
           <span className={`${styles.dot} ${styles.dotActive}`} />
         </div>
+
+        {/* Search pill — real iOS puts a visible, tappable entry point
+            here rather than relying only on the hidden swipe-down gesture. */}
+        <button
+          type="button"
+          className={styles.searchPill}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSpotlightOpen(true);
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M9.7 9.7L13 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+          Search
+        </button>
       </div>
 
       {/* Dock */}

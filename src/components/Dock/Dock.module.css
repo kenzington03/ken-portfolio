@@ -8,9 +8,14 @@
 }
 
 .dock {
-  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
   height: 62px;
   padding: 6px 8px;
+  background: rgba(30, 30, 32, 0.45);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 0.5px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   pointer-events: auto;
@@ -20,21 +25,6 @@
     inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
   /* icons magnify past the top edge, like real macOS — the bar itself never resizes */
   overflow: visible;
-}
-
-.dockTint {
-  background: rgba(30, 30, 32, 0.45);
-}
-
-/* Real content sits above .glassDistort/.glassTint/.glassShine, so the
-   icons never get warped by the refraction filter — only the backdrop does. */
-.dockContent {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  height: 100%;
 }
 
 .item {

@@ -218,9 +218,6 @@ export default function Window({ win }) {
       aria-label={win.title}
     >
       <div className={styles.titlebar} data-window-titlebar onMouseDown={onTitleMouseDown}>
-        <div className="glassDistort" aria-hidden />
-        <div className={`glassTint ${styles.titlebarTint}`} aria-hidden />
-        <div className="glassShine" aria-hidden />
         <div className={styles.trafficLights}>
           <button
             type="button"
@@ -263,9 +260,6 @@ export default function Window({ win }) {
       </div>
       {project && (
         <div className={styles.navBar}>
-          <div className="glassDistort" aria-hidden />
-          <div className={`glassTint ${styles.navBarTint}`} aria-hidden />
-          <div className="glassShine" aria-hidden />
           <button type="button" className={styles.navBtn} onClick={onBackToPortfolio}>
             <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden>
               <path

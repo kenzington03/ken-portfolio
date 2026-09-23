@@ -1,17 +1,16 @@
 import { PacManGlyph, TetrisGlyph } from '../components/icons/GameGlyphs.jsx';
 
-/** Cute flat-illustration dog face for Buddy — white/cream (Samoyed-style)
-    fur so it reads as a dog, not a brown bear. Floppy ears, snout, closed
-    happy eyes, same "friendly emoji-face" style as About Ken's cat icon. */
-const DogGlyph = () => (
+/** Cute flat-illustration cat face for Buddy — pointed ears, whiskers,
+    closed happy eyes, same style family as About Ken's cat icon. */
+const CatGlyph = () => (
   <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-    <ellipse cx="6" cy="10" rx="4.5" ry="6" fill="#E8E6E0" transform="rotate(-25 6 10)" />
-    <ellipse cx="24" cy="10" rx="4.5" ry="6" fill="#E8E6E0" transform="rotate(25 24 10)" />
-    <ellipse cx="15" cy="17" rx="10.5" ry="9" fill="#FAF8F4" />
-    <ellipse cx="15" cy="20" rx="5.5" ry="4.5" fill="#FFFFFF" />
-    <path d="M11.5 15.5Q13 17 15 15.5" stroke="#2A2A2A" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-    <path d="M15 15.5Q17 17 18.5 15.5" stroke="#2A2A2A" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-    <ellipse cx="15" cy="19.5" rx="2.1" ry="1.5" fill="#2A2A2A" />
+    <path d="M4 12L9 3L13 12Z" fill="#3a3a3c" />
+    <path d="M26 12L21 3L17 12Z" fill="#3a3a3c" />
+    <ellipse cx="15" cy="17" rx="11" ry="9.5" fill="#3a3a3c" />
+    <path d="M9.5 14.5Q11 16 12.5 14.5" stroke="#F5D971" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+    <path d="M17.5 14.5Q19 16 20.5 14.5" stroke="#F5D971" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+    <path d="M14 18.5L16 18.5L15 19.8Z" fill="#E8A0A0" />
+    <path d="M2 18H8M2 21H7.5M22 18H28M22.5 21H28" stroke="#8e8e93" strokeWidth="0.8" strokeLinecap="round" />
   </svg>
 );
 
@@ -62,8 +61,8 @@ export const FUN_ZONE_ITEMS = [
   {
     id: 'pet',
     label: 'Buddy',
-    icon: <DogGlyph />,
-    bg: 'linear-gradient(135deg, #6E7A87 0%, #3E4650 100%)',
+    icon: <CatGlyph />,
+    bg: 'linear-gradient(135deg, #ffd60a 0%, #d9a406 100%)',
     action: 'pet',
   },
   {
