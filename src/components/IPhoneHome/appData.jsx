@@ -164,6 +164,7 @@ export const HOME_APPS = [
     type: 'app',
     appKey: 'imessage',
     style: 'linear-gradient(135deg, #63e550 0%, #24c227 100%)',
+    imgSrc: '/assets/icons/dock-mobile/messages.png',
     icon: <IMessageIcon />,
   },
   {
@@ -264,6 +265,7 @@ export const DOCK_APPS = [
     type: 'app',
     appKey: 'phone',
     style: 'linear-gradient(160deg, #6bde6b 0%, #2fb92f 100%)',
+    imgSrc: '/assets/icons/dock-mobile/phone.png',
     icon: <PhoneIcon />,
   },
   {
@@ -272,6 +274,7 @@ export const DOCK_APPS = [
     type: 'app',
     appKey: 'chrome',
     style: 'linear-gradient(160deg, #eef3f8 0%, #d5dee6 100%)',
+    imgSrc: '/assets/icons/dock-mobile/safari.png',
     icon: <SafariIcon />,
   },
   HOME_APPS.find((a) => a.id === 'imessage'),
@@ -281,6 +284,7 @@ export const DOCK_APPS = [
     type: 'app',
     appKey: 'spotify',
     style: 'linear-gradient(160deg, #1ED760 0%, #128a3e 100%)',
+    imgSrc: '/assets/icons/dock-mobile/spotify.png',
     icon: <SpotifyIcon />,
   },
 ];

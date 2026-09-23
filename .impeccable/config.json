@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "typingbounce",
+        "createdAt": "2026-09-23T11:32:24.852Z",
+        "reason": "Standard chat-app typing indicator (iMessage/Claude sheet) — the bounce IS the recognized 'typing...' convention, not decorative UI easing misuse."
+      }
+    ]
+  }
+}
