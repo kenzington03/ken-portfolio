@@ -9,14 +9,14 @@ import { useJourneyState } from '../hooks/useJourneyState.js';
 
 const OSContext = createContext(null);
 
-export function OSProvider({ children }) {
+export function OSProvider({ children, skipHello = false }) {
   const windowManager = useWindowManager();
   const achievements = useAchievements();
   const filterState = useFilterState();
   const musicPlayer = useMusicPlayer();
   const musicPlayerUi = useMusicPlayerUi();
   const petState = usePetState();
-  const journeyState = useJourneyState();
+  const journeyState = useJourneyState({ skipHello });
   const { markPortfolioOpened } = journeyState;
   const appLauncher = useAppLauncher(windowManager, achievements);
 

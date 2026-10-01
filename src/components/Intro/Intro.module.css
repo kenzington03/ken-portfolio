@@ -1,0 +1,36 @@
+/* Apple product-page vocabulary: true black, SF Pro Display at a tight
+   tracking, #86868b secondary copy with the key phrase lifted to white,
+   System Blue pill + chevron links. */
+.intro {
+  position: relative;
+  height: 460vh;
+  --hero-bg: #09090b;
+  --hero-fg: #f4f4f5;
+  --hero-muted: #9a9aa2;
+  --hero-accent: #0071e3;
+  --hero-accent-hi: #2997ff;
+  background: var(--hero-bg);
+  color: #f5f5f7;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.static {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}

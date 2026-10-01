@@ -65,6 +65,23 @@ body,
   -webkit-font-smoothing: antialiased;
 }
 
+/* Scroll intro: the page itself scrolls (the OS never does). */
+html.intro-scroll,
+html.intro-scroll body,
+html.intro-scroll #root {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+html.intro-scroll {
+  scrollbar-width: none;
+}
+
+html.intro-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 button {
   font-family: inherit;
   cursor: pointer;

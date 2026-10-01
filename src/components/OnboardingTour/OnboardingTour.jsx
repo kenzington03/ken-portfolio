@@ -29,17 +29,17 @@ const GAP = 16;
 const SPOTLIGHT_PAD = 8;
 
 export default function OnboardingTour() {
-  const { helloVisible, clearTourGate } = useOS();
+  const { helloVisible, helloDismissed, clearTourGate } = useOS();
   const [seen, markSeen] = useSeenOnce('onboarding-tour-v1');
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);
 
   useEffect(() => {
-    if (helloVisible || seen) return undefined;
+    if (helloVisible || !helloDismissed || seen) return undefined;
     const timer = setTimeout(() => setActive(true), 900);
     return () => clearTimeout(timer);
-  }, [helloVisible, seen]);
+  }, [helloVisible, helloDismissed, seen]);
 
   /* Nothing left to run this session (already seen, or the tour's first
      target never showed up) — release the Portfolio auto-open gate. */

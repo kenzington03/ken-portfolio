@@ -221,6 +221,42 @@
   text-transform: capitalize;
 }
 
+/* Project media on the phone: same galleries as desktop, sheet-width. */
+.gallery {
+  padding: 0 12px 40px;
+}
+
+.gallerySection {
+  margin-top: 20px;
+}
+
+/* MasonryGallery is sized for desktop windows (3 cols, 320px cap). */
+.gallerySection [class*='masonry'] {
+  column-count: 2;
+  max-width: none;
+}
+
+.gallerySection img {
+  max-width: none;
+}
+
+.gallerySectionTitle {
+  margin: 0 4px 10px;
+  font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.galleryLoading {
+  margin: 24px 0;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+}
+
 .desktopNote {
   margin-top: 24px;
   font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;

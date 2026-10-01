@@ -4,6 +4,7 @@ import { CLAUDE_GREETING, getClaudeResponse } from '../../utils/claudeBot.js';
 import ChromeDino from '../apps/ChromeDino/ChromeDino.jsx';
 import FlappyBird from '../apps/FlappyBird/FlappyBird.jsx';
 import Minesweeper from '../apps/Minesweeper/Minesweeper.jsx';
+import MobileProjectGallery from './MobileProjectGallery.jsx';
 import styles from './AppSheet.module.css';
 
 /* Native canvas sizes (see each game's own W/H, or grid COLS*CELL) —
@@ -106,9 +107,9 @@ function ProjectDetail({ project, onBack }) {
             <span key={tag} className={styles.projectTag}>{tag}</span>
           ))}
         </div>
-        <p className={styles.desktopNote}>
-          View full project on desktop for the complete experience.
-        </p>
+      </div>
+      <div className={styles.gallery}>
+        <MobileProjectGallery project={project} />
       </div>
     </div>
   );
@@ -492,8 +493,12 @@ function CategoryContent({ appKey }) {
       )}
       <div className={styles.projectInfo}>
         <h2 className={styles.projectTitle}>{name}</h2>
-        <p className={styles.desktopNote}>View the full project on desktop for the complete design showcase.</p>
       </div>
+      {project && (
+        <div className={styles.gallery}>
+          <MobileProjectGallery project={project} />
+        </div>
+      )}
     </div>
   );
 }
