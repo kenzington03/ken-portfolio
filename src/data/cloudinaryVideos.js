@@ -32,7 +32,7 @@ export const CLOUDINARY_VIDEOS = {
 
 export const FEATURED_VIDEO_KEYS = ['momentum-social', 'servicenow-colorblind'];
 
-/** Momentum 2026 campaign — featured video pinned first. */
+/** Momentum 2026 campaign, featured video pinned first. */
 export const MILESTONE_MOMENTUM_VIDEO_KEYS = [
   'momentum-social',
   'momentum-opening',
@@ -40,10 +40,10 @@ export const MILESTONE_MOMENTUM_VIDEO_KEYS = [
   'kayak-momentum',
 ];
 
-/** ServiceNow campaign — featured video pinned first. */
+/** ServiceNow campaign, featured video pinned first. */
 export const MILESTONE_SERVICENOW_VIDEO_KEYS = ['servicenow-colorblind', 'servicenow-loop'];
 
-/** Milestone Video Reel section — remaining showcase clips. */
+/** Milestone Video Reel section, remaining showcase clips. */
 export const MILESTONE_REEL_VIDEO_KEYS = [
   'hallifax',
   'github-copilot-v1',
@@ -53,7 +53,7 @@ export const MILESTONE_REEL_VIDEO_KEYS = [
   'hallifax-2',
 ];
 
-/** 09-motion project — full reel, featured first. */
+/** 09-motion project, full reel, featured first. */
 export const MOTION_REEL_VIDEO_KEYS = [
   'momentum-social',
   'servicenow-colorblind',

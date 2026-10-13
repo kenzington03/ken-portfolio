@@ -126,7 +126,7 @@ export function useWindowManager() {
     setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, size } : w)));
   }, []);
 
-  // Swaps a window's title/data in place — used to move between projects
+  // Swaps a window's title/data in place, used to move between projects
   // in the SAME window (like Finder navigating folders), instead of
   // stacking a new window per click.
   const updateWindowContent = useCallback((id, { title, data }) => {

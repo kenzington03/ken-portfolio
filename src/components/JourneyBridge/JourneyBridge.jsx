@@ -10,7 +10,7 @@ const FINDER_SIZE = { width: 920, height: 580 };
 // enough that someone reading the 3-step tour is never interrupted by Finder.
 const TOUR_GATE_TIMEOUT_MS = 60_000;
 
-/** Auto-opens portfolio window after hello screen dismisses — and, for
+/** Auto-opens portfolio window after hello screen dismisses, and, for
  * first-time visitors, after the onboarding tour has finished so the two
  * don't visually collide. */
 export default function JourneyBridge() {

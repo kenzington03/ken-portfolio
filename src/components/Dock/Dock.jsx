@@ -99,7 +99,7 @@ function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, showPulse, showNud
   });
 
   // Animate real box size (not just a visual scale transform) so the flex
-  // layout actually reflows and neighboring icons are pushed apart —
+  // layout actually reflows and neighboring icons are pushed apart , 
   // matching real macOS dock magnification instead of overlapping in place.
   const sizeSync = useTransform(
     distance,

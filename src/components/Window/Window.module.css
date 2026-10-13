@@ -150,7 +150,7 @@
   opacity: 1;
 }
 
-/* Project windows get a second toolbar row under the titlebar — back and
+/* Project windows get a second toolbar row under the titlebar, back and
    next sit here, never in the titlebar itself. That row is reserved for
    traffic lights + a centered title on every window, same as real macOS
    (Finder's own back/forward pair lives in its toolbar, not its titlebar);

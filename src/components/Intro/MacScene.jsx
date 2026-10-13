@@ -24,7 +24,7 @@ function lerp(a, b, t) {
 }
 
 /**
- * Welcome-screen art as a texture — the exact pixels the DOM welcome paints.
+ * Welcome-screen art as a texture, the exact pixels the DOM welcome paints.
  * `null` while loading, `false` if the art failed (the scene carries on bare).
  */
 function useWelcomeTexture() {
@@ -190,7 +190,7 @@ export function Rig({ progressRef, screenOnRef, onReady, beats = BEATS, poses = 
     const d = ease(ramp(p, ...beats.dive));
     if (d > 0 && screenMesh.current) {
       const s = measureScreen(screenMesh.current, tmp.orbit);
-      // Distance at which the glass exactly COVERS the viewport — the same
+      // Distance at which the glass exactly COVERS the viewport, the same
       // fit the DOM welcome screen uses, so the handoff lands pixel-for-pixel.
       const tanV = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
       const dist = Math.min(s.halfH / tanV, s.halfW / (tanV * aspect)) * 0.998;

@@ -1,6 +1,6 @@
 .hero {
   width: 100%;
-  max-width: 984px;
+  max-width: none;
   border-radius: 8px;
   overflow: hidden;
   background: #000;

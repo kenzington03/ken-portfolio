@@ -85,7 +85,7 @@ export default function SystemPreferences() {
           <>
             <h2>About Kenneth OS</h2>
             <p className={styles.aboutText}>
-              Portfolio v1.0 — React 19 + Vite. A macOS-inspired desktop experience built as a
+              Portfolio v1.0, React 19 + Vite. A macOS-inspired desktop experience built as a
               design lead showcase.
             </p>
           </>

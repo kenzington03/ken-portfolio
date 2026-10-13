@@ -1,0 +1,104 @@
+.room {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #07070a;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background:
+    radial-gradient(52% 50% at 50% 46%, rgb(var(--room) / 0.3), transparent 72%),
+    radial-gradient(90% 55% at 50% 112%, rgb(var(--room) / 0.18), transparent 70%);
+}
+
+.words {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+/* Word and its meaning travel together. */
+.chapter {
+  grid-area: 1 / 1;
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 2.4vh, 26px);
+  margin-top: -18vh;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.word {
+  font-family: 'Anybody', 'Cabinet Grotesk', sans-serif;
+  font-size: clamp(110px, 19vw, 320px);
+  font-weight: 900;
+  font-variation-settings: 'wdth' 62;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.caption {
+  max-width: 34ch;
+  padding: 0 20px;
+  font: 500 clamp(16px, 1.35vw, 20px) / 1.4 'Satoshi', -apple-system, sans-serif;
+  text-align: center;
+  color: rgba(236, 236, 233, 0.82);
+  text-wrap: balance;
+}
+
+/* Overhead flow: the words live in a window whose bottom edge sits just
+   above the laptop (height set per frame from the 3D scene), so each word
+   tips up from behind the lid and keeps an even gap as the camera moves. */
+.wordsTop {
+  inset: 0 0 auto;
+  height: 46vh;
+  padding-top: 64px;
+  place-items: center;
+  overflow: hidden;
+  perspective: 900px;
+}
+
+.wordsTop .chapter {
+  margin-top: 0;
+  gap: clamp(8px, 1.4vh, 16px);
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+
+.wordsTop .word {
+  font-size: clamp(72px, 10.5vw, 176px);
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform-origin: 50% 60%;
+  will-change: transform, opacity;
+}
+
+.rail {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  width: 120px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(-50%);
+}
+
+.rail span {
+  display: block;
+  height: 100%;
+  background: rgba(236, 236, 233, 0.8);
+  transform: scaleX(0);
+  transform-origin: left;
+}

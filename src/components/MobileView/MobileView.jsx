@@ -16,7 +16,7 @@ export default function MobileView() {
       <header className={styles.header}>
         <h1 className={styles.name}>Kenneth Nathanael</h1>
         <p className={styles.title}>
-          Design Lead — 10 years building brands, campaigns &amp; motion
+          Design Lead, 10 years building brands, campaigns &amp; motion
         </p>
       </header>
 

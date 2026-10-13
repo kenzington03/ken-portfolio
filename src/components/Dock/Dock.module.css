@@ -23,7 +23,7 @@
     0 10px 30px rgba(0, 0, 0, 0.35),
     0 0 0 0.5px rgba(0, 0, 0, 0.4),
     inset 0 0.5px 0 rgba(255, 255, 255, 0.18);
-  /* icons magnify past the top edge, like real macOS — the bar itself never resizes */
+  /* icons magnify past the top edge, like real macOS, the bar itself never resizes */
   overflow: visible;
 }
 

@@ -36,7 +36,7 @@ export default function LeaderboardModal({
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h3 className={styles.title}>{gameLabel} — Leaderboard</h3>
+          <h3 className={styles.title}>{gameLabel}, Leaderboard</h3>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
             ✕
           </button>
@@ -49,7 +49,7 @@ export default function LeaderboardModal({
         {status === 'loading' && <p className={styles.state}>Loading…</p>}
         {status === 'error' && <p className={styles.state}>Couldn't load scores. Try again shortly.</p>}
         {status === 'ready' && scores.length === 0 && (
-          <p className={styles.state}>No scores yet — be the first!</p>
+          <p className={styles.state}>No scores yet, be the first!</p>
         )}
 
         {status === 'ready' && scores.length > 0 && (

@@ -1,4 +1,4 @@
-/* Recognizable game glyphs — original artwork (redrawn shapes/palettes,
+/* Recognizable game glyphs, original artwork (redrawn shapes/palettes,
    not copied sprites or logos) so each game reads as itself at a glance
    instead of sharing one generic gamepad/block icon. Shared between the
    desktop launcher (funZone.jsx) and the mobile home screen (appData.jsx),

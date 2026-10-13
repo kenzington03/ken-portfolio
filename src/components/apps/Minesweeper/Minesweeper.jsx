@@ -267,7 +267,7 @@ export default function Minesweeper() {
           open={won || gameOver}
           won={won}
           gameKey={gameKey}
-          gameLabel={`Minesweeper — ${difficulty.label}`}
+          gameLabel={`Minesweeper, ${difficulty.label}`}
           score={elapsed}
           formatScore={formatTime}
           lowerIsBetter

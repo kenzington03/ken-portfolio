@@ -1,23 +1,7 @@
+import { ROLES, SKILLS } from '../../../data/about.js';
 import RecognitionCards from './RecognitionCards.jsx';
 import ContactCta from '../../shared/ContactCta.jsx';
 import styles from './About.module.css';
-
-const SKILLS = [
-  'Brand Identity',
-  'Motion Graphics',
-  'UI/UX',
-  'Video Production',
-  'Campaigns',
-  'Print',
-];
-
-const ROLES = [
-  { company: 'Milestone Technologies', role: 'Design Lead', dates: 'Dec 2023 – Present' },
-  { company: 'Tandem Digital', role: 'Lead Graphic & UI Designer', dates: '2020 – 2023' },
-  { company: 'WebAnatomy', role: 'Graphic Designer', dates: '2018 – 2020' },
-  { company: 'MiGrocer', role: 'Designer', dates: '2017 – 2018' },
-  { company: 'Cowboy Studios', role: 'Designer', dates: '2015 – 2017' },
-];
 
 export default function About() {
   return (

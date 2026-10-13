@@ -18,7 +18,7 @@ const COMMANDS = [
   ['play', 'triggers the music player to play'],
   ['hire', 'key facts for potential clients'],
   ['???', 'surprise easter egg'],
-  ['pet', 'your desktop buddy — click them on the fun zone'],
+  ['pet', 'your desktop buddy, click them on the fun zone'],
   ['clear', 'clears terminal'],
 ];
 
@@ -90,7 +90,7 @@ export default function Terminal({ windowId }) {
           setLines([]);
           break;
         case 'whoami':
-          print('kenneth nathanael — design lead @ milestone technologies');
+          print('kenneth nathanael, design lead @ milestone technologies');
           print('10 years turning briefs into brands, campaigns, and motion.');
           print('currently: shipping pixels from hyderabad, india ☕');
           break;
@@ -130,7 +130,7 @@ export default function Terminal({ windowId }) {
         case 'play':
           if (typeof playMusic === 'function') {
             playMusic();
-            print('▶ music player engaged — enjoy the vibes.', styles.success);
+            print('▶ music player engaged, enjoy the vibes.', styles.success);
           } else {
             print('music player is currently offline.', styles.error);
           }
@@ -140,7 +140,7 @@ export default function Terminal({ windowId }) {
           print('  • design lead @ milestone technologies');
           print('  • 10 yrs: brand, campaign, UI, motion, print');
           print('  • led 13+ campaign streams for global IT brand');
-          print('  • based in hyderabad — works across time zones');
+          print('  • based in hyderabad, works across time zones');
           print('  • type "contact" when you\'re ready to talk.');
           break;
         case '???':

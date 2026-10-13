@@ -25,7 +25,7 @@ const BIRD_X = 72;
 const BIRD_R = 13;
 const GROUND_H = 56;
 
-/* Difficulty ramps with score: every 6 points is a new level — pipes
+/* Difficulty ramps with score: every 6 points is a new level, pipes
    speed up and the gap narrows, capped so it stays fair/playable. */
 const POINTS_PER_LEVEL = 6;
 const BASE_PIPE_SPEED = 2.2;
@@ -46,7 +46,7 @@ function gapForLevel(level) {
 function drawBird(ctx, y, vy, frame) {
   const tilt = Math.max(-0.4, Math.min(0.9, vy * 0.06));
   // Wing flaps on its own cycle, independent of falling/rising, like the
-  // original's sprite-sheet flap — not tied to velocity.
+  // original's sprite-sheet flap, not tied to velocity.
   const wingFlap = Math.sin(frame * 0.35) * 5;
 
   ctx.save();
@@ -138,7 +138,7 @@ function drawPipe(ctx, x, gapY, gap, canvasH) {
 }
 
 // Distant hill silhouette, scrolling slower than the pipes for parallax
-// depth — the original's midground layer between sky and ground.
+// depth, the original's midground layer between sky and ground.
 function drawHills(ctx, hillX) {
   const y = H - GROUND_H;
   const hillW = 120;
@@ -328,7 +328,7 @@ export default function FlappyBird() {
 
   useEffect(() => {
     // While the game-over overlay is up, Space belongs to the name-entry
-    // field (Play Again is a button, not a keybind) — don't intercept it.
+    // field (Play Again is a button, not a keybind), don't intercept it.
     if (gameOver) return undefined;
     const onKey = (e) => {
       // Let text fields (Terminal, Claude, name entry) keep Space and arrows.

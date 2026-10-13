@@ -256,7 +256,7 @@ export const HOME_APPS = [
 /* Real iOS dock: Phone / Safari / Messages / Spotify. Phone is
    intercepted before any app sheet opens (IPhoneHome.jsx) and just
    dials straight out via tel:. Safari reuses the Chrome Dino game's
-   appKey — "opening Safari" launches the game, the joke being the
+   appKey, "opening Safari" launches the game, the joke being the
    point. Messages reuses the existing iMessage sheet. */
 export const DOCK_APPS = [
   {
@@ -289,7 +289,7 @@ export const DOCK_APPS = [
   },
 ];
 
-/* ─── Flat, searchable list — every home-screen app plus everything
+/* ─── Flat, searchable list, every home-screen app plus everything
    inside a folder, plus the dock-only apps (Phone/Safari/Spotify)
    that don't otherwise appear on the grid. Real iOS Spotlight finds
    apps buried in folders too, so this does the same. */

@@ -11,7 +11,7 @@ const APP_LABELS = {
   pdfviewer: 'Resume',
   projectviewer: 'Project',
   trash: 'Trash',
-  claude: 'Claude — Ask me about Ken',
+  claude: 'Claude, Ask me about Ken',
   systempreferences: 'System Preferences',
 };
 

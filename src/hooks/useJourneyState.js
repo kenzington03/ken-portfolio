@@ -4,7 +4,7 @@ const NUDGE_DURATION_MS = 90_000;
 const PULSE_DURATION_MS = 30_000;
 const TOUR_SEEN_KEY = 'kenos:seen:onboarding-tour-v1';
 
-/** Hello screen shows on every page load / visit — unless the scroll intro
+/** Hello screen shows on every page load / visit, unless the scroll intro
  * (MacBook → lock screen) replaces it. */
 export function useJourneyState({ skipHello = false } = {}) {
   const [helloVisible, setHelloVisible] = useState(!skipHello);

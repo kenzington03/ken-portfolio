@@ -21,7 +21,7 @@ export const projects = [
     year: '2023',
     folder: '01-fluidai',
     logo: '/assets/projects/01-fluidai/cover.jpg',
-    cover: '/assets/projects/hero%20images/hero-fluidai.jpeg',
+    cover: '/assets/projects/01-fluidai/thumb.jpg',
     tags: ['branding', 'ui-ux', 'motion', 'campaign'],
     description: '[ placeholder ]',
     dateModified: '2023-09-15',
@@ -35,10 +35,10 @@ export const projects = [
     year: '2024',
     folder: '02-milestone',
     logo: '/assets/projects/02-milestone/logo.png',
-    cover: '/assets/projects/02-milestone/01-momentum-2026/cover.jpg',
+    cover: '/assets/projects/02-milestone/thumb.jpg',
     tags: ['campaign', 'branding', 'social', 'print', 'motion', 'events'],
     description:
-      'End-to-end campaign design across 13 streams — ServiceNow, Salesforce Dreamforce, GenAI emailers, employer branding, events, and internal social.',
+      'End-to-end campaign design across 13 streams, ServiceNow, Salesforce Dreamforce, GenAI emailers, employer branding, events, and internal social.',
     dateModified: '2024-11-20',
   },
   {

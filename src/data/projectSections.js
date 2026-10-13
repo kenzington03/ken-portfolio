@@ -3,7 +3,7 @@
 export const PROJECT_SECTION_CONFIG = {
   '01-fluidai': {
     overview:
-      'Brand identity, UI screens, motion, and merchandise for Fluid AI — a Web3 liquidity platform built with Tandem Digital.',
+      'Brand identity, UI screens, motion, and merchandise for Fluid AI, a Web3 liquidity platform built with Tandem Digital.',
     sections: [
       { id: 'brand-identity', slug: 'rebranding', label: 'Brand Identity', maxImages: 24 },
       { id: 'ui-screens', slug: 'infographics', label: 'UI Screens', maxImages: 24 },

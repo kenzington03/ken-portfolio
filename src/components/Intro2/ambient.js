@@ -106,6 +106,42 @@ export class Ambient {
     osc.stop(t + 0.14);
   }
 
+  /** Camera shutter: two filtered noise clicks (open, close) and a soft body thump. */
+  shutter() {
+    if (!this.ctx || !this.on) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const click = (at, freq, len, level) => {
+      const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * len), ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i += 1) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 3;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = freq;
+      bp.Q.value = 0.9;
+      const g = ctx.createGain();
+      g.gain.value = level;
+      src.connect(bp).connect(g).connect(this.master);
+      g.connect(this.reverbSend);
+      src.start(t + at);
+    };
+    click(0, 3200, 0.03, 0.9);
+    click(0.085, 1500, 0.06, 0.7);
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(60, t + 0.12);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.35, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+    osc.connect(g).connect(this.master);
+    osc.start(t);
+    osc.stop(t + 0.18);
+  }
+
   dispose() {
     clearTimeout(this.suspendTimer);
     this.ctx?.close();

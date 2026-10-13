@@ -13,7 +13,7 @@ function formatDateModified(project) {
       year: 'numeric',
     });
   }
-  return project.year ?? '—';
+  return project.year ?? ', ';
 }
 
 function SortArrow({ active, direction }) {

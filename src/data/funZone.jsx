@@ -1,6 +1,6 @@
 import { PacManGlyph, TetrisGlyph } from '../components/icons/GameGlyphs.jsx';
 
-/** Cute flat-illustration cat face for Buddy — pointed ears, whiskers,
+/** Cute flat-illustration cat face for Buddy, pointed ears, whiskers,
     closed happy eyes, same style family as About Ken's cat icon. */
 const CatGlyph = () => (
   <svg width="30" height="30" viewBox="0 0 30 30" fill="none">

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { createOnekoPet } from '../../utils/onekoEngine.js';
 import { useOS } from '../../context/OSContext.jsx';
 
-/** Desktop oneko pet — behind windows, above wallpaper. */
+/** Desktop oneko pet, behind windows, above wallpaper. */
 export default function OnekoPet({ mountRef }) {
   const { petVisible, petCharacter, setPetCharacter } = useOS();
   const engineRef = useRef(null);

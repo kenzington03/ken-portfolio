@@ -15,7 +15,7 @@
 }
 
 /* Full-bleed positioning container for the right-side desktop icons.
-   It must stay pointer-events:none — otherwise this invisible inset:0
+   It must stay pointer-events:none, otherwise this invisible inset:0
    box (same z-index as FunZone, but later in the DOM so it paints on
    top) swallows clicks over the whole desktop, silently blocking the
    Games/Terminal dock in the bottom-left. Individual icon buttons opt

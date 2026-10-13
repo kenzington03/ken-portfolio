@@ -7,19 +7,19 @@ const STEPS = [
   {
     selector: '[data-tour="dock-portfolio"]',
     title: 'Start here',
-    text: "This is the Dock — click Portfolio anytime to jump straight into my work.",
+    text: "This is the Dock, click Portfolio anytime to jump straight into my work.",
     placement: 'top',
   },
   {
     selector: '[data-tour="desktop-icon"]',
     title: 'Rearrange freely',
-    text: 'These desktop icons can be dragged anywhere you like — make yourself at home.',
+    text: 'These desktop icons can be dragged anywhere you like, make yourself at home.',
     placement: 'left',
   },
   {
     selector: '[data-tour="menu-achievements"]',
     title: 'Little surprises',
-    text: "Explore around and you'll unlock achievements — check progress here.",
+    text: "Explore around and you'll unlock achievements, check progress here.",
     placement: 'bottom',
   },
 ];
@@ -42,7 +42,7 @@ export default function OnboardingTour() {
   }, [helloVisible, helloDismissed, seen]);
 
   /* Nothing left to run this session (already seen, or the tour's first
-     target never showed up) — release the Portfolio auto-open gate. */
+     target never showed up), release the Portfolio auto-open gate. */
   useEffect(() => {
     if (seen) clearTourGate();
   }, [seen, clearTourGate]);
@@ -82,7 +82,7 @@ export default function OnboardingTour() {
     setStepIndex((i) => i + 1);
   };
 
-  // Target not (yet) on screen — e.g. covered/unmounted. Don't block the visit.
+  // Target not (yet) on screen, e.g. covered/unmounted. Don't block the visit.
   if (!rect || rect.width === 0) return null;
 
   const spotlightStyle = {

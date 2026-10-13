@@ -7,7 +7,7 @@ import Minesweeper from '../apps/Minesweeper/Minesweeper.jsx';
 import MobileProjectGallery from './MobileProjectGallery.jsx';
 import styles from './AppSheet.module.css';
 
-/* Native canvas sizes (see each game's own W/H, or grid COLS*CELL) —
+/* Native canvas sizes (see each game's own W/H, or grid COLS*CELL) , 
    scaled down to fit the phone width instead of overflowing it.
    Minesweeper isn't a fixed canvas, but its widest difficulty (Expert)
    is still bounded, so a generous assumed width keeps it from
@@ -147,7 +147,7 @@ function ResumeContent() {
   return (
     <div className={styles.scrollContent}>
       <div className={styles.resumeHeader}>
-        <p className={styles.resumeIntro}>Kenneth Anandan — Creative Designer</p>
+        <p className={styles.resumeIntro}>Kenneth Anandan, Creative Designer</p>
       </div>
       <a
         href="/assets/resume.pdf"
@@ -164,7 +164,7 @@ function ResumeContent() {
         <h3 className={styles.sectionHead}>Experience</h3>
         <div className={styles.resumeItem}>
           <p className={styles.resumeRole}>Creative Designer</p>
-          <p className={styles.resumeOrg}>Milestone Technologies · 2022–Present</p>
+          <p className={styles.resumeOrg}>Milestone Technologies · Dec 2023 - Present</p>
         </div>
       </div>
       <div className={styles.resumeSection}>
@@ -246,7 +246,7 @@ function GameContent({ appKey }) {
     );
   }
 
-  // Tetris and Pac-Man need arrow-key movement, not just a tap — no
+  // Tetris and Pac-Man need arrow-key movement, not just a tap, no
   // on-screen d-pad exists yet, so playing them here would be a canvas
   // you can start but can't actually control. Honest placeholder until
   // that's built, rather than shipping something broken.
@@ -269,7 +269,7 @@ function GameContent({ appKey }) {
   );
 }
 
-/* ─── Spotify content — a decorative "Now Playing" card, not a real
+/* ─── Spotify content, a decorative "Now Playing" card, not a real
    stream. Made-up playlist/track name rather than borrowing a real
    artist's name for placeholder audio, since that would misattribute
    a real song to something it isn't. */
@@ -317,7 +317,7 @@ function SpotifyContent() {
       </div>
 
       <p className={styles.spotifyFootnote}>
-        Not wired up to real Spotify — just Ken's dock icon having a personality.
+        Not wired up to real Spotify, just Ken's dock icon having a personality.
       </p>
     </div>
   );

@@ -19,7 +19,7 @@ import {
 } from './shared.jsx';
 
 /* three.js + the model live in their own chunk, fetched while the visitor
-   reads the hero — the hero is the loading screen nobody notices. */
+   reads the hero, the hero is the loading screen nobody notices. */
 const loadScene = () => import('./MacScene.jsx');
 const MacScene = lazy(loadScene);
 

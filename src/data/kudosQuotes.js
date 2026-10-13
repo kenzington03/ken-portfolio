@@ -2,7 +2,7 @@ export const KUDOS_QUOTES = [
   {
     name: 'Natalie Heroux',
     role: 'EVP Business Process Services, Milestone Technologies',
-    quote: 'Many thanks – awesome and appreciate the turn around speed!',
+    quote: 'Many thanks, awesome and appreciate the turn around speed!',
   },
   {
     name: 'Richard Muller',
@@ -19,7 +19,7 @@ export const KUDOS_QUOTES = [
     name: 'Jake Ellsworth',
     role: 'Digital Marketing Campaign Manager, Milestone Technologies',
     quote:
-      'All the praise goes to Kenneth & Rajasekar — they designed it top to bottom. Great job guys, and great teamwork all around!',
+      'All the praise goes to Kenneth & Rajasekar, they designed it top to bottom. Great job guys, and great teamwork all around!',
   },
   {
     name: 'Nicole Bailey',
@@ -40,16 +40,16 @@ export const KUDOS_QUOTES = [
   {
     name: 'Melena Whiteside',
     role: 'Milestone Technologies',
-    quote: 'Thank you for going above and beyond on the creatives — truly appreciated.',
+    quote: 'Thank you for going above and beyond on the creatives, truly appreciated.',
   },
   {
     name: 'Ashish Singla',
     role: 'Milestone Technologies',
-    quote: 'Outstanding design work — clear, polished, and delivered with great attention to detail.',
+    quote: 'Outstanding design work, clear, polished, and delivered with great attention to detail.',
   },
   {
     name: 'Easwara Varma',
     role: 'Milestone Technologies',
-    quote: 'Fantastic deck and visuals — exactly what we needed for the presentation.',
+    quote: 'Fantastic deck and visuals, exactly what we needed for the presentation.',
   },
 ];

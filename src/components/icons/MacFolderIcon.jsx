@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-/** macOS-style folder SVG — dark gray body, teal-tinted tab */
+/** macOS-style folder SVG, dark gray body, teal-tinted tab */
 export default function MacFolderIcon({ size = 48, className, variant = 'default' }) {
   const uid = useId().replace(/:/g, '');
   const gradId = `folder-grad-${uid}`;

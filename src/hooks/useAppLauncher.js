@@ -14,17 +14,18 @@ import ChromeDino from '../components/apps/ChromeDino/ChromeDino.jsx';
 import TumbleBlocks from '../components/apps/TumbleBlocks/TumbleBlocks.jsx';
 import MazeMuncher from '../components/apps/MazeMuncher/MazeMuncher.jsx';
 import { getProjectById } from '../data/projects.js';
+import { RIGHT_DOCK_RESERVE, getCenteredWindowPosition } from '../utils/animationOrigin.js';
 
 const APP_REGISTRY = {
   about: { title: 'About Ken', component: About, size: { width: 820, height: 520 } },
   contact: { title: 'Contact', component: Contact, size: { width: 480, height: 620 } },
-  finder: { title: 'Portfolio', component: Finder, size: { width: 920, height: 580 } },
+  finder: { title: 'Portfolio', component: Finder, size: { width: 920, height: 580 }, roomy: true },
   terminal: { title: 'Terminal', component: Terminal, size: { width: 640, height: 420 } },
   minesweeper: { title: 'Minesweeper', component: Minesweeper, size: { width: 520, height: 580 } },
   pdfviewer: { title: 'Resume', component: PDFViewer, size: { width: 680, height: 560 } },
-  projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 920, height: 720 } },
+  projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 920, height: 720 }, roomy: true },
   trash: { title: 'Trash', component: Trash, size: { width: 520, height: 380 } },
-  claude: { title: 'Claude — Ask me about Ken', component: ClaudeFaq, size: { width: 720, height: 560 } },
+  claude: { title: 'Ask about Ken', component: ClaudeFaq, size: { width: 720, height: 560 } },
   flappybird: { title: 'Flappy Bird', component: FlappyBird, size: { width: 400, height: 580 } },
   chromedino: { title: 'New Tab', component: ChromeDino, size: { width: 680, height: 320 } },
   tumbleblocks: { title: 'Tetris', component: TumbleBlocks, size: { width: 460, height: 500 } },
@@ -35,6 +36,18 @@ const APP_REGISTRY = {
     size: { width: 560, height: 420 },
   },
 };
+
+/** Work windows open big: as much of the screen as fits between the menu bar,
+    the Dock and the desktop icons, so nobody squints at the work. */
+function roomySize(fallback) {
+  if (typeof window === 'undefined') return fallback;
+  const maxW = window.innerWidth - RIGHT_DOCK_RESERVE - 32;
+  const maxH = window.innerHeight - 28 - 136;
+  return {
+    width: Math.max(Math.min(fallback.width, maxW), Math.min(1480, maxW)),
+    height: Math.max(Math.min(fallback.height, maxH), Math.min(980, maxH)),
+  };
+}
 
 export function useAppLauncher(windowManager, achievements) {
   const { windows, openWindow, restoreFromDock, focusWindow, windowCount } = windowManager;
@@ -63,12 +76,13 @@ export function useAppLauncher(windowManager, achievements) {
         }
       }
 
+      const size = options.size ?? (config.roomy ? roomySize(config.size) : config.size);
       const id = openWindow({
         appId,
         title,
         component: config.component,
-        size: options.size ?? config.size,
-        position: options.position,
+        size,
+        position: config.roomy ? getCenteredWindowPosition(size) : options.position,
         data,
         animationOrigin: options.animationOrigin ?? null,
       });

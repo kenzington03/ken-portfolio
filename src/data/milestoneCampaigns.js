@@ -8,7 +8,7 @@ export const MILESTONE_BASE = '/assets/projects/02-milestone';
 export const MILESTONE_LOGO = `${MILESTONE_BASE}/logo.png`;
 
 export const MILESTONE_OVERVIEW =
-  'Milestone Technologies is a global IT services and solutions provider. As Design Lead, I lead brand campaigns across LinkedIn, print, events, and digital — from ServiceNow and Salesforce initiatives to internal comms and employer branding. Below are 13 campaign streams produced for marketing, HR, and partner teams.';
+  'Milestone Technologies is a global IT services and solutions provider. As Design Lead, I lead brand campaigns across LinkedIn, print, events, and digital, from ServiceNow and Salesforce initiatives to internal comms and employer branding. Below are 13 campaign streams produced for marketing, HR, and partner teams.';
 
 /** Campaign folders in display order (01 = highest priority) */
 export const MILESTONE_CAMPAIGNS = [

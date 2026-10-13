@@ -197,3 +197,100 @@
   opacity: 0.45;
   cursor: default;
 }
+
+/* ---------- Topic tabs + ready-made questions ---------- */
+button.recentItem {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  padding: 7px 8px;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+button.recentItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.recentItemOn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary);
+}
+
+.topics {
+  flex-shrink: 0;
+  padding: 10px 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+}
+
+.tabOn {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+.questions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.question {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
+}
+
+.question:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.question:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.question:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tab:focus-visible,
+.question:focus-visible,
+button.recentItem:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

@@ -1,4 +1,4 @@
-/** Kudos / recognition screenshots — shown on About page, not in Work grid. */
+/** Kudos / recognition screenshots, shown on About page, not in Work grid. */
 export const KUDOS_FOLDER = '10-kudos';
 
 export const KUDOS_IMAGES = [

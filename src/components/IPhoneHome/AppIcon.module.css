@@ -29,7 +29,7 @@
   transform: scale(0.92);
 }
 
-/* ─── Icon face — iOS squircle ─── */
+/* ─── Icon face, iOS squircle ─── */
 .face {
   position: relative;
   width: 60px;
@@ -41,14 +41,14 @@
   overflow: hidden;
   transition: transform 0.1s ease, opacity 0.1s ease;
   will-change: transform;
-  /* iOS icons cast a soft, fairly subtle shadow onto the wallpaper — not
+  /* iOS icons cast a soft, fairly subtle shadow onto the wallpaper, not
      a heavy dark halo. */
   box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.25),
     0 1px 1px rgba(0, 0, 0, 0.15);
 }
 
-/* Every real iOS icon has a faint glass sheen across the top — this is
+/* Every real iOS icon has a faint glass sheen across the top, this is
    what separates a flat colored square from something that reads as a
    polished icon. One rule, applies everywhere. */
 .face::before {

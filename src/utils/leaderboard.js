@@ -3,7 +3,7 @@
  *
  * When VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY are set (see
  * supabase/schema.sql for the one-time setup), scores are written to a
- * real shared Supabase table — every visitor sees the same global
+ * real shared Supabase table, every visitor sees the same global
  * leaderboard. Until those env vars are configured, everything falls
  * back to localStorage so the games still work end-to-end (scores just
  * stay local to that browser). No game code needs to know which mode
@@ -51,7 +51,7 @@ export function savePlayerName(name) {
 }
 
 /** Personal best, read synchronously from localStorage for instant UI
- * (works regardless of backend — this is a "this device" stat, always
+ * (works regardless of backend, this is a "this device" stat, always
  * cheap to show immediately without waiting on a network round trip). */
 export function getLocalBest(game, { lowerIsBetter = false } = {}) {
   try {
@@ -106,7 +106,7 @@ function writeLocalScores(game, scores) {
 }
 
 /**
- * Submit a score. Returns { isNewBest } — the game screen uses this to
+ * Submit a score. Returns { isNewBest }, the game screen uses this to
  * show a "New Best!" badge regardless of which backend is active.
  */
 export async function submitScore(game, { name, score, lowerIsBetter = false }) {
@@ -122,7 +122,7 @@ export async function submitScore(game, { name, score, lowerIsBetter = false }) 
         .insert({ game, name: cleanName, score });
       if (error) throw error;
     } catch (err) {
-      // Backend hiccup — don't lose the score, fall back to local storage
+      // Backend hiccup, don't lose the score, fall back to local storage
       // for this submission so the player still sees it on "View Leaderboard".
       const scores = readLocalScores(game);
       scores.push({ name: cleanName, score, created_at: new Date().toISOString() });

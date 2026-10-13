@@ -1,4 +1,4 @@
-// Liquid Crystal Shader — ported from dhileepkumargm's 21st.dev component
+// Liquid Crystal Shader, ported from dhileepkumargm's 21st.dev component
 // (liquid-crystal-shader). Changes: plain JS; the blob cluster sits in the
 // right half (u_center) so the glow rims never cross the name; DPR capped;
 // `runningRef` parks the loop once the MacBook owns the screen; one static

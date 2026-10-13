@@ -294,7 +294,7 @@ export default function Window({ win }) {
       )}
       <div className={styles.content}>
         {/* Keyed by project so navigating in place (Next/Back) remounts the
-            viewer fresh — scroll position and active tab reset like a real
+            viewer fresh, scroll position and active tab reset like a real
             folder change, instead of carrying over from the last project. */}
         <Component
           key={win.data?.projectId ?? win.id}

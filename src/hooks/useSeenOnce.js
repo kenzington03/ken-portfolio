@@ -23,7 +23,7 @@ export function useSeenOnce(key) {
     try {
       window.localStorage.setItem(storageKey, '1');
     } catch {
-      /* localStorage unavailable — hint just won't persist across visits */
+      /* localStorage unavailable, hint just won't persist across visits */
     }
   }, [storageKey]);
 

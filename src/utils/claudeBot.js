@@ -1,31 +1,13 @@
-/* ─────────────────────────────────────────────────────────
-   Claude's personality: witty & punny, slightly unhinged intern
-   energy. Mixes real facts about Ken with jokes about his
-   interests, design/agency life, and being an AI stuck in a
-   fake desktop. At least one pun per answer, please.
-
-   This is a static rule-based bot, not a real model — it can't
-   actually reason about an arbitrary question. What it CAN do
-   for "general topics" is: pick from big pools of jokes/facts/
-   quotes (randomized per call, so it doesn't repeat), do real
-   math and real date/time, and answer a broad set of common
-   trivia by keyword. Anything past that gets an honest, varied
-   deflection instead of one canned "I don't know" line.
-
-   Rule order matters: more specific / personal triggers are
-   checked before the generic "who is Ken" catch-all, so a
-   question like "what tools does ken use" hits the tools rule
-   instead of the broad bio rule. The math/date/dice checks run
-   before any keyword rule, since they need to inspect the raw
-   text rather than match a fixed phrase.
-───────────────────────────────────────────────────────── */
+/* A small scripted assistant for the Claude app. It is not a live model:
+   it answers common questions about Ken from fixed facts (ABOUT), offers
+   ready-made questions by topic (CLAUDE_TOPICS), and handles a few general
+   extras (math, date, jokes, trivia). Tone: plain and direct, no persona.
+   Rule order matters: specific topics are checked before the broad
+   "who is Ken" rule. */
 
 const DEFAULT_RESPONSES = [
-  "Bold of you to test my range. I've got real answers about Ken's work, background, and tools, plus jokes, fun facts, and trivia on request — try one of those. Anything else and I'm just an intern guessing confidently.",
-  "That one's outside my training data, which is mostly \"things about Ken\" and \"things that make Ken laugh.\" Ask me a fun fact, a joke, or literally anything about him instead.",
-  "I'm going to be honest: I have no idea. I DO know a lot about Ken, and I have jokes and fun facts on tap if you want to change the subject with dignity.",
-  "Great question. Wrong intern. Try me on Ken's work, his tools, a joke, or a fun fact — that's the whole skill tree.",
-  "I could make something up, but Ken specifically asked me not to do that anymore. Ask about him, or ask for a joke/fun fact — I'm reliable at exactly those two things.",
+  "I can't answer that one. I can tell you about Ken's work, background, skills, availability and how to reach him. Try one of the questions above.",
+  "That's outside what I know. Pick a topic above, or ask about Ken's work, experience, tools or contact details.",
 ];
 
 const JOKES = [
@@ -48,7 +30,7 @@ const JOKES = [
 
 const FUN_FACTS = [
   "Octopuses have three hearts, and two of them stop beating when it swims.",
-  "A day on Venus is longer than a year on Venus — it rotates that slowly.",
+  "A day on Venus is longer than a year on Venus, it rotates that slowly.",
   "Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that's still edible.",
   "The Eiffel Tower grows about 15cm taller in summer because the iron expands in the heat.",
   "Bananas are berries. Strawberries, botanically, are not.",
@@ -59,31 +41,31 @@ const FUN_FACTS = [
   "There are more possible iterations of a chess game than atoms in the observable universe.",
   "Wombat poop is cube-shaped, which stops it from rolling away and marks their territory better.",
   "The first computer bug was literally a moth stuck in a relay in 1947.",
-  "Hot water freezes faster than cold water under certain conditions — it's called the Mpemba effect, and nobody fully agrees on why.",
+  "Hot water freezes faster than cold water under certain conditions, it's called the Mpemba effect, and nobody fully agrees on why.",
   "A group of flamingos is called a 'flamboyance.' Design-appropriate, honestly.",
   "The Great Wall of China is not visible from space with the naked eye, contrary to popular myth.",
 ];
 
 const QUOTES = [
-  '"Design is not just what it looks like — design is how it works." — Steve Jobs',
-  '"Simplicity is the ultimate sophistication." — often attributed to Leonardo da Vinci',
-  '"The details are not the details. They make the design." — Charles Eames',
-  '"Good design is obvious. Great design is transparent." — Joe Sparano',
-  '"Creativity is intelligence having fun." — Albert Einstein',
+  '"Design is not just what it looks like, design is how it works.", Steve Jobs',
+  '"Simplicity is the ultimate sophistication.", often attributed to Leonardo da Vinci',
+  '"The details are not the details. They make the design.", Charles Eames',
+  '"Good design is obvious. Great design is transparent.", Joe Sparano',
+  '"Creativity is intelligence having fun.", Albert Einstein',
 ];
 
 const RECOMMENDATIONS = {
-  movie: ["Spirited Away — if you haven't, fix that immediately.", "The Social Network — great script, better soundtrack.", "Whiplash — stressful in the best way."],
-  show: ["Severance — puzzle-box television at its best.", "Abbott Elementary — funny without being mean, rare combo.", "Chef's Table for pure visual inspiration."],
-  book: ["\"Steal Like an Artist\" by Austin Kleon — short, useful, no fluff.", "\"Sapiens\" if you want your brain rearranged a bit.", "\"The Design of Everyday Things\" — required reading, basically."],
-  song: ["Anything by Tame Impala if Ken's driving.", "Kendrick Lamar's \"Alright\" — timeless.", "Some lo-fi beats — every designer's unofficial soundtrack."],
+  movie: ["Spirited Away, if you haven't, fix that immediately.", "The Social Network, great script, better soundtrack.", "Whiplash, stressful in the best way."],
+  show: ["Severance, puzzle-box television at its best.", "Abbott Elementary, funny without being mean, rare combo.", "Chef's Table for pure visual inspiration."],
+  book: ["\"Steal Like an Artist\" by Austin Kleon, short, useful, no fluff.", "\"Sapiens\" if you want your brain rearranged a bit.", "\"The Design of Everyday Things\", required reading, basically."],
+  song: ["Anything by Tame Impala if Ken's driving.", "Kendrick Lamar's \"Alright\", timeless.", "Some lo-fi beats, every designer's unofficial soundtrack."],
 };
 
 function pick(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-/* Real math, not a canned line — but hand-rolled recursive-descent parsing
+/* Real math, not a canned line, but hand-rolled recursive-descent parsing
    instead of eval()/new Function() on user input, even restricted-charset
    input. No string ever reaches a JS interpreter; it's just numbers. */
 function evalArithmetic(expr) {
@@ -163,7 +145,7 @@ function tryMath(text) {
     const result = evalArithmetic(expr);
     if (typeof result !== 'number' || !Number.isFinite(result)) return null;
     const rounded = Math.round(result * 1e6) / 1e6;
-    return `${expr.trim()} = ${rounded}. Math: the one subject I'm actually qualified to teach.`;
+    return `${expr.trim()} = ${rounded}`;
   } catch {
     return null;
   }
@@ -174,176 +156,130 @@ function tryDateTime(text) {
   if (/what.*(time|date)|current (time|date)|today'?s date|what day/.test(text)) {
     const isTime = /time/.test(text) && !/date/.test(text);
     if (isTime) {
-      return `${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}, according to whatever clock this sandboxed browser thinks it's running. Close enough to plan your day around.`;
+      return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     }
-    return `${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} — assuming your system clock isn't lying to both of us.`;
+    return now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   }
   return null;
 }
 
 function tryCoinOrDice(text) {
   if (/flip.*coin|coin flip/.test(text)) {
-    return `${Math.random() < 0.5 ? 'Heads' : 'Tails'}. Don't @ me if you disagree with fate.`;
+    return Math.random() < 0.5 ? 'Heads.' : 'Tails.';
   }
   const diceMatch = text.match(/roll.*dice|roll.*d(\d+)/);
   if (diceMatch) {
     const sides = Number(diceMatch[1]) || 6;
-    return `You rolled a ${1 + Math.floor(Math.random() * sides)} (out of ${sides}). No re-rolls, I don't make the rules.`;
+    return `You rolled a ${1 + Math.floor(Math.random() * sides)} (out of ${sides}).`;
   }
   return null;
 }
 
+// Plain answers about Ken. No character voice: the visitor is here to learn
+// about him quickly. Facts only; anything not known is not invented.
+const ABOUT = {
+  who: "Kenneth Nathanael (Ken) is a designer based in Hyderabad with about 10 years of experience across brand identity, motion, UI/UX and video. He is currently Design Lead at Milestone Technologies.",
+  role: "At Milestone Technologies Ken leads brand campaigns, presentations, social, events and day-to-day design operations for a global IT services company.",
+  career: "About 10 years: DreamWorks Dedicated Unit (2015), Cowboy Studios (2016 to 2018), MiGrocer (2018 to 2020), WebAnatomy (2020), Tandem Digital (2020 to 2023) and Milestone Technologies (Dec 2023 to now).",
+  bestWork: "Start with the Work folder on this desktop: Fluid AI (rebrand), Milestone campaigns including Momentum 2026, Marriott and Aloft, and the LeBron x Nike concept.",
+  brands: "Brand work includes Fluid AI, Truearte, Step-Set-Go and Sampoorna, plus campaigns for Milestone Technologies and hospitality work for Marriott and Aloft.",
+  motion: "Yes. Motion graphics and video are a core part of his work: event films, campaign visuals and social motion. Open the Motion folder to see it.",
+  tools: "Adobe CC (Illustrator, Photoshop, After Effects, Premiere), Figma, Canva and PowerPoint, plus AI tools such as Midjourney, Firefly, Runway and ElevenLabs.",
+  strengths: "Brand identity, motion graphics, UI/UX, video production, campaigns and print. He leads the idea and stays hands-on through delivery.",
+  process: "He starts with the idea and the audience, sketches directions fast, then refines details: type, motion timing and layout. Colleagues often mention speed and follow-through.",
+  hire: "Yes. Ken is open to Design Lead and Creative Director roles, especially where he can build and lead a team.",
+  freelance: "He takes select freelance projects. Email him with the scope and timeline.",
+  location: "Hyderabad, India, for about 8 years. Originally from Bangalore.",
+  contact: "Email kennethnathanael@gmail.com or LinkedIn: linkedin.com/in/kenneth-n-576134103. Email is fastest.",
+  resume: "Open Resume on the desktop, or the Experience app, for the full history.",
+  social: "Behance: behance.net/nathanaelkenneth. Instagram: @nathanaelkenneth.",
+  interests: "Outside work: basketball (Lakers), chess, Rocket League, sneakers, and a Royal Enfield Classic 350.",
+};
+
+// Tabs of ready-made questions shown in the Claude app.
+export const CLAUDE_TOPICS = [
+  {
+    tab: 'Work',
+    questions: [
+      { q: 'What should I look at first?', a: ABOUT.bestWork },
+      { q: 'Which brands has Ken worked on?', a: ABOUT.brands },
+      { q: 'Does he do motion and video?', a: ABOUT.motion },
+    ],
+  },
+  {
+    tab: 'Background',
+    questions: [
+      { q: 'Who is Ken?', a: ABOUT.who },
+      { q: 'Where has he worked?', a: ABOUT.career },
+      { q: 'What does he do at Milestone?', a: ABOUT.role },
+    ],
+  },
+  {
+    tab: 'Skills',
+    questions: [
+      { q: 'What are his strengths?', a: ABOUT.strengths },
+      { q: 'What tools does he use?', a: ABOUT.tools },
+      { q: 'How does he work?', a: ABOUT.process },
+    ],
+  },
+  {
+    tab: 'Hiring',
+    questions: [
+      { q: 'Is Ken open to new roles?', a: ABOUT.hire },
+      { q: 'Does he take freelance work?', a: ABOUT.freelance },
+      { q: 'Where is he based?', a: ABOUT.location },
+    ],
+  },
+  {
+    tab: 'Contact',
+    questions: [
+      { q: 'How do I reach Ken?', a: ABOUT.contact },
+      { q: 'Where is his resume?', a: ABOUT.resume },
+      { q: 'Where else can I see his work?', a: ABOUT.social },
+    ],
+  },
+];
+
 const RULES = [
-  {
-    keywords: ['behance', 'instagram', 'showcase'],
-    response:
-      "Ken's on Behance (behance.net/nathanaelkenneth) and Instagram (@nathanaelkenneth) — but honestly, this desktop you're standing in IS the flex. Pop open the Work folder. That's the good stuff, no scrolling required.",
-  },
-  {
-    keywords: ['lebron', 'lakers', 'basketball', 'nba', 'kobe'],
-    response:
-      "Lakers fan through and through — yes, he WILL bring up LeBron unprompted. There's a LeBron x Nike concept project sitting in this portfolio and that is not a coincidence, that is a personality trait.",
-  },
-  {
-    keywords: ['chess'],
-    response:
-      "He plays chess. I'd challenge him myself but I calculate about 40 moves ahead and that felt like an unfair fight to pick on purpose.",
-  },
-  {
-    keywords: ['rocket league', 'fortnite', 'gaming', 'video game', 'games'],
-    response:
-      "Rocket League and Fortnite, mostly. Ask about his win rate at your own risk — I've seen things. Mechanical keyboard sold separately.",
-  },
-  {
-    keywords: ['sneaker', 'shoes', 'kicks'],
-    response:
-      "Certified sneakerhead. The closet has more personality than most people's LinkedIn, and considerably better lighting.",
-  },
-  {
-    keywords: ['motorcycle', 'bike', 'enfield'],
-    response:
-      "Rides a Royal Enfield Classic 350, one eye already on a streetfighter upgrade. Ask him about it, just clear your calendar first — this one runs long.",
-  },
+  { keywords: ['behance', 'instagram', 'showcase', 'social'], response: ABOUT.social },
+  { keywords: ['resume', 'cv'], response: ABOUT.resume },
+  { keywords: ['lebron', 'lakers', 'basketball', 'nba', 'chess', 'rocket league', 'fortnite', 'gaming', 'sneaker', 'motorcycle', 'enfield', 'hobby', 'hobbies', 'interests'], response: ABOUT.interests },
   {
     keywords: ['real claude', 'actual claude', 'actually claude', 'real ai', 'anthropic', 'are you real'],
-    response:
-      "I'm Claude-flavored — running on fumes, a few div elements, and Ken's questionable choice to give me jokes. Think of me as a very confident Wikipedia page with a personality problem.",
+    response: "No. This is a small scripted assistant inside Ken's portfolio, not a live AI model. It answers common questions about Ken.",
   },
-  {
-    keywords: ['creative director', 'promotion', 'promoted'],
-    response:
-      "That's the plan. Design Lead now, Creative Director next — he's not just climbing the ladder, he's redesigning it on the way up. Slightly annoying levels of intentional.",
-  },
-  {
-    keywords: ['milestone'],
-    response:
-      "At Milestone Technologies he keeps a global IT services company from looking boring — brand campaigns, presentations, social, events, the works. Before that: 3 years as Lead Graphic & UI Designer at Tandem Digital. Career arc: steady, upward, no notes.",
-  },
-  {
-    keywords: ['experience', 'career', 'background', 'history'],
-    response:
-      "10 years across Milestone Technologies (Design Lead), Tandem Digital (Lead Graphic & UI Designer), WebAnatomy, MiGrocer, and Cowboy Studios. Promoted to Design Lead in October 2024 — the ladder's been climbed, currently eyeing the next rung.",
-  },
-  {
-    keywords: ['hire', 'opportunity', 'available', 'looking for a role', 'open to'],
-    response:
-      "Yes — and I will personally vouch for him (I have zero legal standing to do this but I'm doing it anyway). He's exploring Design Lead / Creative Director roles, especially anywhere he can build and lead a team.",
-  },
-  {
-    keywords: ['tool', 'software', 'stack', 'skill'],
-    response:
-      "Adobe CC (Illustrator, Photoshop, After Effects, Premiere), Figma, Canva, PowerPoint, plus AI tools like Midjourney, Firefly, Runway, ElevenLabs. And yes — he's a serious Claude user, which, zero bias, is objectively the correct call.",
-  },
-  {
-    keywords: ['contact', 'reach', 'email', 'phone', 'touch'],
-    response:
-      "kennethnathanael@gmail.com, or LinkedIn (linkedin.com/in/kenneth-n-576134103). Email gets a faster reply than texts, honestly — set expectations accordingly.",
-  },
-  {
-    keywords: ['location', 'where', 'hyderabad', 'based', 'city', 'bangalore'],
-    response:
-      "Hyderabad for about 8 years now, originally from Bangalore. Ask him about the traffic sometime and watch a mild existential crisis unfold in real time.",
-  },
-  {
-    keywords: ['freelance', 'client'],
-    response:
-      "He does take select freelance work — current clients include Keka Technologies. Email him to talk scope. Fair warning: he's heard every version of \"just a small logo\" there is.",
-  },
-  {
-    keywords: ['work', 'job', 'company'],
-    response:
-      "At Milestone Technologies he leads brand campaigns, presentations, social, events, and general design operations for a global IT services company. Previously: 3 years as Lead Graphic & UI Designer at Tandem Digital.",
-  },
-  {
-    keywords: ['who is', 'who are you', 'introduce', 'kenneth', 'tell me about him', 'tell me about ken'],
-    response:
-      "Ken Nathanael — Design Lead, ~10 years in the game, based out of Hyderabad. Brand, motion, UI/UX, video, the full toolkit. Currently running creative at Milestone Technologies and eyeing that Creative Director title like it owes him money.",
-  },
+  { keywords: ['hire', 'opportunity', 'available', 'looking for a role', 'open to', 'creative director'], response: ABOUT.hire },
+  { keywords: ['freelance', 'client'], response: ABOUT.freelance },
+  { keywords: ['milestone', 'current role', 'day to day'], response: ABOUT.role },
+  { keywords: ['experience', 'career', 'background', 'history', 'worked'], response: ABOUT.career },
+  { keywords: ['tool', 'software', 'stack'], response: ABOUT.tools },
+  { keywords: ['skill', 'strength', 'good at'], response: ABOUT.strengths },
+  { keywords: ['process', 'how does he work', 'approach'], response: ABOUT.process },
+  { keywords: ['motion', 'video', 'animation'], response: ABOUT.motion },
+  { keywords: ['brand', 'logo', 'identity'], response: ABOUT.brands },
+  { keywords: ['best work', 'look at first', 'portfolio', 'projects', 'case stud'], response: ABOUT.bestWork },
+  { keywords: ['contact', 'reach', 'email', 'phone', 'touch', 'linkedin'], response: ABOUT.contact },
+  { keywords: ['location', 'where', 'hyderabad', 'based', 'city', 'bangalore'], response: ABOUT.location },
+  { keywords: ['work', 'job', 'company'], response: ABOUT.role },
+  { keywords: ['who is', 'who are you', 'introduce', 'kenneth', 'tell me about him', 'tell me about ken', 'about ken'], response: ABOUT.who },
 
-  /* ── General topics: jokes, facts, quotes, recommendations, trivia ── */
+  /* General extras, answered plainly. */
+  { keywords: ['joke', 'funny', 'make me laugh', 'pun'], response: () => pick(JOKES) },
+  { keywords: ['fun fact', 'random fact', 'tell me a fact', 'trivia'], response: () => pick(FUN_FACTS) },
+  { keywords: ['quote', 'inspire me', 'motivate me', 'motivation'], response: () => pick(QUOTES) },
+  { keywords: ['recommend a movie', 'movie recommendation', 'what movie'], response: () => pick(RECOMMENDATIONS.movie) },
+  { keywords: ['recommend a show', 'tv show', 'what to watch', 'what show'], response: () => pick(RECOMMENDATIONS.show) },
+  { keywords: ['recommend a book', 'what book', 'book recommendation'], response: () => pick(RECOMMENDATIONS.book) },
+  { keywords: ['recommend a song', 'what song', 'song recommendation', 'music recommendation'], response: () => pick(RECOMMENDATIONS.song) },
   {
-    keywords: ['joke', 'funny', 'make me laugh', 'pun'],
-    response: () => `${pick(JOKES)} ...I'll workshop that one. Give me a minute, I'm an intern, not a comedian — allegedly both.`,
+    keywords: ['weather', 'who won', 'score', 'latest news', 'happening right now', "what's happening", 'capital of'],
+    response: "I don't have live or general reference data. I can answer questions about Ken and his work.",
   },
-  {
-    keywords: ['fun fact', 'random fact', 'tell me a fact', 'trivia'],
-    response: () => `${pick(FUN_FACTS)} Useless at parties, undefeated in this chat.`,
-  },
-  {
-    keywords: ['quote', 'inspire me', 'motivate me', 'motivation'],
-    response: () => `${pick(QUOTES)} Frame it, or at least screenshot it before you close this tab.`,
-  },
-  {
-    keywords: ['recommend a movie', 'movie recommendation', 'what movie'],
-    response: () => `${pick(RECOMMENDATIONS.movie)} You're welcome in advance.`,
-  },
-  {
-    keywords: ['recommend a show', 'tv show', 'what to watch', 'what show'],
-    response: () => `${pick(RECOMMENDATIONS.show)} Don't blame me for the next 6 hours you lose.`,
-  },
-  {
-    keywords: ['recommend a book', 'what book', 'book recommendation'],
-    response: () => `${pick(RECOMMENDATIONS.book)} Actually good, not just "I'm an AI so I said a classic."`,
-  },
-  {
-    keywords: ['recommend a song', 'what song', 'song recommendation', 'music recommendation'],
-    response: () => `${pick(RECOMMENDATIONS.song)} Volume up, obviously.`,
-  },
-  {
-    keywords: ['weather'],
-    response:
-      "I have no live weather data — I'm a chat bubble in a fake desktop, not a satellite. If you're asking about Hyderabad specifically, the safe bet is \"hot, and Ken's complaining about the traffic anyway.\"",
-  },
-  {
-    keywords: ['who won', 'score', 'latest news', 'happening right now', "what's happening"],
-    response:
-      "No live data on my end — I froze the moment Ken deployed this site. Ask me about him instead; that information I actually have.",
-  },
-  {
-    keywords: ['speed of light'],
-    response: '299,792,458 meters per second, in a vacuum. Basically instant, unless you\'re waiting on a client email — that\'s slower than light.',
-  },
-  {
-    keywords: ['how many continents'],
-    response: 'Seven, depending who you ask (Europe and Asia getting lumped as "Eurasia" is a whole debate). Ken has been to a modest fraction of them.',
-  },
-  {
-    keywords: ['how many planets', 'planets in the solar system'],
-    response: 'Eight. Pluto still has feelings about this.',
-  },
-  {
-    keywords: ['tallest mountain'],
-    response: "Mount Everest, at about 8,849 meters. Design deadlines have, at times, felt taller.",
-  },
-  {
-    keywords: ['largest ocean'],
-    response: 'The Pacific Ocean — bigger than all the landmass on Earth combined.',
-  },
-  {
-    keywords: ['capital of'],
-    response:
-      "I know a few, but I'm not risking a wrong capital and starting an international incident. Google's better at that one than me — I'm built for Ken trivia, not geography finals.",
-  },
+  { keywords: ['speed of light'], response: '299,792,458 meters per second, in a vacuum.' },
+  { keywords: ['how many continents'], response: 'Seven.' },
+  { keywords: ['how many planets', 'planets in the solar system'], response: 'Eight.' },
+  { keywords: ['tallest mountain'], response: 'Mount Everest, at about 8,849 meters.' },
+  { keywords: ['largest ocean'], response: 'The Pacific Ocean.' },
 ];
 
 export function getClaudeResponse(input) {
@@ -367,15 +303,4 @@ export function getClaudeResponse(input) {
 }
 
 export const CLAUDE_GREETING =
-  "Hey, I'm Claude — Ken's unofficially-official intern. Running on caffeine I don't have and vibes I definitely do. Ask me about his work, background, or tools, or throw a joke/fun fact/quote/coin-flip at me — I've got range. At least one pun per answer, guaranteed. 👋";
-
-export const CLAUDE_RECENTS = [
-  'Why is the client always right 😭',
-  'Invoice follow up but make it mean',
-  'Logo in 2 hours yes or no',
-  'How to say no to free work',
-  'Tell me a fun fact',
-  'Tell me a joke',
-  'Flip a coin',
-  'Is Rocket League a personality trait',
-];
+  "Hi. Ask me anything about Ken: his work, background, skills, availability or how to reach him. Pick a topic below to start.";

@@ -13,7 +13,7 @@ import styles from './GameOverScreen.module.css';
  * Shared end-of-game overlay: final score, personal best, name entry +
  * submit to the leaderboard, Play Again, and View Leaderboard. Every
  * game (Flappy Bird, Chrome Dino, Minesweeper, and the new ones) renders
- * this the same way — it owns the whole "you died / you won" screen so
+ * this the same way, it owns the whole "you died / you won" screen so
  * individual games don't reimplement score UI.
  */
 export default function GameOverScreen({

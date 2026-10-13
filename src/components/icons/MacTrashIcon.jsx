@@ -1,4 +1,4 @@
-/** macOS-style trash can — full with crumpled papers */
+/** macOS-style trash can, full with crumpled papers */
 export default function MacTrashIcon({ size = 48 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden>

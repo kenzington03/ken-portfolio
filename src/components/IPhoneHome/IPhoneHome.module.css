@@ -1,4 +1,4 @@
-/* ─── Root container — fills the full viewport ─── */
+/* ─── Root container, fills the full viewport ─── */
 .homeScreen {
   position: fixed;
   inset: 0;
@@ -13,7 +13,7 @@
   touch-action: pan-y;
 }
 
-/* Wallpaper layer — Apple's own macOS 26 "Tahoe" Liquid Glass render,
+/* Wallpaper layer, Apple's own macOS 26 "Tahoe" Liquid Glass render,
    same asset used for the desktop background so both feel like one
    consistent Apple design language instead of two different looks. */
 .wallpaper {
@@ -33,7 +33,7 @@
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.06) 18%, rgba(0, 0, 0, 0.08) 70%, rgba(0, 0, 0, 0.32) 100%);
 }
 
-/* ─── Dynamic Island — iPhone 15/16 Pro proportions, scaled to this
+/* ─── Dynamic Island, iPhone 15/16 Pro proportions, scaled to this
    simulated viewport. Sits above every screen (folder, app sheet,
    spotlight all have lower z-index), same as the real hardware cutout. */
 .dynamicIsland {

@@ -1,77 +1,99 @@
+/* Screensaver: the bouncing-logo classic, with Ken's name. */
+
 .screensaver {
   position: fixed;
   inset: 0;
-  z-index: 3000;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: none;
+  z-index: 100000;
   overflow: hidden;
+  background: #050507;
+  cursor: none;
+  animation: fadeIn 500ms ease;
 }
 
-.orb {
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.bouncer {
   position: absolute;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(10, 132, 255, 0.6), transparent 70%);
-  filter: blur(40px);
-  animation: float 8s ease-in-out infinite;
+  top: 0;
+  left: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 30px 20px;
+  border: 3px solid currentColor;
+  border-radius: 22px;
+  transition: color 180ms linear;
+  will-change: transform;
 }
 
-.orb:nth-child(2) {
-  width: 280px;
-  height: 280px;
-  animation-delay: -3s;
-  background: radial-gradient(circle, rgba(10, 132, 255, 0.3), transparent 70%);
+/* Reduced motion: it simply sits in the middle. */
+.bouncerStill {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.orb:nth-child(3) {
-  width: 160px;
-  height: 160px;
-  animation-delay: -5s;
+.bouncerName {
+  font-family: 'Anybody', 'Cabinet Grotesk', sans-serif;
+  font-size: clamp(64px, 9vw, 132px);
+  font-weight: 900;
+  font-variation-settings: 'wdth' 112;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translate(-30vw, -20vh);
-  }
-  33% {
-    transform: translate(25vw, 15vh);
-  }
-  66% {
-    transform: translate(-10vw, 25vh);
-  }
+.bouncerTag {
+  font: 600 13px/1 -apple-system, BlinkMacSystemFont, 'Satoshi', sans-serif;
+  letter-spacing: 0.02em;
 }
 
 .clock {
-  position: relative;
-  z-index: 1;
-  font-size: 72px;
-  font-weight: 300;
-  letter-spacing: -2px;
-  color: var(--text-primary);
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 600 15px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.score {
+  position: absolute;
+  left: 50%;
+  bottom: 54px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  transform: translateX(-50%);
+  font: 500 13px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.score b {
+  color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
-.hint {
-  position: relative;
-  z-index: 1;
-  margin-top: 24px;
-  font-size: 13px;
-  color: var(--text-muted);
-  animation: pulse 2s ease-in-out infinite;
+.score span {
+  width: 1px;
+  height: 12px;
+  margin: 0 6px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 1;
-  }
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  margin: 0;
+  transform: translateX(-50%);
+  font: 400 12px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  color: rgba(255, 255, 255, 0.32);
+  white-space: nowrap;
 }

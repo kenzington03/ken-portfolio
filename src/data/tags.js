@@ -27,7 +27,7 @@ export const SIDEBAR_TAG_MAP = {
   concept: 'concept',
 };
 
-/** Sidebar-only tag — not in CATEGORY_TAGS filter UI but used for concept work */
+/** Sidebar-only tag, not in CATEGORY_TAGS filter UI but used for concept work */
 export const CONCEPT_TAG = 'concept';
 
 export function getTagLabel(tagId) {

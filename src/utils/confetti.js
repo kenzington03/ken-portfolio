@@ -1,6 +1,6 @@
 import confetti from 'canvas-confetti';
 
-/** Reusable confetti burst — used by terminal ??? and other easter eggs. */
+/** Reusable confetti burst, used by terminal ??? and other easter eggs. */
 export function triggerConfetti(durationMs = 3000) {
   const end = Date.now() + durationMs;
 

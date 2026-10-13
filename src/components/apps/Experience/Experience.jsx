@@ -1,32 +1,6 @@
+import { ROLES } from '../../../data/about.js';
 import styles from './Experience.module.css';
 
-const ROLES = [
-  {
-    company: 'Milestone Technologies',
-    role: 'Design Lead',
-    dates: 'Dec 2023 – Present',
-  },
-  {
-    company: 'Tandem Digital',
-    role: 'Lead Graphic & UI Designer',
-    dates: '[ dates ]',
-  },
-  {
-    company: 'WebAnatomy',
-    role: 'Graphic Designer',
-    dates: '[ dates ]',
-  },
-  {
-    company: 'MiGrocer',
-    role: 'Designer',
-    dates: '[ dates ]',
-  },
-  {
-    company: 'Cowboy Studios',
-    role: 'Designer',
-    dates: '[ dates ]',
-  },
-];
 
 export default function Experience() {
   return (

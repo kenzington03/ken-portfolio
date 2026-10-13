@@ -161,7 +161,7 @@ export async function loadProjectVideoGrid(
   return videos;
 }
 
-/** Normalize video entry — supports Cloudinary keys, URLs, or { src, poster, featured }. */
+/** Normalize video entry, supports Cloudinary keys, URLs, or { src, poster, featured }. */
 export function normalizeVideoEntry(video) {
   if (!video) return null;
   if (typeof video === 'string') {

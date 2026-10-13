@@ -1,84 +1,97 @@
-.wrap {
+/* Shut Down HUD: macOS-style, centred and large so nobody wonders what
+   their scroll is doing. Frosted material, spring in, quick out. */
+
+.scrim {
   position: fixed;
-  top: 34px;
-  left: 50%;
-  translate: -50% 0;
+  inset: 0;
   z-index: 10001;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.28);
+  pointer-events: none;
 }
 
-.pill {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 16px 7px 8px;
+.hud {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: min(340px, 84vw);
+  padding: 30px 28px 24px;
   border: 0;
-  border-radius: 999px;
-  background: rgba(40, 40, 44, 0.62);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.16), 0 10px 30px rgba(0, 0, 0, 0.35),
-    0 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 28px;
+  background: rgba(38, 38, 42, 0.72);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.18), 0 30px 80px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, sans-serif;
-  text-align: left;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, sans-serif;
+  text-align: center;
   cursor: pointer;
-  transition: background-color 150ms ease-out;
+  pointer-events: auto;
 }
 
-.pill:hover {
-  background: rgba(52, 52, 58, 0.7);
+.hud:focus-visible {
+  outline: 3px solid #0a84ff;
+  outline-offset: 3px;
 }
 
-.pill:focus-visible {
-  outline: 2px solid #0a84ff;
-  outline-offset: 2px;
+.ring {
+  margin-bottom: 10px;
 }
 
 .ring svg {
   display: block;
-  width: 30px;
-  height: 30px;
-  transform: rotate(-90deg);
+  width: 96px;
+  height: 96px;
 }
 
 .track {
   fill: none;
   stroke: rgba(255, 255, 255, 0.16);
-  stroke-width: 2;
+  stroke-width: 4;
 }
 
 .fill {
   fill: none;
   stroke: #ff453a;
-  stroke-width: 2;
+  stroke-width: 4;
   stroke-linecap: round;
-  transition: stroke-dashoffset 320ms cubic-bezier(0.32, 0.72, 0, 1);
+  transform: rotate(-90deg);
+  transform-origin: 36px 36px;
+  transition: stroke-dashoffset 360ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .power {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.92);
-  stroke-width: 1.6;
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 3.2;
   stroke-linecap: round;
-  transform: rotate(90deg);
-  transform-origin: 12px 12px;
-}
-
-.text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
 }
 
 .title {
-  font-size: 13px;
+  font-size: 24px;
   font-weight: 600;
-  line-height: 16px;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 
 .sub {
-  font-size: 11px;
-  line-height: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 15px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.82);
   font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .hud {
+    background: #26262a;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }

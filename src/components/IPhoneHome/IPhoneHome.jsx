@@ -43,7 +43,7 @@ export default function IPhoneHome() {
   const handleTap = useCallback((item) => {
     if (wiggle) { exitWiggle(); return; }
     if (item.appKey === 'phone') {
-      // Real phone dialer, not a sheet — matches what tapping Phone
+      // Real phone dialer, not a sheet, matches what tapping Phone
       // actually does on a real iPhone.
       window.location.href = 'tel:+917204662258';
       return;
@@ -78,7 +78,7 @@ export default function IPhoneHome() {
       {/* Status bar */}
       <StatusBar />
 
-      {/* Dynamic Island — always on top, like the real hardware cutout;
+      {/* Dynamic Island, always on top, like the real hardware cutout;
           nothing here should ever cover it. */}
       <div className={styles.dynamicIsland} aria-hidden="true" />
 
@@ -97,7 +97,7 @@ export default function IPhoneHome() {
           <span className={`${styles.dot} ${styles.dotActive}`} />
         </div>
 
-        {/* Search pill — real iOS puts a visible, tappable entry point
+        {/* Search pill, real iOS puts a visible, tappable entry point
             here rather than relying only on the hidden swipe-down gesture. */}
         <button
           type="button"

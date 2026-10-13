@@ -1,6 +1,6 @@
 /* One drawing, two surfaces. The 3D MacBook's screen texture and the DOM
    welcome screen both paint this exact canvas art, so when the camera dive
-   ends and the DOM takes over, the pixels are identical — no visible seam.
+   ends and the DOM takes over, the pixels are identical, no visible seam.
 
    Everything is laid out on a fixed "stage" with the 16" MacBook Pro panel's
    aspect (3456×2234 native → 1728×1117 points). Both surfaces scale the
@@ -46,7 +46,12 @@ function drawCover(ctx, img, x, y, w, h) {
 }
 
 /** Paint the welcome screen onto a canvas at `pixelRatio` × stage size. */
-export function paintWelcome(canvas, { wallpaper }, pixelRatio = 2) {
+export const WELCOME_SUBTITLE = 'Kenneth Nathanael  ·  Design Lead';
+export const TITLE_Y = STAGE_H / 2 - 18;
+export const SUBTITLE_Y = STAGE_H / 2 + 58;
+
+/** `text: false` paints only the backdrop, for the DOM screen that animates its own title. */
+export function paintWelcome(canvas, { wallpaper }, pixelRatio = 2, { text = true } = {}) {
   const w = STAGE_W * pixelRatio;
   const h = STAGE_H * pixelRatio;
   if (canvas.width !== w) canvas.width = w;
@@ -64,6 +69,7 @@ export function paintWelcome(canvas, { wallpaper }, pixelRatio = 2) {
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, STAGE_W, STAGE_H);
 
+  if (!text) return canvas;
   const cx = STAGE_W / 2;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -71,11 +77,11 @@ export function paintWelcome(canvas, { wallpaper }, pixelRatio = 2) {
   ctx.shadowBlur = 30;
   ctx.fillStyle = 'rgba(255,255,255,0.96)';
   ctx.font = `700 92px ${FONT}`;
-  ctx.fillText(WELCOME_TITLE, cx, STAGE_H / 2 - 18);
+  ctx.fillText(WELCOME_TITLE, cx, TITLE_Y);
 
   ctx.shadowBlur = 16;
   ctx.fillStyle = 'rgba(255,255,255,0.66)';
   ctx.font = `500 24px ${FONT}`;
-  ctx.fillText('Kenneth Nathanael  ·  Design Lead', cx, STAGE_H / 2 + 58);
+  ctx.fillText(WELCOME_SUBTITLE, cx, SUBTITLE_Y);
   return canvas;
 }

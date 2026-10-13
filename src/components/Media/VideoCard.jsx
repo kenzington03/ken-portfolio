@@ -13,7 +13,7 @@ export default function VideoCard({ video, onOpen }) {
 
     const tryPlay = () => {
       el.play().catch(() => {
-        // autoplay blocked — do nothing, poster shows
+        // autoplay blocked, do nothing, poster shows
       });
     };
 

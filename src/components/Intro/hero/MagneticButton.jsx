@@ -1,4 +1,4 @@
-// Magnetic Button — after Hirael's (MIT, Mohammad Shehadeh) 21st.dev
+// Magnetic Button, after Hirael's (MIT, Mohammad Shehadeh) 21st.dev
 // component: pulls toward the cursor, springs back on leave. The label
 // drifts a little further than the pill, which gives it depth.
 

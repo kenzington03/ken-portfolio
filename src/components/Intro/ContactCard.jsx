@@ -12,7 +12,7 @@ const LINKS = [
   { label: 'Instagram', value: '@nathanaelkenneth', href: 'https://instagram.com/nathanaelkenneth' },
 ];
 
-/** Contacts-app style card, straight from the hero — no MacBook required. */
+/** Contacts-app style card, straight from the hero, no MacBook required. */
 export default function ContactCard({ open, onClose }) {
   const [copied, setCopied] = useState(false);
   const closeRef = useRef(null);

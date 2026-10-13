@@ -1,4 +1,4 @@
-/** Fluid AI section tabs — maps image URL path segments to sections. */
+/** Fluid AI section tabs, maps image URL path segments to sections. */
 export const FLUID_AI_SECTIONS = [
   {
     id: 'brand-identity',

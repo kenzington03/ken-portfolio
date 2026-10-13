@@ -2,15 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import styles from './ShutdownPrompt.module.css';
 
-const SWIPES_TO_SHUT_DOWN = 5;
+const SWIPES_TO_SHUT_DOWN = 2;
 /** A trackpad flick fires dozens of wheel events; a pause this long ends one swipe. */
 const GESTURE_GAP_MS = 260;
-const IDLE_RESET_MS = 3000;
+const IDLE_RESET_MS = 2600;
 
-const RING_R = 10;
+const RING_R = 30;
 const RING_C = 2 * Math.PI * RING_R;
 
-/** True if something under the pointer can still scroll up — that scroll is the user's, not ours. */
+/** True if something under the pointer can still scroll up, that scroll is the user's, not ours. */
 function scrollableAbove(target) {
   let el = target instanceof Element ? target : null;
   while (el && el !== document.body && el !== document.documentElement) {
@@ -26,7 +26,7 @@ function scrollableAbove(target) {
 /**
  * Scrolling up on the desktop (past anything scrollable) asks to shut down.
  * Each separate swipe fills a fifth of the ring; the fifth shuts down. Any
- * downward scroll or a few idle seconds drains it — a stray flick never
+ * downward scroll or a few idle seconds drains it, a stray flick never
  * surprises anyone.
  */
 export default function ShutdownPrompt({ onShutDown, disabled = false }) {
@@ -82,35 +82,43 @@ export default function ShutdownPrompt({ onShutDown, disabled = false }) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className={styles.wrap}
-          initial={{ opacity: 0, y: -14, scale: 0.94 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 520, damping: 34, mass: 0.8 }}
+          className={styles.scrim}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
           role="status"
         >
-          <button type="button" className={styles.pill} onClick={() => onShutDown?.()}>
+          {/* macOS-style HUD: big, centred, impossible to miss. */}
+          <motion.button
+            type="button"
+            className={styles.hud}
+            onClick={() => onShutDown?.()}
+            initial={{ opacity: 0, scale: 0.86 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.9 }}
+          >
             <span className={styles.ring} aria-hidden>
-              <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r={RING_R} className={styles.track} />
+              <svg viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r={RING_R} className={styles.track} />
                 <circle
-                  cx="12"
-                  cy="12"
+                  cx="36"
+                  cy="36"
                   r={RING_R}
                   className={styles.fill}
                   strokeDasharray={RING_C}
                   strokeDashoffset={RING_C * (1 - count / SWIPES_TO_SHUT_DOWN)}
                 />
-                <path className={styles.power} d="M12 7.2v4.3M9.1 8.9a4.1 4.1 0 1 0 5.8 0" />
+                <path className={styles.power} d="M36 22v13M27.5 27a12.5 12.5 0 1 0 17 0" />
               </svg>
             </span>
-            <span className={styles.text}>
-              <span className={styles.title}>Shut down?</span>
-              <span className={styles.sub}>
-                Scroll up {left} more {left === 1 ? 'time' : 'times'}, or click
-              </span>
+            <span className={styles.title}>Shut Down</span>
+            <span className={styles.sub}>
+              Scroll up {left === 1 ? 'once more' : `${left} more times`} to close the Mac
             </span>
-          </button>
+            <span className={styles.hint}>or click here. Scroll down to cancel.</span>
+          </motion.button>
         </motion.div>
       )}
     </AnimatePresence>
