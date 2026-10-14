@@ -1,9 +1,9 @@
-// Ten years in one frame. The whole ruler, 2015 to Now, fits the screen;
-// scrolling fills it left to right, a white ball riding the tip, and each
-// job pops up as the tip reaches it (and stays, so by the end all six are
-// there). Then the camera zooms in on Now, sliding it to the centre of the
-// screen, where the journey turns the ball into the Apple logo.
-// Company and years only (verified against LinkedIn), no titles.
+// The career, as an editorial chart on paper. One hairline ruler runs past
+// the right edge of the screen; scrolling inks it in from 2015, the view
+// panning to follow the tip, and each role arrives as it is reached: the
+// company, Ken's title there and the years, on a stem down to where it
+// started. At the end the camera zooms in on Now, dead centre, where the
+// journey cuts to the dark. Ink only; the role you are on takes the accent.
 
 import { useLayoutEffect, useState } from 'react';
 import { motion, useMotionValueEvent, useTransform } from 'framer-motion';
@@ -16,7 +16,6 @@ const FIRST = 2015.3;
 const CHRONO = [...ROLES].reverse();
 const YEARS = Array.from({ length: Math.floor(NOW_YEAR) - START + 1 }, (_, i) => START + i);
 const endOf = (r) => (r.to === null ? NOW_YEAR : r.to);
-const midOf = (r) => (r.from + endOf(r)) / 2;
 const yearOf = (v) => Math.floor(v + 0.05);
 const years = (r) => {
   const a = yearOf(r.from);
@@ -25,15 +24,17 @@ const years = (r) => {
   return a === b ? `${a}` : `${a} to ${b}`;
 };
 
-// The fill runs over the first part of the scroll, the zoom over the rest.
-const FILL_END = 0.74;
-const ZOOM = 2.6;
+// The fill (and pan) runs over most of the scroll, the zoom over the rest.
+const FILL_END = 0.78;
+const ZOOM = 2.2;
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
 const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const smooth = (t) => t * t * (3 - 2 * t);
 const ROLL = 0.22;
+
+const yearAt = (p) => FIRST + (NOW_YEAR - FIRST) * inOut(within(p, 0, FILL_END));
 
 function Wheel({ year, place }) {
   const y = useTransform(year, (v) => {
@@ -55,59 +56,38 @@ function Wheel({ year, place }) {
   );
 }
 
-// The ruler's widest on a large screen: compact enough to read as one line.
-const MAX_RULER = 1000;
-export const ROLE_COLORS = ['var(--blue)', 'var(--pink)', 'var(--yellow)'];
-
-/** Ruler geometry and card positions for the current viewport. The grid
- *  behind the journey uses the same numbers: one cell per year, its lines
- *  through the year ticks and the ruler. */
+/** The chart's geometry for the current viewport. The grid behind the
+ *  journey uses the same numbers: one cell per year, lines through the year
+ *  ticks and the ruler. */
 export function timelineLayout() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const narrow = vw < 700;
-  const span = Math.min(vw - 2 * (narrow ? 22 : Math.max(48, vw * 0.06)), MAX_RULER);
-  const left = Math.round((vw - span) / 2);
-  const right = left + span;
-  const yearW = span / (NOW_YEAR - START);
+  const gutter = Math.min(56, Math.max(20, vw * 0.036));
+  const yearW = narrow ? 118 : Math.max(170, vw * 0.13);
+  const left = narrow ? 28 : Math.max(96, vw * 0.1);
   const x = (yr) => left + (yr - START) * yearW;
-  const cardW = narrow ? 104 : Math.min(220, span / 3.6);
-  // Alternate rows above / below the ruler; within a row, cards never
-  // overlap and never leave the screen.
-  const rows = [[], []];
-  CHRONO.forEach((r, i) => rows[i % 2].push({ i, want: x(midOf(r)) - cardW / 2 }));
-  const pos = [];
-  rows.forEach((row) => {
-    let prev = -Infinity;
-    row.forEach((c) => {
-      c.at = Math.max(c.want, prev + 10, 8);
-      prev = c.at + cardW;
-    });
-    let limit = vw - 8;
-    [...row].reverse().forEach((c) => {
-      c.at = Math.min(c.at, limit - cardW);
-      limit = c.at - 10;
-      pos[c.i] = c.at;
-    });
-  });
-  return { vw, vh, narrow, left, right, x, yearW, cardW, pos, rulerY: vh * 0.54 + 71 };
+  const rulerY = Math.round(vh * (narrow ? 0.62 : 0.66));
+  return { vw, vh, narrow, gutter, yearW, left, x, rulerY };
 }
 
-/** The camera at zoom `z` (0..1): scales about Now while sliding Now to the centre. */
-export function timelineCamera(g, z) {
-  const tx = (g.vw / 2 - g.x(NOW_YEAR)) * z;
-  return {
-    transform: `translate3d(${tx.toFixed(2)}px, 0, 0) scale(${(1 + (ZOOM - 1) * z).toFixed(4)})`,
-    origin: `${g.x(NOW_YEAR)}px ${g.rulerY}px`,
-  };
-}
+/** Where the camera scales from: Now, on the ruler (unpanned coordinates). */
+export const timelineOrigin = (g) => `${g.x(NOW_YEAR)}px ${g.rulerY}px`;
 
-/** Zoom amount (0..1) for a timeline progress. */
-export const timelineZoom = (p) => inOut(within(p, FILL_END, 1));
+/** The camera at timeline progress `p`: pans to follow the tip, which ends
+ *  dead centre on Now, then zooms in on it. */
+export function timelineCamera(g, p) {
+  const f = within(p, 0, FILL_END);
+  const tipX = g.x(yearAt(p));
+  const focus = 0.56 - 0.06 * within(f, 0.8, 1);
+  const pan = Math.min(0, focus * g.vw - tipX);
+  const z = inOut(within(p, FILL_END, 1));
+  return `translate3d(${pan.toFixed(2)}px, 0, 0) scale(${(1 + (ZOOM - 1) * z).toFixed(4)})`;
+}
 
 /**
- * `progress` 0..1 runs the fill, then the zoom into Now; `fade` 0..1 then
- * clears the timeline so the laptop can appear.
+ * `progress` 0..1 runs the fill and pan, then the zoom into Now; `fade` 0..1
+ * clears the chart as the journey cuts to the dark.
  */
 export default function TimelineC({ progress, fade }) {
   const [g, setG] = useState(timelineLayout);
@@ -117,88 +97,95 @@ export default function TimelineC({ progress, fade }) {
     return () => window.removeEventListener('resize', on);
   }, []);
 
-  const year = useTransform(progress, (p) => FIRST + (NOW_YEAR - FIRST) * inOut(within(p, 0, FILL_END)));
-  const zoom = useTransform(progress, timelineZoom);
-  const camera = useTransform(zoom, (z) => timelineCamera(g, z).transform);
-  // The fill reveals a fixed blue → pink → yellow gradient, so the tip's
-  // colour moves through the years.
-  const fillClip = useTransform(year, (v) => `inset(0 ${(100 * (1 - (v - START) / (NOW_YEAR - START))).toFixed(3)}% 0 0)`);
+  const year = useTransform(progress, yearAt);
+  const camera = useTransform(progress, (p) => timelineCamera(g, p));
+  const zoom = useTransform(progress, (p) => inOut(within(p, FILL_END, 1)));
+  const inked = useTransform(year, (v) => g.x(v) - g.left);
   const tipX = useTransform(year, (v) => g.x(v));
-  // The ball keeps its size while the camera zooms, so it matches the one
-  // that takes over from it.
+  // The ball keeps its size while the camera zooms (it becomes the iris).
   const tipScale = useTransform(zoom, (z) => 1 / (1 + (ZOOM - 1) * z));
-  // The cards step back as the camera closes in; the ruler goes with the fade.
-  const cardsOpacity = useTransform(zoom, (z) => 1 - within(z, 0.25, 0.7));
-  const chrome = useTransform(fade, (f) => 1 - f);
-  const rulerOpacity = useTransform(fade, (f) => 1 - within(f, 0.55, 1));
-  // Once the timeline is done the journey's own ball (same spot, same look)
-  // takes over.
-  const tipOpacity = useTransform(fade, (f) => (f > 0 ? 0 : 1));
+  const rolesOpacity = useTransform(zoom, (z) => 1 - within(z, 0.2, 0.65));
+  const chrome = useTransform([zoom, fade], ([z, f]) => (1 - within(z, 0.5, 1)) * (1 - f));
+  const chart = useTransform(fade, (f) => 1 - f);
 
   const [shown, setShown] = useState(0);
+  const [current, setCurrent] = useState(START);
   useMotionValueEvent(year, 'change', (v) => {
     const n = CHRONO.filter((r) => v >= r.from).length;
     setShown((c) => (c === n ? c : n));
+    const y = yearOf(v);
+    setCurrent((c) => (c === y ? c : y));
   });
+
+  const tierGap = g.narrow ? 104 : 118;
 
   return (
     <div className={styles.tl} style={{ '--ruler-y': `${g.rulerY}px` }}>
-      <motion.h2 className={styles.tlTitle} style={{ opacity: chrome }}>
-        Ten years, six teams.
-      </motion.h2>
-      <motion.div className={styles.odometer} style={{ opacity: chrome }} aria-hidden>
-        <Wheel year={year} place={1000} />
-        <Wheel year={year} place={100} />
-        <Wheel year={year} place={10} />
-        <Wheel year={year} place={1} />
+      <motion.div className={styles.head} style={{ opacity: chrome }}>
+        <div className={styles.odometer} aria-hidden>
+          <Wheel year={year} place={1000} />
+          <Wheel year={year} place={100} />
+          <Wheel year={year} place={10} />
+          <Wheel year={year} place={1} />
+        </div>
+        <h2 className={styles.title}>Ten years, six teams.</h2>
       </motion.div>
 
-      <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: timelineCamera(g, 0).origin }}>
-        <motion.div style={{ opacity: rulerOpacity }}>
-          <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }}>
-            <motion.span className={styles.rulerFill} style={{ clipPath: fillClip }} />
-          </div>
-          {YEARS.map((y) => (
-            <span key={y} className={styles.tick} style={{ left: g.x(y) }}>
-              {(!g.narrow || y % 2 === 1) && <b>{y}</b>}
-            </span>
-          ))}
-          <span className={`${styles.tick} ${styles.tickNow}`} style={{ left: g.x(NOW_YEAR) }}>
-            <b>Now</b>
-          </span>
-        </motion.div>
+      <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: timelineOrigin(g), opacity: chart }}>
+        {/* The ruler: a hairline the whole way, inked up to the tip. */}
+        <div className={styles.ruler} style={{ left: g.left, width: g.x(NOW_YEAR) - g.left + g.vw * 0.2 }}>
+          <motion.span className={styles.inked} style={{ width: inked }} />
+        </div>
 
-        <motion.ol className={styles.roles} style={{ opacity: cardsOpacity }}>
+        {YEARS.map((y) => (
+          <span key={y} className={`${styles.year} ${y === current ? styles.yearOn : ''}`} style={{ left: g.x(y) }}>
+            <b>{y}</b>
+          </span>
+        ))}
+        <span className={`${styles.year} ${styles.yearNow} ${current >= 2026 ? styles.yearOn : ''}`} style={{ left: g.x(NOW_YEAR) }}>
+          <b>Now</b>
+        </span>
+
+        <motion.ol className={styles.roles} style={{ opacity: rolesOpacity }}>
           {CHRONO.map((r, i) => {
             const on = i < shown;
-            const high = i % 2 === 0;
             const active = i === shown - 1;
+            const lift = i % 2 === 0 ? 26 : 26 + tierGap;
             return (
-              <li key={r.company} className={styles.role} aria-current={active ? 'step' : undefined}>
-                {/* The years the role covers, drawn on the ruler. */}
+              <li key={r.company} className={`${styles.role} ${active ? styles.roleOn : ''}`} style={{ left: g.x(r.from) }} aria-current={active ? 'step' : undefined}>
+                {/* Its years, laid on the ruler. */}
                 <motion.span
                   className={styles.span}
-                  style={{ left: g.x(r.from), width: g.x(endOf(r)) - g.x(r.from), background: ROLE_COLORS[i % 3] }}
+                  style={{ width: g.x(endOf(r)) - g.x(r.from) }}
                   initial={false}
-                  animate={{ opacity: on ? (active ? 1 : 0.5) : 0 }}
-                  transition={{ duration: 0.3 }}
+                  animate={{ scaleX: on ? 1 : 0 }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                />
+                {/* The stem, from the ruler up to the label. */}
+                <motion.span
+                  className={styles.stem}
+                  style={{ height: lift }}
+                  initial={false}
+                  animate={{ scaleY: on ? 1 : 0 }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 />
                 <motion.div
-                  className={`${styles.card} ${high ? styles.cardHigh : styles.cardLow} ${active ? styles.cardOn : ''}`}
-                  style={{ left: g.pos[i], width: g.cardW, transformOrigin: `${g.x(midOf(r)) - g.pos[i]}px ${high ? '100%' : '0%'}`, '--role': ROLE_COLORS[i % 3] }}
+                  className={styles.label}
+                  style={{ bottom: lift + 8 }}
                   initial={false}
-                  animate={on ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.6, y: high ? 14 : -14 }}
-                  transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+                  animate={on ? { opacity: 1, y: 0, clipPath: 'inset(0% 0% 0% 0%)' } : { opacity: 0, y: 16, clipPath: 'inset(100% 0% 0% 0%)' }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: on ? 0.12 : 0 }}
                 >
                   <h3>{r.company}</h3>
-                  <p>{years(r)}</p>
+                  <p className={styles.title_}>{r.role}</p>
+                  <p className={styles.when}>{years(r)}</p>
                 </motion.div>
               </li>
             );
           })}
         </motion.ol>
 
-        <motion.span className={styles.tip} style={{ left: tipX, opacity: tipOpacity, scale: tipScale }} aria-hidden />
+        <motion.span className={styles.tip} style={{ left: tipX, scale: tipScale }} aria-hidden />
       </motion.div>
     </div>
   );

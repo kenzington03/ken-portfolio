@@ -1,23 +1,19 @@
-/* Journey C. The hero is a light studio set (cool paper, ink, signal
-   orange); once the hand covers the lens everything after it is in the dark.
-   Variable names match v4 so its timeline styles apply. */
+/* Journey C. One light studio set (cool paper, ink) from the hero through
+   About and the timeline; then the cut to the dark for the Mac. Ink and one
+   accent (Build's blue); the chapter colours belong to the Mac's words. */
 
 .journey {
-  --paper: #ebebe8;
-  --paper-2: #e1e1dd;
-  --ink: #111113;
-  --muted: #64646a;
-  --line: rgba(17, 17, 19, 0.14);
-  /* The three chapter colours (Build, Move, Ship), used across the journey. */
-  --blue: #3d7bff;
-  --pink: #ff3d8b;
-  --yellow: #ffb224;
-  --spectrum: linear-gradient(90deg, var(--blue), var(--pink) 55%, var(--yellow));
-  --accent: var(--pink);
+  --paper: #ededea;
+  --paper-2: #e2e2de;
+  --ink: #121214;
+  --muted: #6e6e73;
+  --line: rgba(18, 18, 20, 0.1);
+  --accent: #3d7bff;
+  --night: #07070a;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --gutter: clamp(20px, 3.6vw, 56px);
-  --display: 'Anybody', 'Cabinet Grotesk', system-ui, sans-serif;
-  --text: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  --display: 'Bricolage Grotesque', 'Cabinet Grotesk', system-ui, sans-serif;
+  --text: 'Geist', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
   color: var(--ink);
   font-family: var(--text);
@@ -30,49 +26,6 @@
   z-index: 1;
 }
 
-/* After the lens is covered: the same tokens, in the dark. */
-.page {
-  --paper: #07070a;
-  --paper-2: #121216;
-  --ink: #ececea;
-  --muted: #8e8e95;
-  --line: rgba(236, 236, 234, 0.16);
-  color: var(--ink);
-}
-
-/* ---------- The photo: held above the deck until the hand comes ---------- */
-.heroLayer {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  background: var(--paper);
-}
-
-.heroLayerOff {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* The hand over the lens, full screen, then black (the deck's own black). */
-.coverClip,
-.coverBlack {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.coverClip {
-  z-index: 4;
-  object-fit: cover;
-}
-
-.coverBlack {
-  z-index: 5;
-  background: #07070a;
-}
 
 /* ---------- Loader: an iris opening with real progress ---------- */
 .loader {
@@ -126,7 +79,7 @@
 
 .progressRing {
   fill: none;
-  stroke: url(#c-spectrum);
+  stroke: #ececea;
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-dasharray: 1;
@@ -243,6 +196,19 @@
   overflow: hidden;
 }
 
+/* The paper under About and the timeline (the hero carries its own set). */
+.paperBg {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+}
+
+/* The hero carries its own set; About and the timeline are transparent so
+   the grid shows through. */
+.heroPanel {
+  z-index: 1;
+}
+
 .panel[hidden] {
   display: none;
 }
@@ -264,7 +230,7 @@
 .deckBar span {
   display: block;
   height: 100%;
-  background: var(--spectrum) 0 0 / 100vw 100% no-repeat;
+  background: var(--ink);
   transform-origin: left;
 }
 
@@ -674,10 +640,11 @@
 
 .gridLines {
   position: absolute;
-  inset: 0;
+  /* Runs far to the right: the timeline pans the canvas left. */
+  inset: 0 -500% 0 0;
   background-image:
-    linear-gradient(to right, rgba(236, 236, 240, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(236, 236, 240, 0.06) 1px, transparent 1px);
+    linear-gradient(to right, rgba(18, 18, 20, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(18, 18, 20, 0.055) 1px, transparent 1px);
   will-change: transform;
 }
 
@@ -690,69 +657,72 @@
 
 .aboutOne {
   position: absolute;
-  top: clamp(96px, 14vh, 140px);
+  top: clamp(84px, 12vh, 128px);
   left: var(--gutter);
-  width: min(52%, 640px);
+  width: min(48%, 700px);
 }
 
 /* 1. Who: quiet, one line. */
 .aboutName {
-  margin: 0 0 clamp(18px, 3.2vh, 32px);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  margin: 0 0 clamp(4px, 1vh, 12px);
+  font: 500 15px/1.3 var(--text);
   color: var(--muted);
 }
 
-.aboutTwo {
-  position: absolute;
-  right: var(--gutter);
-  bottom: clamp(56px, 11vh, 120px);
-  width: min(40%, 460px);
+/* 2. The big thing: "10 years". The number is set heavy and tight, the
+   word light beside it, hanging from the number's top. */
+.tenYears {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.06em;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(150px, 27vh, 300px);
+  line-height: 0.8;
+  color: var(--ink);
+}
+
+.ten {
+  font-weight: 800;
+  font-variation-settings: 'opsz' 96, 'wdth' 85;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.years {
+  margin-top: 0.06em;
+  font-size: 0.3em;
+  font-weight: 300;
+  font-variation-settings: 'opsz' 96, 'wdth' 100;
+  letter-spacing: -0.03em;
 }
 
 .aboutLine {
   margin: 0;
 }
 
-/* 2. The statement: the display face, big and tight. */
+/* 3. What: the statement, typed under the number. */
 .aboutLead {
-  max-width: 16ch;
+  max-width: 17ch;
+  margin-top: clamp(14px, 2.4vh, 26px);
   font-family: var(--display);
-  font-size: clamp(38px, 4.7vw, 82px);
-  font-weight: 800;
-  font-variation-settings: 'wdth' 80;
-  line-height: 0.94;
-  letter-spacing: -0.035em;
+  font-size: clamp(30px, 3.3vw, 56px);
+  font-weight: 560;
+  font-variation-settings: 'opsz' 48, 'wdth' 92;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
   color: var(--ink);
 }
 
-/* 3. The supporting line: the text face, smaller and lighter, under a short
-   bar in the three chapter colours. */
+/* 4. How: the supporting line, in the text face, quieter. */
 .aboutSupport {
-  max-width: 22ch;
-  font-family: var(--text);
-  font-size: clamp(20px, 2.1vw, 32px);
-  font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  color: color-mix(in srgb, var(--ink) 74%, transparent);
-}
-
-.signature {
-  display: block;
-  width: 56px;
-  height: 3px;
-  margin-bottom: 18px;
-  border-radius: 2px;
-  background: var(--spectrum);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 700ms var(--ease);
-}
-
-.signatureOn {
-  transform: none;
+  max-width: 28ch;
+  margin-top: clamp(22px, 4vh, 44px);
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font: 400 clamp(17px, 1.35vw, 21px) / 1.4 var(--text);
+  letter-spacing: -0.005em;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
 }
 
 .untyped {
@@ -779,10 +749,22 @@
   position: relative;
   margin: 0;
   font-family: var(--display);
-  font-weight: 860;
-  font-variation-settings: 'wdth' 76;
-  letter-spacing: -0.04em;
+  font-weight: 700;
+  font-variation-settings: 'opsz' 96, 'wdth' 88;
+  letter-spacing: -0.035em;
+  color: #ececea;
   text-wrap: balance;
+}
+
+/* Words that rise out of a blur one after another (--p 0..1 from scroll,
+   --i the word's place, --n the count). */
+.riseWord {
+  --t: clamp(0, calc((var(--p) * (var(--n) + 3) - var(--i)) / 3), 1);
+  display: inline-block;
+  white-space: pre;
+  opacity: var(--t);
+  filter: blur(calc((1 - var(--t)) * 12px));
+  transform: translate3d(0, calc((1 - var(--t)) * 0.45em), 0) scale(calc(1.06 - var(--t) * 0.06));
 }
 
 /* Starts the moment the deck un-pins (hence the overlap), so the laptop is
@@ -900,7 +882,7 @@
 .collagePrint {
   padding: clamp(5px, 0.6vw, 9px);
   background: #f2f2ee;
-  box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 1px 2px rgba(18, 18, 20, 0.12), 0 24px 48px -20px rgba(18, 18, 20, 0.35);
   opacity: 0;
   transform: translateY(26px) rotate(calc(var(--r) * 1.8)) scale(1.04);
   transition: opacity 500ms ease, transform 160ms ease;
@@ -933,9 +915,19 @@
   transition: none;
 }
 
-/* ---------- Timeline panel: Now grows into the laptop ---------- */
+/* ---------- Timeline panel and the cut to the dark ---------- */
+.aboutPanel,
 .timelinePanel {
   background: transparent;
+}
+
+/* The iris: Now's ball, grown until the screen is night. */
+.iris {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--night);
+  pointer-events: none;
 }
 
 /* The ball at Now (it takes over from the timeline's own, same spot, same
@@ -946,7 +938,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
   will-change: transform, opacity;
 }
@@ -966,7 +958,7 @@
 .storyLineWrap {
   position: absolute;
   inset: 64px 0 auto;
-  z-index: 2;
+  z-index: 3;
   display: grid;
   place-content: center;
   justify-items: center;
@@ -1009,27 +1001,26 @@
     inset: 76px 18px 18px;
   }
   .aboutOne {
-    top: 84px;
+    top: 76px;
     width: auto;
     right: var(--gutter);
   }
   .aboutName {
     font-size: 14px;
   }
+  .tenYears {
+    font-size: clamp(110px, 34vw, 150px);
+  }
   .aboutLead {
-    font-size: clamp(32px, 9.4vw, 46px);
+    font-size: clamp(26px, 7.4vw, 34px);
   }
   .aboutSupport {
-    font-size: clamp(18px, 5vw, 22px);
+    margin-top: 14px;
+    font-size: 16px;
   }
-  .aboutTwo {
-    left: var(--gutter);
-    width: auto;
-    bottom: 44px;
-  }
-  /* Prints tuck into the middle band between the two lines. */
+  /* Prints tuck into the band under the words. */
   .collage {
-    inset: 25% 2% 21% 2%;
+    inset: 58% -10% 2% -38%;
   }
   .collagePrint {
     min-width: 36vw;

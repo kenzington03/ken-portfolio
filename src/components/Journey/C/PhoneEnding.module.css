@@ -50,7 +50,7 @@
 }
 
 .word {
-  font-family: 'Anybody', 'Cabinet Grotesk', sans-serif;
+  font-family: 'Bricolage Grotesque', 'Cabinet Grotesk', sans-serif;
   font-size: clamp(54px, 19vw, 92px);
   font-weight: 900;
   font-variation-settings: 'wdth' 62;
@@ -61,7 +61,7 @@
 
 .caption {
   max-width: 26ch;
-  font: 500 15px/1.35 'Satoshi', -apple-system, sans-serif;
+  font: 500 15px/1.35 'Geist', 'Satoshi', -apple-system, sans-serif;
   text-align: center;
   color: rgba(236, 236, 233, 0.86);
   text-wrap: balance;
