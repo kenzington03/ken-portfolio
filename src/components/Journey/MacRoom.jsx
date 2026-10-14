@@ -12,8 +12,9 @@ import styles from './MacRoom.module.css';
 
 const World = lazy(() => import('./World.jsx'));
 const CLOSE_MS = 1300;
-// Shut Down closes the lid and stops there: just before the lid beat begins.
-const CLOSED_AT = 0.585;
+// Shut Down closes the lid and comes to rest on the Ship chapter (word and
+// caption fully in, lid shut, before the lid beat begins).
+const CLOSED_AT = 0.575;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 // The words' window runs from under the top bar to just above the laptop;
 // the word + caption sit centred in it (even space above and below).
@@ -49,9 +50,8 @@ export default function MacRoom({
   const liveRef = useRef(alwaysLive);
   const cancelRef = useRef(null);
   const lastChapter = useRef(-2);
-  // After Shut Down the laptop just sits closed: no chapter words until the visitor scrolls.
-  const quietRef = useRef(closing);
-  const restedRef = useRef(false);
+  // Chapter words can be held back (none of the current journeys do).
+  const quietRef = useRef(false);
   const sceneRef = useRef(null);
   const glowRef = useRef(null);
   const wordRefs = useRef([]);
@@ -92,9 +92,6 @@ export default function MacRoom({
       let p = prev + (raw - prev) * (1 - Math.exp(-dt * 5));
       if (Math.abs(raw - p) < 0.0004) p = raw;
       progressRef.current = p;
-
-      // Closed and resting: the words come back once the visitor scrolls away.
-      if (quietRef.current && restedRef.current && Math.abs(raw - CLOSED_AT) > 0.03) quietRef.current = false;
 
       const k = 1 - Math.exp(-dt * 3.2);
       swayRef.current.x += (pointer.current.x * 0.34 - swayRef.current.x) * k;
@@ -177,10 +174,7 @@ export default function MacRoom({
     const t = setTimeout(() => {
       const runTop = runwayRef.current ? runwayRef.current.offsetTop : 0;
       const max = maxScroll();
-      cancelRef.current = tweenScroll(runTop + (max - runTop) * CLOSED_AT, CLOSE_MS, () => {
-        restedRef.current = true;
-        onClosed?.();
-      });
+      cancelRef.current = tweenScroll(runTop + (max - runTop) * CLOSED_AT, CLOSE_MS, () => onClosed?.());
     }, 120);
     return () => {
       clearTimeout(t);

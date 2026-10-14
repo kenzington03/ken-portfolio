@@ -5,3 +5,6 @@ dist/
 .DS_Store
 _to_delete/
 awesome-ios-ui-master.zip
+
+# local browser-test screenshots
+.playwright-mcp/

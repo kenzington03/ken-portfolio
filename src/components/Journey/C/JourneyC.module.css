@@ -1,5 +1,6 @@
-/* Journey C. Light studio set (cool paper, ink, signal orange), lights out
-   before the Mac. Variable names match v4 so its timeline styles apply. */
+/* Journey C. The hero is a light studio set (cool paper, ink, signal
+   orange); once the hand covers the lens everything after it is in the dark.
+   Variable names match v4 so its timeline styles apply. */
 
 .journey {
   --paper: #ebebe8;
@@ -22,6 +23,50 @@
 .page {
   position: relative;
   z-index: 1;
+}
+
+/* After the lens is covered: the same tokens, in the dark. */
+.page {
+  --paper: #07070a;
+  --paper-2: #121216;
+  --ink: #ececea;
+  --muted: #8e8e95;
+  --line: rgba(236, 236, 234, 0.16);
+  color: var(--ink);
+}
+
+/* ---------- The photo: held above the deck until the hand comes ---------- */
+.heroLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--paper);
+}
+
+.heroLayerOff {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* The hand over the lens, full screen, then black (the deck's own black). */
+.coverClip,
+.coverBlack {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.coverClip {
+  z-index: 4;
+  object-fit: cover;
+}
+
+.coverBlack {
+  z-index: 5;
+  background: #07070a;
 }
 
 /* ---------- Loader: an iris opening with real progress ---------- */
@@ -689,7 +734,8 @@
   transition-duration: 250ms;
 }
 
-.scrollCue i {
+.scrollCue i,
+.idleHint i {
   position: relative;
   width: 1px;
   height: 34px;
@@ -697,12 +743,48 @@
   overflow: hidden;
 }
 
-.scrollCue i::after {
+.scrollCue i::after,
+.idleHint i::after {
   content: '';
   position: absolute;
   inset: 0;
   background: var(--ink);
   animation: cue 1.6s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+}
+
+/* The same cue mid-journey, after a second of stillness. Leaves fast, arrives slow. */
+.idleHint {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(18px, 3.4vh, 34px);
+  z-index: 30;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  font: 500 12px/1 var(--text);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.idleHintOn {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition: opacity 700ms ease, transform 900ms var(--ease);
+}
+
+/* In the Mac room the room's own progress rail is the line: the label sits
+   just above it, under the laptop. */
+.journey[data-dark] .idleHint {
+  --muted: #9a9aa0;
+  bottom: 42px;
+}
+
+.journey[data-dark] .idleHint i {
+  display: none;
 }
 
 @keyframes cue {
@@ -726,10 +808,21 @@
   margin: 0;
 }
 
+/* Darkroom prints: the paper settles first, then the picture develops out
+   of the white, shadows first. */
 .collagePrint {
   padding: clamp(5px, 0.6vw, 9px);
-  background: #f7f7f4;
-  box-shadow: 0 1px 1px rgba(17, 17, 19, 0.14), 0 22px 44px -18px rgba(17, 17, 19, 0.42);
+  background: #f2f2ee;
+  box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transform: translateY(26px) rotate(calc(var(--r) * 1.8)) scale(1.04);
+  transition: opacity 500ms ease, transform 160ms ease;
+}
+
+.printOn {
+  opacity: 1;
+  transform: rotate(var(--r));
+  transition: opacity 700ms ease var(--d), transform 1300ms var(--ease) var(--d);
 }
 
 .collagePrint img {
@@ -737,6 +830,20 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+  opacity: 0;
+  filter: grayscale(1) contrast(1.5);
+  transition: opacity 200ms ease, filter 200ms ease;
+}
+
+.printOn img {
+  opacity: 1;
+  filter: none;
+  transition: opacity 1600ms cubic-bezier(0.45, 0, 0.25, 1) calc(var(--d) + 250ms), filter 2600ms cubic-bezier(0.45, 0, 0.25, 1) calc(var(--d) + 500ms);
+}
+
+.printInstant,
+.printInstant img {
+  transition: none;
 }
 
 /* ---------- Timeline panel: Now grows into the laptop ---------- */
@@ -744,30 +851,28 @@
   background: transparent;
 }
 
-.paperLayer {
-  position: absolute;
-  inset: 0;
-  background: var(--paper);
-}
-
-/* The ball on the ruler. During the timeline it marks where you are; at the
-   end it runs out to "Now" (the orange line follows), then swells into the
-   laptop's graphite lid, exactly where the real MacBook fades in. */
+/* The ball on the ruler, where the focus line meets it. At Now it sinks
+   into the MacBook as the laptop fades in, and dissolves at the logo. */
 .seed {
   position: absolute;
+  left: 50%;
   z-index: 2;
-  border: 1px solid transparent;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 18px 2px rgba(255, 79, 26, 0.45);
   transform: translate(-50%, -50%);
-  will-change: width, height, top, left;
+  will-change: width, height, top;
 }
 
-.trail {
-  position: absolute;
-  left: 34%;
-  top: calc(54% + 70px);
-  z-index: 1;
-  height: 2px;
-  background: var(--accent);
+/* The focus line hangs from the active card and ends on the ruler, at the ball. */
+.timelinePanel [class*='focusLine'] {
+  bottom: auto;
+  height: 71px;
+}
+
+/* The active card keeps inside the screen (TimelineC sets --shift). */
+.timelinePanel [class*='roleCard'] {
+  translate: calc(-50% + var(--shift, 0px)) 0;
 }
 
 /* v4 drew its own dot at the top of the focus line; the seed replaces it. */
@@ -849,7 +954,8 @@
   .storyLineWrap .bridgeLine {
     font-size: clamp(26px, 8vw, 40px);
   }
-  .scrollCue {
+  .scrollCue,
+  .idleHint {
     bottom: 14px;
   }
 }
@@ -872,6 +978,7 @@
     display: none;
   }
   .scrollCue i::after,
+  .idleHint i::after,
   .caret {
     animation: none;
   }

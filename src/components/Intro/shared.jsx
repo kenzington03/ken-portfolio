@@ -49,7 +49,10 @@ export function tweenScroll(to, ms, onDone) {
     window.removeEventListener('touchstart', interrupt);
     window.removeEventListener('keydown', interrupt);
   };
-  const interrupt = () => {
+  // Any real input takes over, except events a page has already claimed
+  // (e.g. the coasting tail of the swipe that started this tween).
+  const interrupt = (e) => {
+    if (e?.defaultPrevented) return;
     cancel();
     onDone?.();
   };

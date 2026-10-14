@@ -191,7 +191,7 @@ const ABOUT = {
   freelance: "He takes select freelance projects. Email him with the scope and timeline.",
   location: "Hyderabad, India, for about 8 years. Originally from Bangalore.",
   contact: "Email kennethnathanael@gmail.com or LinkedIn: linkedin.com/in/kenneth-n-576134103. Email is fastest.",
-  resume: "Open Resume on the desktop, or the Experience app, for the full history.",
+  resume: "Open Resume on the desktop, or the About app, for the full history.",
   social: "Behance: behance.net/nathanaelkenneth. Instagram: @nathanaelkenneth.",
   interests: "Outside work: basketball (Lakers), chess, Rocket League, sneakers, and a Royal Enfield Classic 350.",
 };

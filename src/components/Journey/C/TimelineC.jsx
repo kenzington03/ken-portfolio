@@ -2,18 +2,19 @@
 // scroll, a lens ruler sliding under an orange focus line, the active stint
 // in ink. A gist only: company and years (verified against LinkedIn), no
 // titles. It is a deck panel now: the deck hands it a 0..1 `progress`.
-// (Styles are v4's; the journey root supplies the same CSS variables.)
+// (Styles in Timeline.module.css; the journey supplies the colour tokens.)
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useTransform } from 'framer-motion';
 import { ROLES } from '../../../data/about.js';
-import styles from '../../Intro4/Intro4.module.css';
+import styles from './Timeline.module.css';
 
 const START = 2015;
-const FIRST = 2015.5; // where the scroll begins (Ken's first stint starts Aug 2015)
 const NOW_YEAR = 2026.75;
-const END = 2025.4;
-const FOCUS = 0.34;
+const FIRST = 2015.5; // where the scroll begins (Ken's first stint starts Aug 2015)
+// The ruler runs all the way to Now, which lands dead centre, on the focus line.
+const END = NOW_YEAR;
+const FOCUS = 0.5;
 const CHRONO = [...ROLES].reverse();
 const endOf = (r) => (r.to === null ? NOW_YEAR : r.to);
 const midOf = (r) => (r.from + endOf(r)) / 2;
@@ -49,11 +50,10 @@ function Wheel({ year, place }) {
 }
 
 /**
- * `progress` 0..1 runs the ten years. `tail` 0..1 then carries the ruler on
- * until the Now marker sits at the centre of the screen, while `fade` 0..1
- * clears everything else away: the deck grows the laptop out of that marker.
+ * `progress` 0..1 runs the ten years and ends with Now at the centre of the
+ * screen; `fade` 0..1 then clears it away so the laptop can appear there.
  */
-export default function TimelineC({ progress, tail, fade }) {
+export default function TimelineC({ progress, fade }) {
   const [vw, setVw] = useState(() => window.innerWidth);
   useEffect(() => {
     const on = () => setVw(window.innerWidth);
@@ -61,9 +61,7 @@ export default function TimelineC({ progress, tail, fade }) {
     return () => window.removeEventListener('resize', on);
   }, []);
   const yw = Math.max(240, Math.min(360, vw * 0.23));
-  // Years the ruler still has to travel for Now to reach the screen's centre.
-  const tailYears = NOW_YEAR - END - ((0.5 - FOCUS) * vw) / yw;
-  const year = useTransform([progress, tail], ([v, t]) => FIRST + Math.min(1, Math.max(0, v)) * (END - FIRST) + t * tailYears);
+  const year = useTransform(progress, (v) => FIRST + Math.min(1, Math.max(0, v)) * (END - FIRST));
   const chrome = useTransform(fade, (f) => 1 - f);
   const rulerOpacity = useTransform(fade, (f) => 1 - Math.max(0, (f - 0.55) / 0.45));
   const x = useTransform(year, (v) => -(v - START) * yw);
@@ -81,6 +79,20 @@ export default function TimelineC({ progress, tail, fade }) {
   const pad = vw * FOCUS;
   const trackW = pad + (NOW_YEAR - START) * yw + vw;
   const pos = (yr) => pad + (yr - START) * yw;
+  // The active card is centred on its role, but never allowed off screen:
+  // on a narrow screen it slides along the edge instead of being cut off.
+  const CARD_W = 250;
+  const edge = Math.min(24, vw * 0.04);
+  const shiftOf = useRef(null);
+  shiftOf.current = (v) => {
+    const r = CHRONO[active];
+    if (!r) return '0px';
+    const at = pos(midOf(r)) - (v - START) * yw;
+    const lo = edge + CARD_W / 2;
+    const hi = vw - edge - CARD_W / 2;
+    return `${Math.round(Math.min(hi, Math.max(lo, at)) - at)}px`;
+  };
+  const shift = useTransform(year, (v) => shiftOf.current(v));
 
   return (
     <div className={styles.tlSticky} style={{ position: 'absolute', inset: 0, height: 'auto' }}>
@@ -115,18 +127,18 @@ export default function TimelineC({ progress, tail, fade }) {
 
         <motion.ol className={styles.roles} style={{ opacity: chrome }}>
           {CHRONO.map((r, i) => (
-            <li
+            <motion.li
               key={r.company}
               className={`${styles.role} ${i % 2 ? styles.roleHigh : styles.roleLow} ${i === active ? styles.roleOn : ''}`}
-              style={{ left: pos(r.from), '--span': `${(endOf(r) - r.from) * yw}px`, '--mid': `${(midOf(r) - r.from) * yw}px` }}
+              style={{ left: pos(r.from), '--span': `${(endOf(r) - r.from) * yw}px`, '--mid': `${(midOf(r) - r.from) * yw}px`, '--shift': i === active ? shift : '0px' }}
               aria-current={i === active ? 'step' : undefined}
             >
               <span className={styles.roleSpan} aria-hidden />
-              <div className={styles.roleCard} style={{ width: 250 }}>
+              <div className={styles.roleCard} style={{ width: CARD_W }}>
                 <h3 style={{ marginTop: 0 }}>{r.company}</h3>
                 <p>{years(r)}</p>
               </div>
-            </li>
+            </motion.li>
           ))}
         </motion.ol>
       </motion.div>

@@ -7,12 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "dev:v2": "VITE_INTRO=2 vite --port 5174",
-    "dev:v3": "VITE_INTRO=3 vite --port 5175",
-    "dev:v4": "VITE_INTRO=4 vite --port 5176",
-    "dev:v5": "VITE_INTRO=5 vite --port 5177",
-    "dev:v6": "VITE_INTRO=6 vite --port 5178",
-    "dev:v7": "VITE_INTRO=7 vite --port 5179"
+    "dev:v7": "vite --port 5179"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

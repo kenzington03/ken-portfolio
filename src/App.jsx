@@ -30,29 +30,16 @@ function GlobalKeyboardBridge({ spotlightOpen, onSpotlightToggle }) {
   return null;
 }
 
-/* Scroll intro (hero → MacBook → welcome) is behind a flag until approved:
-   ?intro=1 is v1, ?intro=2 is v2 ("Night Studio"), ?intro=3 is v3 (walk-in hero →
-   about → Mac), ?intro=4 is v4 ("Exposure": light page, lights out before the Mac).
-   ?intro=5 is journey A ("Hey, I'm Ken" type-window over the work), ?intro=6 is journey B ("The Desk"), ?intro=7 is journey C (Ken's own flow).
-   `npm run dev:v2` … `dev:v6` serve those on :5174 … :5178. */
-const INTRO_VERSION = (() => {
+/* The scroll intro (hero → hand over the lens → about → timeline → MacBook →
+   welcome) plays for everyone. `?intro=0` goes straight to the desktop. */
+const INTRO_ENABLED = (() => {
   try {
-    const q = new URLSearchParams(window.location.search).get('intro');
-    if (['1', '2', '3', '4', '5', '6', '7'].includes(q)) return q;
+    return new URLSearchParams(window.location.search).get('intro') !== '0';
   } catch {
-    /* fall through */
+    return true;
   }
-  const env = import.meta.env.VITE_INTRO;
-  return ['1', '2', '3', '4', '5', '6', '7'].includes(env) ? env : null;
 })();
-const INTRO_ENABLED = INTRO_VERSION !== null;
-// Both intros are their own chunks: visitors without the flag never fetch them.
-const Intro = lazy(() => import('./components/Intro/Intro.jsx'));
-const Intro2 = lazy(() => import('./components/Intro2/Intro2.jsx'));
-const Intro3 = lazy(() => import('./components/Intro3/Intro3.jsx'));
-const Intro4 = lazy(() => import('./components/Intro4/Intro4.jsx'));
-const JourneyA = lazy(() => import('./components/Journey/A/JourneyA.jsx'));
-const JourneyB = lazy(() => import('./components/Journey/B/JourneyB.jsx'));
+// Its own chunk (with three.js), so the desktop never waits on it.
 const JourneyC = lazy(() => import('./components/Journey/C/JourneyC.jsx'));
 
 const BLACKOUT_MS = 380;
@@ -104,7 +91,7 @@ function AppShell() {
 
   if (isMobile) {
     // Journey C is built for phones too: it plays, then lands on the iPhone home.
-    return INTRO_VERSION === '7' ? <MobileIntroFlow /> : <IPhoneHome />;
+    return INTRO_ENABLED ? <MobileIntroFlow /> : <IPhoneHome />;
   }
 
   return INTRO_ENABLED ? <IntroFlow /> : <DesktopShell />;
@@ -132,7 +119,6 @@ function MobileIntroFlow() {
 
 /** intro (scroll hero + 3D MacBook) → welcome → desktop; Shut Down plays it back. */
 function IntroFlow() {
-  const IntroView = INTRO_VERSION === '7' ? JourneyC : INTRO_VERSION === '6' ? JourneyB : INTRO_VERSION === '5' ? JourneyA : INTRO_VERSION === '4' ? Intro4 : INTRO_VERSION === '3' ? Intro3 : INTRO_VERSION === '2' ? Intro2 : Intro;
   const [phase, setPhase] = useState('intro');
   const [introMode, setIntroMode] = useState('open');
   const [blackout, setBlackout] = useState(false);
@@ -161,7 +147,7 @@ function IntroFlow() {
     <>
       {phase !== 'desktop' && (
         <Suspense fallback={<div style={{ height: '100vh', background: '#07070a' }} />}>
-          <IntroView
+          <JourneyC
             mode={introMode}
             active={phase === 'intro'}
             onReachScreen={showWelcome}

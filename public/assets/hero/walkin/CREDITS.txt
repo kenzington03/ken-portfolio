@@ -1,2 +1,5 @@
 stock-walkin.mp4: STAND-IN ONLY, replace with Ken's footage.
 "A man posing while looking at the camera", Pexels video 8166016, https://www.pexels.com/video/a-man-posing-while-looking-at-the-camera-8166016/ (Pexels License: free to use).
+
+stock-cover.mp4: STAND-IN ONLY, replace with Ken's footage (his own hand covering the lens).
+Built from "Policewoman covering camera at crime scene", Pexels video 10464707, https://www.pexels.com/video/policewoman-covering-camera-at-crime-scene-10464707/ (Pexels License: free to use). Frames 2.0s to 0s played in reverse, 1280x720.
