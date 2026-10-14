@@ -37,6 +37,7 @@ export default function MacRoom({
   wordsOnTop = false, // overhead flows: the Mac fills the middle, so words sit above it
   alwaysLive = false, // the Mac is on screen from the first frame (The Desk)
   onFrame, // (y, p) per frame, for journey-specific effects
+  logoRef, // optional: written with the lid logo's screen position ({ x, y, lidW } in px)
   className = '',
   children, // extra fixed layers drawn behind the canvas (e.g. a cutting mat)
 }) {
@@ -216,6 +217,7 @@ export default function MacRoom({
                 active={active}
                 poses={poses}
                 anchorRef={wordsOnTop ? anchorRef : undefined}
+                logoRef={logoRef}
               />
             </Suspense>
           </SceneBoundary>

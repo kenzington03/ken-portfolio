@@ -6,7 +6,8 @@
 //   In the dark, a pinned deck driven by scroll:
 //       About: the two lines type themselves and the prints develop
 //       → Career timeline, ending with Now dead centre
-//       → the MacBook appears there; the ball sinks into its logo
+//       → the chrome ball on Now turns into the Apple logo, which settles on
+//         the lid of the MacBook as it appears
 //   → Build / Move / Ship: the Mac swings from overhead to the front
 //   → lid opens → welcome → macOS.
 // Same contract as the other intros.
@@ -50,7 +51,7 @@ const COVER = {
   src: '/assets/hero/walkin/stock-cover.mp4',
   from: 0.3,
   to: 2.05,
-  rate: 1.15,
+  rate: 1.35,
 };
 
 // Shimmering lines for the loader. How many get shown depends on how long
@@ -371,10 +372,10 @@ function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
 // Scroll budget per beat, in viewport heights. The hero is not in here: it
 // sits above the deck and leaves by gesture (the hand over the lens).
 const BEATS = [
-  ['about', 100], // both lines type on their own; scrolling on hurries line two
+  ['about', 35], // both lines type on their own (on time); a short hold, then on
   ['ab>tl', 60], // About leaves left, the timeline arrives from the right
   ['tl', 150], // ends with Now dead centre, on the orange line
-  ['now', 70], // the timeline clears; the MacBook appears where Now was, the ball sinks into its logo
+  ['now', 80], // the timeline clears; the chrome ball becomes the Apple logo and settles on the MacBook's lid
 ];
 const TOTAL = BEATS.reduce((n, [, len]) => n + len, 0);
 const SPAN = (() => {
@@ -503,12 +504,24 @@ function Panel({ progress, enter, exit, enterAxis = 'x', exitAxis = 'x', reduced
   );
 }
 
+// The logo's box height as a share of the lid's on-screen width (measured: a
+// 59px logo on a 494px-wide lid at 1440x900).
+const LOGO_PER_LID = 0.143;
+// The Apple logo (same glyph as the menu bar's).
+const APPLE_PATH =
+  'M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z';
+
 // Stop scrolling mid-journey for this long and a quiet "keep scrolling" cue appears.
 const IDLE_HINT_MS = 1100;
 // A wheel event this long after the last one starts a new gesture (trackpad
 // momentum arrives in an unbroken stream, so it never counts as a new one).
 const GESTURE_GAP_MS = 160;
 const UNCOVER_MS = 900;
+const COVER_MS = ((COVER.to - COVER.from) / COVER.rate) * 1000;
+// At the top of the deck: how long to rest there, and how far a fresh push
+// upward must go, before the hero comes back.
+const TOP_DWELL_MS = 120;
+const UP_INTENT = 60;
 
 export default function JourneyC({ mode = 'open', active = true, onReachScreen, onSkip, onClosed, phone = false }) {
   const closing = mode === 'close';
@@ -537,6 +550,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const coverRef = useRef(null);
   const blackRef = useRef(null);
   const timersRef = useRef([]);
+  const logoRef = useRef(null); // the lid logo on screen, written by the 3D scene
   // True while the Shut Down replay is still closing the lid.
   const closingRef = useRef(closing);
   const handleClosed = useCallback(() => {
@@ -554,18 +568,38 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // the ball (Now's marker) drops into the lid and dissolves at the logo.
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
   const tlFade = useTransform(nowT, (t) => within(t, [0, 0.4]));
-  const sink = useTransform(nowT, (t) => inOut(within(t, [0.25, 0.85])));
   const barAlpha = useTransform(nowT, (t) => 1 - inOut(within(t, [0.5, 1])));
-  // Where the MacBook's logo (or the phone) sits on screen, as a fraction of the viewport height.
-  const devCenter = phone ? PHONE_CENTER : 0.633; // the Apple logo, measured at 1440x900
-  const seedTop = useTransform(sink, (m) => {
+  // The chrome ball → the Apple logo (on the ruler) → down onto the lid,
+  // shrinking to the lid logo's size, then handing over to the real one.
+  const morphT = useTransform(nowT, (t) => inOut(within(t, [0.06, 0.34])));
+  const drop = useTransform(nowT, (t) => inOut(within(t, [0.3, 0.78])));
+  // Where it lands: the 3D scene reports the lid logo's place on screen
+  // (logoRef). Until the laptop has loaded, and on phones (the middle of the
+  // phone), fixed fallbacks stand in.
+  const LOGO_Y = phone ? PHONE_CENTER : 0.638;
+  const LOGO_H = phone ? 0.06 : 0.079; // the logo's box, as a share of the viewport height (glyph = 20/24 of it)
+  const MARK_H = 0.09; // the logo's box on the ruler, before it travels
+  const target = () => {
     const vh = window.innerHeight;
-    const from = vh * 0.54 + 71; // dead centre of the ruler line
-    return from + (vh * devCenter - from) * m;
+    const l = !phone && logoRef.current;
+    if (l && l.lidW > 0) return { x: l.x, y: l.y, h: l.lidW * LOGO_PER_LID };
+    return { x: window.innerWidth / 2, y: vh * LOGO_Y, h: vh * LOGO_H };
+  };
+  const markTop = useTransform(drop, (m) => {
+    const from = window.innerHeight * 0.54 + 71; // dead centre of the ruler line
+    return from + (target().y - from) * m;
   });
-  const seedSize = useTransform(sink, (m) => 12 - 6 * m);
-  const seedOpacity = useTransform(sink, (m) => (flatRef.current ? 1 : 1 - within(m, [0.45, 1])));
-  const lineOpacity = useTransform(nowT, (t) => within(t, [0.3, 0.6]));
+  const markLeft = useTransform(drop, (m) => {
+    const from = window.innerWidth / 2;
+    return from + (target().x - from) * m;
+  });
+  const ballScale = useTransform(morphT, (k) => 1 + 1.4 * k);
+  const ballOpacity = useTransform(morphT, (k) => 1 - within(k, [0.25, 0.75]));
+  const logoScale = useTransform([morphT, drop], ([k, m]) => (0.35 + 0.65 * k) * (1 + (target().h / (window.innerHeight * MARK_H) - 1) * m));
+  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.2, 0.7]) * (flatRef.current ? 1 : 1 - within(t, [0.84, 0.98])));
+  const logoRotate = useTransform(morphT, (k) => (1 - k) * -24);
+  // Waits for the timeline to clear, so the two never overlap.
+  const lineOpacity = useTransform(nowT, (t) => within(t, [0.42, 0.66]));
 
   // Scrolling on through About brings line two in early (and line one, if a
   // visitor somehow got here without it).
@@ -706,27 +740,42 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     let acc = 0;
     let startTop = false;
     let swallow = false;
+    let swallowUntil = 0;
+    let topAt = 0;
+    let armed = false;
+    let prevMag = 0;
     let touchY = null;
     const atTop = () => window.scrollY <= 1;
     const onWheel = (e) => {
-      const t = performance.now();
+      // When the event was fired, not when it is handled: while the 3D scene
+      // starts up, events queue and arrive in a burst; that is not a pause.
+      const t = e.timeStamp || performance.now();
       const gap = t - last;
       last = t;
-      if (gap > GESTURE_GAP_MS) {
-        acc = 0;
-        swallow = false;
-        startTop = atTop();
-      }
+      // A new swipe: a pause, or deltas growing again (momentum only decays).
+      const mag = Math.abs(e.deltaY);
+      const push = gap > GESTURE_GAP_MS || mag > prevMag * 1.3 + 2;
+      prevMag = mag;
+      if (gap > GESTURE_GAP_MS) acc = 0;
       // After Shut Down, the swipe that triggered it is still coasting: none of
-      // it may drag the page off the closing Mac (nor right after it rests).
+      // it may drag the page off the closing Mac.
       if (closingRef.current) {
         e.preventDefault();
         swallow = true;
+        swallowUntil = t + 5000;
         return;
       }
       const s = stageRef.current;
       if (contactRef.current) return;
-      if (swallow || s === 'covering' || s === 'uncovering') {
+      if (s === 'covering' || s === 'uncovering') {
+        e.preventDefault();
+        return;
+      }
+      // The coasting tail of a swipe that triggered something is swallowed,
+      // but the moment a new swipe starts the page is live again (capped, so
+      // it can never feel dead).
+      if (swallow && (push || t > swallowUntil)) swallow = false;
+      if (swallow) {
         e.preventDefault();
         return;
       }
@@ -735,17 +784,31 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         acc += e.deltaY;
         if (acc > 24) {
           swallow = true;
+          swallowUntil = t + COVER_MS + 1500;
           cover();
         }
         return;
       }
-      if (startTop && atTop() && e.deltaY < 0) {
-        acc += e.deltaY;
-        if (acc < -40) {
-          swallow = true;
-          e.preventDefault();
-          uncover();
-        }
+      // At the very top of the deck, a fresh push upward brings the photo
+      // back. Momentum only ever decays, so a fling that coasts to the top
+      // stops on About; a new swipe (a pause, or deltas growing again) goes on.
+      if (!atTop() || e.deltaY >= 0) {
+        if (!atTop()) topAt = 0;
+        armed = false;
+        return;
+      }
+      if (!topAt) {
+        topAt = t;
+        acc = 0;
+        armed = false;
+      }
+      if (push && t - topAt > TOP_DWELL_MS) armed = true;
+      if (armed) acc += e.deltaY;
+      if (armed && acc < -UP_INTENT) {
+        swallow = true;
+        swallowUntil = t + UNCOVER_MS + 1500;
+        e.preventDefault();
+        uncover();
       }
     };
     const onTouchStart = (e) => {
@@ -796,14 +859,17 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   }, [loaded, active, cover, uncover]);
 
   // "Keep scrolling": armed by scrolling in the deck, cleared by the next
-  // scroll. Never at the very top or bottom (the hero has its own cue).
+  // scroll. Never at the very top (the hero has its own cue), nor in the Mac's room.
   useEffect(() => {
     if (!loaded || closing || !active || stage !== 'deck') return undefined;
     let t;
     const arm = () => {
       setIdle(false);
       clearTimeout(t);
-      t = setTimeout(() => setIdle(window.scrollY > 4 && window.scrollY < maxScroll() - 4), IDLE_HINT_MS);
+      // Not in the Mac's room: there the progress rail and the chapter words
+      // already say there is more, and the laptop fills the bottom.
+      const roomTop = runwayRef.current ? runwayRef.current.offsetTop : maxScroll();
+      t = setTimeout(() => setIdle(window.scrollY > 4 && window.scrollY < roomTop - 4), IDLE_HINT_MS);
     };
     window.addEventListener('scroll', arm, { passive: true });
     return () => {
@@ -833,7 +899,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const deck = deckRef.current;
     if (!deck) return 0;
     const travel = deck.offsetHeight - window.innerHeight;
-    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.2);
+    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.3);
   }, []);
 
   const flat = !use3D && !phone;
@@ -855,6 +921,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         wordsOnTop
         arrive="fade"
         sceneFadeFrom={sceneFadeFrom}
+        logoRef={logoRef}
       />
 
       <header className={styles.bar}>
@@ -884,8 +951,22 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             <Panel progress={progress} enter="ab>tl" reduced={reduced} className={styles.timelinePanel} aria-label="Career timeline">
               <TimelineC progress={tlProgress} fade={tlFade} />
 
-              {/* The ball: marks where you are; at Now it sinks into the MacBook's logo. */}
-              <motion.span className={styles.seed} style={{ width: seedSize, height: seedSize, top: seedTop, opacity: seedOpacity }} aria-hidden />
+              {/* The chrome ball marks where you are; at Now it becomes the Apple
+                  logo and settles onto the MacBook's lid. */}
+              <motion.div className={styles.mark} style={{ top: markTop, left: markLeft }} aria-hidden>
+                <motion.span className={styles.ball} style={{ scale: ballScale, opacity: ballOpacity }} />
+                <motion.svg className={styles.logo} viewBox="0 0 24 24" style={{ scale: logoScale, opacity: logoOpacity, rotate: logoRotate }}>
+                  <defs>
+                    <linearGradient id="chrome" x1="0" y1="0" x2="0.35" y2="1">
+                      <stop offset="0" stopColor="#ffffff" />
+                      <stop offset="0.45" stopColor="#b9b9c2" />
+                      <stop offset="0.55" stopColor="#8d8d97" />
+                      <stop offset="1" stopColor="#e9e9ee" />
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#chrome)" d={APPLE_PATH} />
+                </motion.svg>
+              </motion.div>
               <motion.div className={styles.storyLineWrap} style={{ opacity: lineOpacity }}>
                 <p className={styles.bridgeLine}>{phone ? 'The rest of the story lives on my phone.' : 'The rest of the story lives on my Mac.'}</p>
                 {flat && (

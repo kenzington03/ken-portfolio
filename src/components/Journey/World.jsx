@@ -51,8 +51,34 @@ function TopAnchor({ anchorRef }) {
   return null;
 }
 
+/**
+ * Reports where the lid's middle (the Apple logo) is on screen, and how wide
+ * the lid is there, in CSS px, so a DOM element can land exactly on the logo.
+ */
+function LogoAnchor({ logoRef }) {
+  const { scene, camera, size } = useThree();
+  const tmp = useMemo(() => ({ box: new THREE.Box3(), c: new THREE.Vector3(), a: new THREE.Vector3(), b: new THREE.Vector3() }), []);
+  const lid = useRef(null);
+  useFrame(() => {
+    if (!lid.current) lid.current = scene.getObjectByName('Lid') ?? null;
+    if (!lid.current) return;
+    const { box, c, a, b } = tmp;
+    box.setFromObject(lid.current);
+    box.getCenter(c);
+    a.set(box.min.x, c.y, c.z).project(camera);
+    b.set(box.max.x, c.y, c.z).project(camera);
+    c.project(camera);
+    logoRef.current = {
+      x: (c.x * 0.5 + 0.5) * size.width,
+      y: (1 - (c.y * 0.5 + 0.5)) * size.height,
+      lidW: Math.abs(b.x - a.x) * 0.5 * size.width,
+    };
+  });
+  return null;
+}
+
 /** `poses` lets a journey choose where the camera starts (e.g. overhead). */
-export default function World({ progressRef, screenOnRef, swayRef, onReady, live = false, active = true, poses = POSES, fog = true, anchorRef }) {
+export default function World({ progressRef, screenOnRef, swayRef, onReady, live = false, active = true, poses = POSES, fog = true, anchorRef, logoRef }) {
   return (
     <Canvas
       camera={{ fov: 30, near: 0.05, far: 80, position: [0, 3, 12] }}
@@ -69,6 +95,7 @@ export default function World({ progressRef, screenOnRef, swayRef, onReady, live
       <Lights progressRef={progressRef} />
       <MacbookLighting preset="studio-dark" />
       {anchorRef && <TopAnchor anchorRef={anchorRef} />}
+      {logoRef && <LogoAnchor logoRef={logoRef} />}
       <Suspense fallback={null}>
         <Rig progressRef={progressRef} screenOnRef={screenOnRef} onReady={onReady} beats={BEATS} poses={poses} sway={swayRef} />
       </Suspense>

@@ -158,7 +158,7 @@
 }
 
 .roleOn .roleSpan {
-  background: var(--ink);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .roleCard {
