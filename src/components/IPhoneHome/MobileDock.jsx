@@ -13,7 +13,7 @@ export default function MobileDock({ onTap }) {
             dockMode
             wiggle={false}
             showBadge={false}
-            onTap={() => onTap(app)}
+            onTap={(rect) => onTap(app, rect)}
           />
         ))}
       </div>

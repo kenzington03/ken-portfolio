@@ -72,7 +72,7 @@ function ghostCountForLevel(level) {
   return Math.min(GHOST_COLORS.length, 1 + Math.floor((level - 1) / 1));
 }
 
-export default function MazeMuncher() {
+export default function MazeMuncher({ mobile = false }) {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -346,10 +346,10 @@ export default function MazeMuncher() {
         ctx.fillStyle = '#fff';
         ctx.font = '13px system-ui';
         ctx.textAlign = 'center';
-        ctx.fillText('Press Space to start', W / 2, H / 2);
+        ctx.fillText(mobile ? 'Tap to start' : 'Press Space to start', W / 2, H / 2);
         ctx.font = '10.5px system-ui';
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        ctx.fillText('Arrow keys to move · eat the big dots to hunt ghosts', W / 2, H / 2 + 16);
+        ctx.fillText(mobile ? 'Swipe to steer · eat the big dots to hunt ghosts' : 'Arrow keys to move · eat the big dots to hunt ghosts', W / 2, H / 2 + 16);
       }
 
       raf = requestAnimationFrame(draw);
@@ -358,6 +358,79 @@ export default function MazeMuncher() {
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
   }, [started, gameOver]);
+
+  // Phone: swipe anywhere to steer (the turn is queued, as with the keys);
+  // the d-pad does the same.
+  const swipe = useRef(null);
+  const steer = (key) => {
+    if (!started) {
+      begin();
+      return;
+    }
+    if (!gameOver) stateRef.current.player.nextDir = key;
+  };
+  const onTouchStart = (e) => {
+    const t = e.touches[0];
+    swipe.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchMove = (e) => {
+    const g = swipe.current;
+    if (!g) return;
+    const t = e.touches[0];
+    const dx = t.clientX - g.x;
+    const dy = t.clientY - g.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    steer(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'ArrowRight' : 'ArrowLeft') : dy > 0 ? 'ArrowDown' : 'ArrowUp');
+    swipe.current = { x: t.clientX, y: t.clientY };
+  };
+
+  if (mobile) {
+    const dpad = [
+      ['ArrowUp', 'M6 15l6-6 6 6'],
+      ['ArrowLeft', 'M15 6l-6 6 6 6'],
+      ['ArrowRight', 'M9 6l6 6-6 6'],
+      ['ArrowDown', 'M6 9l6 6 6-6'],
+    ];
+    return (
+      <div className={`${styles.wrap} ${styles.mobile}`} data-game-window onTouchStart={onTouchStart} onTouchMove={onTouchMove}>
+        <div className={styles.mobileHud}>
+          <div>
+            <span>Score</span>
+            <b>{score}</b>
+          </div>
+          <div>
+            <span>Level</span>
+            <b>{level}</b>
+          </div>
+          <div>
+            <span>Lives</span>
+            <b className={styles.lives}>{'●'.repeat(Math.max(0, lives))}</b>
+          </div>
+        </div>
+        <div className={styles.boardWrap} onClick={begin}>
+          <canvas ref={canvasRef} width={COLS * CELL} height={ROWS * CELL} className={styles.canvas} aria-label="Pac-Man game" />
+          <GameOverScreen
+            open={gameOver}
+            gameKey="mazemuncher"
+            gameLabel="Pac-Man"
+            score={score}
+            level={level}
+            extraStat={{ label: 'Level reached', value: level }}
+            onPlayAgain={playAgain}
+          />
+        </div>
+        <div className={styles.dpad}>
+          {dpad.map(([key, d]) => (
+            <button key={key} type="button" data-dir={key} aria-label={key.replace('Arrow', '')} onClick={() => steer(key)}>
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path d={d} />
+              </svg>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrap} data-game-window>

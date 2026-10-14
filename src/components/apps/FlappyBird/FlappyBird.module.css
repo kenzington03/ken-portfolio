@@ -13,3 +13,21 @@
   cursor: pointer;
   max-width: 100%;
 }
+
+/* Phone: full screen. The board keeps its shape, standing on the bottom
+   edge; the sky carries on above it. */
+.mobile {
+  background: #5ec0de;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.mobile .canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 50% 100%;
+  border-radius: 0;
+  max-width: none;
+}

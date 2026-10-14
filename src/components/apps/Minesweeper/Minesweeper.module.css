@@ -150,3 +150,162 @@
 .n1 { color: #60a5fa; }
 .n2 { color: #4ade80; }
 .n3 { color: #f87171; }
+
+/* ─── Phone (iOS app): dark, full width, big cells, Reveal / Flag ─── */
+.mobile {
+  min-height: 100%;
+  padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 40px);
+  gap: 14px;
+  background: #000;
+  color: #fff;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  overflow-y: auto;
+}
+
+.mobileTitle {
+  align-self: flex-start;
+  margin: 0 0 8px;
+  font: 700 34px/1.2 -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.37px;
+}
+
+.mobile .pickerWrap {
+  width: 100%;
+  align-items: stretch;
+  padding: 0 4px;
+}
+
+.mobile .pickerTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.08px;
+  color: rgba(235, 235, 245, 0.6);
+  padding-left: 16px;
+}
+
+.mobile .pickerList {
+  max-width: none;
+  gap: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #1c1c1e;
+}
+
+.mobile .pickerBtn {
+  border: 0;
+  border-radius: 0;
+  background: #1c1c1e;
+  padding: 11px 16px;
+  box-shadow: inset 0 -0.5px 0 rgba(84, 84, 88, 0.65);
+}
+
+.mobile .pickerBtn:last-child {
+  box-shadow: none;
+}
+
+.mobile .pickerBtn:active {
+  background: #2c2c2e;
+}
+
+.mobile .pickerLabel {
+  font-size: 17px;
+  font-weight: 400;
+  color: #fff;
+}
+
+.mobile .pickerMeta {
+  font-size: 15px;
+  color: rgba(235, 235, 245, 0.6);
+}
+
+.mobile .header {
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.mobile .difficultyTag {
+  font-size: 13px;
+  color: #0a84ff;
+  background: rgba(10, 132, 255, 0.16);
+  border: 0;
+  padding: 5px 12px;
+}
+
+.mobile .boardWrap {
+  overflow: visible;
+}
+
+.mobile .board {
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mobile .cell {
+  border-radius: 5px;
+  background: #3a3a3c;
+  color: #fff;
+  font-weight: 700;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.mobile .cell:active:not(:disabled) {
+  background: #48484a;
+}
+
+.mobile .revealed {
+  background: #1c1c1e;
+}
+
+.mobile .mine {
+  background: #ff453a;
+}
+
+.mobileBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.segmented {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 2px;
+  border-radius: 9px;
+  background: rgba(118, 118, 128, 0.24);
+}
+
+.segmented button {
+  height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #fff;
+  font: 500 15px/1 -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.segmented .segOn {
+  background: #636366;
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+}
+
+.mobileRestart {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 18px;
+  background: #0a84ff;
+  color: #fff;
+  font: 600 15px/1 -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+}

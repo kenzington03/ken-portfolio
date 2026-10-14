@@ -10,7 +10,7 @@ export default function AppGrid({ apps, wiggle, onTap, onLongPress }) {
           app={app}
           wiggle={wiggle}
           showBadge={wiggle}
-          onTap={() => onTap(app)}
+          onTap={(rect) => onTap(app, rect)}
           onLongPress={onLongPress}
         />
       ))}

@@ -36,7 +36,8 @@ const BatteryIcon = () => (
   </svg>
 );
 
-export default function StatusBar() {
+/** `tone="dark"`: black glyphs, for apps with a light background. */
+export default function StatusBar({ tone = 'light', className = '' }) {
   const [time, setTime] = useState(getTime12h);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function StatusBar() {
   }, []);
 
   return (
-    <div className={styles.bar}>
+    <div className={`${styles.bar} ${tone === 'dark' ? styles.dark : ''} ${className}`}>
       <span className={styles.time}>{time}</span>
       <div className={styles.icons}>
         <SignalIcon />

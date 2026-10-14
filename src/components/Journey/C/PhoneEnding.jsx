@@ -1,9 +1,10 @@
 // Phones get a phone. Where desktop visitors see the MacBook open, phone
-// visitors see an iPhone: Build / Move / Ship play above it, then the device
-// grows until its screen is the visitor's screen and the iPhone home takes
-// over (same wallpaper, so the cut is invisible). Pure DOM: no 3D on phones.
+// visitors see an iPhone: it spans the width of their screen with its lower
+// half running off the bottom, Build / Move / Ship play above it, then it
+// rises and grows until its screen is the visitor's screen and the home
+// screen takes over (same wallpaper, so the cut is invisible). Pure DOM.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import { CHAPTERS } from '../../Intro3/timeline.js';
 import { CHAPTER_CAPTIONS } from '../content.js';
@@ -21,10 +22,28 @@ const WINDOWS = [
 ];
 const ZOOM = [0.78, 1];
 
-/** Device width in px: must match the outline the timeline's ball grows into. */
-export const phoneWidth = () => Math.min(window.innerWidth * 0.56, window.innerHeight * 0.29);
-export const PHONE_RATIO = 19.5 / 9;
-export const PHONE_CENTER = 0.6; // of the viewport height
+// iPhone 15 Pro: 70.6 x 146.6 mm body, ~2.7 mm bezel, 6.1" display with
+// rounded corners. Everything is derived from the body width.
+const BODY_RATIO = 146.6 / 70.6;
+const BEZEL = 0.042; // of the body width
+const CORNER = 0.17; // body corner radius, of the body width
+const TOP = 0.36; // the body's top edge, as a share of the viewport height
+
+/** The iPhone's geometry for the current viewport (CSS px). */
+export function phoneGeometry() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const w = Math.min(vw - 32, 440);
+  const h = w * BODY_RATIO;
+  const bezel = w * BEZEL;
+  return { vw, vh, w, h, left: (vw - w) / 2, top: Math.round(vh * TOP), bezel, screenW: w - 2 * bezel, screenH: h - 2 * bezel };
+}
+
+/** Where the journey's Apple logo should come to rest: where the lock-screen clock will be. */
+export function phoneLogoPoint() {
+  const g = phoneGeometry();
+  return { x: g.vw / 2, y: g.top + g.bezel + g.screenW * 0.42 };
+}
 
 function Chapter({ q, index }) {
   const [a, b] = WINDOWS[index];
@@ -56,14 +75,24 @@ export default function PhoneEnding({ onReach, innerRef }) {
   const ref = useRef(null);
   const done = useRef(false);
   const [now] = useState(clock);
+  const [g, setG] = useState(phoneGeometry);
   const { scrollYProgress: q } = useScroll({ target: ref, offset: ['start start', 'end end'] });
 
+  useLayoutEffect(() => {
+    const on = () => setG(phoneGeometry());
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+
   const zoom = useTransform(q, (v) => inOut(within(v, ZOOM)));
-  // Grow until the screen covers the viewport (plus a margin for the bezel).
-  const scale = useTransform(zoom, (z) => {
-    const w = phoneWidth();
-    const fill = Math.max(window.innerWidth / w, window.innerHeight / (w * PHONE_RATIO)) * 1.12;
-    return 1 + (fill - 1) * z;
+  // Rise and grow until the screen (not the bezel) covers the viewport, its
+  // top edge on the viewport's top edge.
+  const transform = useTransform([zoom, q], ([z, v]) => {
+    const s = Math.max(g.vw / g.screenW, g.vh / g.screenH);
+    const scale = 1 + (s - 1) * z;
+    const ty = (-g.top - s * g.bezel) * z;
+    const rise = (1 - inOut(within(v, [0, 0.06]))) * 40; // settles in as it appears
+    return `translate3d(0, ${(ty + rise).toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
   });
   const lock = useTransform(zoom, (z) => 1 - within(z, [0.25, 0.7])); // lock-screen clock fades as you go in
   const deviceIn = useTransform(q, (v) => within(v, [0, 0.05]));
@@ -87,8 +116,18 @@ export default function PhoneEnding({ onReach, innerRef }) {
     if (innerRef) innerRef.current = ref.current;
   }, [innerRef]);
 
+  const vars = {
+    '--w': `${g.w}px`,
+    '--h': `${g.h}px`,
+    '--left': `${g.left}px`,
+    '--top': `${g.top}px`,
+    '--bezel': `${g.bezel}px`,
+    '--corner': `${g.w * CORNER}px`,
+    '--sw': `${g.screenW}px`,
+  };
+
   return (
-    <section ref={ref} className={styles.runway} aria-label="Open the iPhone">
+    <section ref={ref} className={styles.runway} style={vars} aria-label="Open the iPhone">
       <div className={styles.stage}>
         <motion.div className={styles.glow} style={{ '--c': glow, opacity: deviceIn }} aria-hidden />
         <div className={styles.words}>
@@ -96,7 +135,9 @@ export default function PhoneEnding({ onReach, innerRef }) {
             <Chapter key={ch.id} q={q} index={i} />
           ))}
         </div>
-        <motion.div className={styles.device} style={{ scale, opacity: deviceIn }} aria-hidden>
+        <motion.div className={styles.device} style={{ transform, opacity: deviceIn }} aria-hidden>
+          <span className={styles.button} data-side="left" />
+          <span className={styles.button} data-side="right" />
           <div className={styles.screen}>
             <span className={styles.island} />
             <motion.div className={styles.lock} style={{ opacity: lock }}>

@@ -1,54 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { projects, getProjectCoverUrl } from '../../data/projects.js';
-import { CLAUDE_GREETING, getClaudeResponse } from '../../utils/claudeBot.js';
-import ChromeDino from '../apps/ChromeDino/ChromeDino.jsx';
-import FlappyBird from '../apps/FlappyBird/FlappyBird.jsx';
-import Minesweeper from '../apps/Minesweeper/Minesweeper.jsx';
+import { CLAUDE_GREETING, CLAUDE_TOPICS, getClaudeResponse } from '../../utils/claudeBot.js';
+import { ROLES } from '../../data/about.js';
+import { motion } from 'framer-motion';
 import MobileProjectGallery from './MobileProjectGallery.jsx';
+import StatusBar from './StatusBar.jsx';
+import MobileGame from './MobileGame.jsx';
+import SpotifyApp from './SpotifyApp.jsx';
 import styles from './AppSheet.module.css';
 
-/* Native canvas sizes (see each game's own W/H, or grid COLS*CELL) , 
-   scaled down to fit the phone width instead of overflowing it.
-   Minesweeper isn't a fixed canvas, but its widest difficulty (Expert)
-   is still bounded, so a generous assumed width keeps it from
-   overflowing without shrinking the difficulty-picker screen much. */
-const GAME_STAGE_SIZE = {
-  chrome: { width: 640, height: 240 },
-  flappy: { width: 360, height: 520 },
-  minesweeper: { width: 480, height: 560 },
-};
-
-/* Scales a fixed-size game canvas/board down to fit the phone's width,
-   the same trick used to embed a fixed-size iframe responsively. Tap
-   controls (the only input these three games need) still work fine
-   through a CSS transform. */
-function MobileGameStage({ width, height, children }) {
-  const outerRef = useRef(null);
-  const [scale, setScale] = useState(1);
-
-  useLayoutEffect(() => {
-    const update = () => {
-      const available = (outerRef.current?.clientWidth ?? window.innerWidth) - 8;
-      setScale(Math.min(1, available / width));
-    };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, [width]);
-
-  return (
-    <div ref={outerRef} className={styles.gameStageOuter}>
-      <div
-        className={styles.gameStageInner}
-        style={{ width, height, transform: `scale(${scale})` }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* ─── Project card grid shown inside Portfolio ─── */
+/* ─── Project list ─── */
 function ProjectList({ onProjectTap }) {
   return (
     <div className={styles.projectGrid}>
@@ -74,22 +35,16 @@ function ProjectList({ onProjectTap }) {
 }
 
 /* ─── Individual project viewer ─── */
-function ProjectDetail({ project, onBack }) {
+/** The navigation bar above it carries the name and the back button. */
+function ProjectDetail({ project }) {
   const cover = getProjectCoverUrl(project);
   return (
     <div className={styles.projectDetail}>
-      <button type="button" className={styles.backBtn} onClick={onBack}>
-        <svg width="8" height="13" viewBox="0 0 8 13" fill="none">
-          <path d="M7 1L1 6.5 7 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <span>Portfolio</span>
-      </button>
       <div
         className={styles.projectHero}
         style={{ backgroundImage: `url("${cover}")` }}
       />
       <div className={styles.projectInfo}>
-        <h2 className={styles.projectTitle}>{project.name}</h2>
         {project.category && (
           <p className={styles.projectCategory}>{project.category}</p>
         )}
@@ -120,18 +75,13 @@ function AboutContent() {
   return (
     <div className={styles.scrollContent}>
       <div className={styles.aboutHero}>
-        <div className={styles.aboutAvatar}>
-          <svg width="50" height="54" viewBox="0 0 50 54" fill="none">
-            <circle cx="25" cy="16" r="14" fill="rgba(255,255,255,0.15)"/>
-            <path d="M2 50c0-12.7 10.3-23 23-23s23 10.3 23 23" fill="rgba(255,255,255,0.1)"/>
-          </svg>
-        </div>
-        <h2 className={styles.aboutName}>Kenneth Anandan</h2>
-        <p className={styles.aboutTitle}>Creative Designer</p>
+        <img className={styles.aboutAvatar} src="/assets/profile/ken.jpg" alt="Kenneth Nathanael" />
+        <h2 className={styles.aboutName}>Kenneth Nathanael</h2>
+        <p className={styles.aboutTitle}>Design Lead · Milestone Technologies</p>
       </div>
       <div className={styles.aboutBio}>
-        <p>A multidisciplinary creative designer specializing in brand identity, motion design, UI/UX, and print. Passionate about crafting meaningful visual experiences that bridge strategy and aesthetics.</p>
-        <p style={{ marginTop: 12 }}>Currently working at Milestone Technologies, bringing creative vision to complex enterprise projects.</p>
+        <p>Ten years shaping brands, campaigns and interfaces. I start with the idea and stay for the last pixel.</p>
+        <p style={{ marginTop: 12 }}>Based in Hyderabad. Brand identity, motion, video, UI/UX and print, from the first sketch to the file that ships.</p>
       </div>
       <div className={styles.aboutSkills}>
         {['Brand Identity', 'Motion Design', 'UI/UX', 'Print Design', 'Social Media', 'Illustration'].map(s => (
@@ -147,11 +97,11 @@ function ResumeContent() {
   return (
     <div className={styles.scrollContent}>
       <div className={styles.resumeHeader}>
-        <p className={styles.resumeIntro}>Kenneth Anandan, Creative Designer</p>
+        <p className={styles.resumeIntro}>Kenneth Nathanael, Design Lead</p>
       </div>
       <a
-        href="/assets/resume.pdf"
-        download
+        href="/cv.pdf"
+        download="Kenneth-Nathanael-Resume.pdf"
         className={styles.downloadBtn}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -162,10 +112,14 @@ function ResumeContent() {
       </a>
       <div className={styles.resumeSection}>
         <h3 className={styles.sectionHead}>Experience</h3>
-        <div className={styles.resumeItem}>
-          <p className={styles.resumeRole}>Creative Designer</p>
-          <p className={styles.resumeOrg}>Milestone Technologies · Dec 2023 - Present</p>
-        </div>
+        {ROLES.map((r) => (
+          <div key={r.company} className={styles.resumeItem}>
+            <p className={styles.resumeRole}>{r.role}</p>
+            <p className={styles.resumeOrg}>
+              {r.company} · {r.dates.replace(' - ', ' to ')}
+            </p>
+          </div>
+        ))}
       </div>
       <div className={styles.resumeSection}>
         <h3 className={styles.sectionHead}>Skills</h3>
@@ -196,7 +150,7 @@ function ContactContent() {
             <path d="M1 1l5 4.5L1 10" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
         </a>
-        <a href="https://www.linkedin.com/in/kenneth-anandan/" target="_blank" rel="noreferrer" className={styles.contactLink}>
+        <a href="https://linkedin.com/in/kenneth-n-576134103" target="_blank" rel="noreferrer" className={styles.contactLink}>
           <div className={styles.contactIcon} style={{ background: 'linear-gradient(135deg,#0a66c2,#004182)' }}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="white">
               <rect width="4" height="12" x="0" y="6" rx="1"/>
@@ -217,112 +171,6 @@ function ContactContent() {
   );
 }
 
-/* ─── Game content (desktop only) ─── */
-const PLAYABLE_GAMES = {
-  chrome: ChromeDino,
-  flappy: FlappyBird,
-  minesweeper: Minesweeper,
-};
-
-const GAME_NAMES = {
-  minesweeper: 'Minesweeper',
-  flappy: 'Flappy Bird',
-  chrome: 'Chrome Dino',
-  tumbleblocks: 'Tetris',
-  mazemuncher: 'Pac-Man',
-};
-
-function GameContent({ appKey }) {
-  const GameComponent = PLAYABLE_GAMES[appKey];
-
-  if (GameComponent) {
-    const size = GAME_STAGE_SIZE[appKey];
-    return (
-      <div className={styles.scrollContent}>
-        <MobileGameStage width={size.width} height={size.height}>
-          <GameComponent />
-        </MobileGameStage>
-      </div>
-    );
-  }
-
-  // Tetris and Pac-Man need arrow-key movement, not just a tap, no
-  // on-screen d-pad exists yet, so playing them here would be a canvas
-  // you can start but can't actually control. Honest placeholder until
-  // that's built, rather than shipping something broken.
-  return (
-    <div className={styles.scrollContent}>
-      <div className={styles.gameNotice}>
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-          <circle cx="24" cy="24" r="22" fill="rgba(255,255,255,0.08)"/>
-          <path d="M16 8h16l8 8v24l-8 8H16l-8-8V16z" fill="rgba(255,255,255,0.12)"/>
-          <line x1="18" y1="24" x2="18" y2="32" stroke="rgba(255,210,0,0.9)" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="14" y1="28" x2="22" y2="28" stroke="rgba(255,210,0,0.9)" strokeWidth="3" strokeLinecap="round"/>
-          <circle cx="32" cy="22" r="2.5" fill="rgba(255,80,80,0.9)"/>
-          <circle cx="38" cy="28" r="2.5" fill="rgba(80,200,80,0.9)"/>
-        </svg>
-        <h3>{GAME_NAMES[appKey] || 'Game'}</h3>
-        <p>Needs arrow-key controls this phone doesn't have a d-pad for yet.</p>
-        <p style={{ marginTop: 8, opacity: 0.5, fontSize: 13 }}>Visit on a larger screen to play.</p>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Spotify content, a decorative "Now Playing" card, not a real
-   stream. Made-up playlist/track name rather than borrowing a real
-   artist's name for placeholder audio, since that would misattribute
-   a real song to something it isn't. */
-function SpotifyContent() {
-  const [playing, setPlaying] = useState(true);
-
-  return (
-    <div className={styles.spotifyWrap}>
-      <p className={styles.spotifyEyebrow}>PLAYING FROM PLAYLIST</p>
-      <p className={styles.spotifyPlaylist}>Late-Night Build Sessions</p>
-
-      <div className={`${styles.spotifyArt} ${playing ? styles.spotifyArtSpin : ''}`}>
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="11" fill="#1a1a1a" stroke="#3a3a3a" />
-          <circle cx="12" cy="12" r="3" fill="#1ED760" />
-        </svg>
-      </div>
-
-      <p className={styles.spotifyTrack}>Shipping This Portfolio</p>
-      <p className={styles.spotifyArtist}>Ken Nathanael</p>
-
-      <div className={styles.spotifyProgress}>
-        <div className={styles.spotifyProgressFill} />
-      </div>
-      <div className={styles.spotifyTimes}>
-        <span>1:47</span>
-        <span>3:12</span>
-      </div>
-
-      <div className={styles.spotifyControls}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M6 6h2v12H6zM20 6L9 12l11 6z" /></svg>
-        <button
-          type="button"
-          className={styles.spotifyPlayBtn}
-          onClick={() => setPlaying((p) => !p)}
-          aria-label={playing ? 'Pause' : 'Play'}
-        >
-          {playing ? (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="#06170D"><rect x="6" y="5" width="4" height="14" /><rect x="14" y="5" width="4" height="14" /></svg>
-          ) : (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="#06170D"><path d="M7 5l14 7-14 7z" /></svg>
-          )}
-        </button>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M16 6h2v12h-2zM4 6l11 6-11 6z" /></svg>
-      </div>
-
-      <p className={styles.spotifyFootnote}>
-        Not wired up to real Spotify, just Ken's dock icon having a personality.
-      </p>
-    </div>
-  );
-}
-
 /* ─── iMessage content ─── */
 function IMessageContent() {
   const [draft, setDraft] = useState('');
@@ -339,8 +187,8 @@ function IMessageContent() {
     <div className={styles.imessageWrap}>
       <div className={styles.imessageThread}>
         <div className={styles.imessageContact}>
-          <div className={styles.imessageAvatar}>KA</div>
-          <p className={styles.imessageContactName}>Ken Anandan</p>
+          <div className={styles.imessageAvatar}>KN</div>
+          <p className={styles.imessageContactName}>Ken Nathanael</p>
         </div>
         <span className={styles.imessageTimestamp}>iMessage</span>
         <div className={styles.imessageRow}>
@@ -377,6 +225,7 @@ function IMessageContent() {
 }
 
 /* ─── Claude content (mobile) ─── */
+const SUGGESTED = CLAUDE_TOPICS.flatMap((t) => t.questions.slice(0, 2));
 function ClaudeMobileContent() {
   const [messages, setMessages] = useState([{ role: 'claude', text: CLAUDE_GREETING }]);
   const [input, setInput] = useState('');
@@ -387,14 +236,15 @@ function ClaudeMobileContent() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, typing]);
 
-  const sendMessage = (text) => {
+  // `answer`: a suggested question already knows its reply.
+  const sendMessage = (text, answer) => {
     const trimmed = text.trim();
     if (!trimmed || typing) return;
     setMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
     setInput('');
     setTyping(true);
     setTimeout(() => {
-      const reply = getClaudeResponse(trimmed);
+      const reply = answer ?? getClaudeResponse(trimmed);
       setMessages((prev) => [...prev, { role: 'claude', text: reply }]);
       setTyping(false);
     }, 800);
@@ -425,6 +275,14 @@ function ClaudeMobileContent() {
             </div>
           </div>
         )}
+      </div>
+      {/* Suggested questions, as a scrolling row above the field. */}
+      <div className={styles.suggestions}>
+        {SUGGESTED.map(({ q, a: answer }) => (
+          <button key={q} type="button" className={styles.suggestion} onClick={() => sendMessage(q, answer)} disabled={typing}>
+            {q}
+          </button>
+        ))}
       </div>
       <form
         className={styles.imessageInputBar}
@@ -485,15 +343,11 @@ function CategoryContent({ appKey }) {
   };
   const project = projectMap[appKey];
   const cover = project ? getProjectCoverUrl(project) : null;
-  const name = appKey === 'social' ? 'Social Media' : 'Print + Info';
   return (
     <div className={styles.scrollContent}>
       {cover && (
         <div className={styles.projectHero} style={{ backgroundImage: `url("${cover}")` }} />
       )}
-      <div className={styles.projectInfo}>
-        <h2 className={styles.projectTitle}>{name}</h2>
-      </div>
       {project && (
         <div className={styles.gallery}>
           <MobileProjectGallery project={project} />
@@ -503,53 +357,89 @@ function CategoryContent({ appKey }) {
   );
 }
 
-/* ─── App Sheet root ─── */
+/* ─── The app, full screen ───
+   iOS apps never open as sheets: they zoom out of the icon that was tapped
+   (the icon's colour fills the frame, then the app shows through), run full
+   screen under the status bar, and close with a swipe up from the home
+   indicator, shrinking back into the icon. */
+
+// Apps that draw their own full-screen UI (no navigation bar).
+const IMMERSIVE = new Set(['minesweeper', 'flappy', 'chrome', 'tumbleblocks', 'mazemuncher', 'spotify']);
+// Apps with a light background: black status bar and home indicator.
+const LIGHT = new Set(['chrome']);
+const SPRING = { type: 'spring', stiffness: 320, damping: 36, mass: 0.9 };
+
+function iconClip(rect) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  if (!rect) return `inset(${vh * 0.36}px ${vw * 0.32}px ${vh * 0.36}px ${vw * 0.32}px round 28px)`;
+  return `inset(${rect.top}px ${vw - rect.right}px ${vh - rect.bottom}px ${rect.left}px round ${rect.width * 0.225}px)`;
+}
+
+function HomeIndicator({ tone, onClose }) {
+  const start = useRef(null);
+  const down = (y) => {
+    start.current = y;
+  };
+  const move = (y) => {
+    if (start.current != null && start.current - y > 36) {
+      start.current = null;
+      onClose();
+    }
+  };
+  return (
+    <div
+      className={`${styles.homeIndicator} ${tone === 'dark' ? styles.homeIndicatorDark : ''}`}
+      onTouchStart={(e) => down(e.touches[0].clientY)}
+      onTouchMove={(e) => move(e.touches[0].clientY)}
+      onPointerDown={(e) => e.pointerType === 'mouse' && down(e.clientY)}
+      onPointerMove={(e) => e.pointerType === 'mouse' && move(e.clientY)}
+      onPointerUp={() => (start.current = null)}
+      onClick={onClose}
+      role="button"
+      aria-label="Close app"
+      tabIndex={0}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClose()}
+    >
+      <span />
+    </div>
+  );
+}
+
 export default function AppSheet({ app, onClose }) {
-  const [visible, setVisible] = useState(false);
+  const [shown, setShown] = useState(null);
+  const [closing, setClosing] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const sheetRef = useRef(null);
-  const touchRef = useRef({ y: 0, dragging: false });
 
   useEffect(() => {
-    if (app) {
-      setSelectedProject(null);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setVisible(true));
-      });
-    } else {
-      setVisible(false);
-    }
+    if (!app) return;
+    setShown(app);
+    setClosing(false);
+    setSelectedProject(null);
   }, [app]);
 
-  if (!app) return null;
+  useEffect(() => {
+    if (!shown) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setClosing(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [shown]);
 
-  const handleClose = () => {
-    setVisible(false);
-    setTimeout(onClose, 360);
-  };
+  if (!shown) return null;
 
-  /* Swipe down to dismiss */
-  const onTouchStart = (e) => {
-    touchRef.current = { y: e.touches[0].clientY, dragging: true };
-  };
-  const onTouchMove = (e) => {
-    if (!touchRef.current.dragging) return;
-    const delta = e.touches[0].clientY - touchRef.current.y;
-    if (delta > 80) {
-      touchRef.current.dragging = false;
-      handleClose();
-    }
-  };
-  const onTouchEnd = () => { touchRef.current.dragging = false; };
-
-  const appKey = app.appKey;
-  const title = app.label;
+  const close = () => setClosing(true);
+  const appKey = shown.appKey;
+  const immersive = IMMERSIVE.has(appKey);
+  const tone = LIGHT.has(appKey) ? 'dark' : 'light';
+  const clip = iconClip(shown.rect);
 
   let content = null;
+  let title = shown.label;
   if (selectedProject) {
-    content = (
-      <ProjectDetail project={selectedProject} onBack={() => setSelectedProject(null)} />
-    );
+    content = <ProjectDetail project={selectedProject} />;
+    title = selectedProject.name;
   } else if (appKey === 'about') {
     content = <AboutContent />;
   } else if (appKey === 'resume') {
@@ -559,61 +449,79 @@ export default function AppSheet({ app, onClose }) {
   } else if (appKey === 'imessage') {
     content = <IMessageContent />;
   } else if (appKey === 'spotify') {
-    content = <SpotifyContent />;
+    content = <SpotifyApp />;
   } else if (appKey === 'claude') {
     content = <ClaudeMobileContent />;
   } else if (appKey === 'milestone') {
     content = <MilestoneContent />;
   } else if (appKey === 'social' || appKey === 'print') {
     content = <CategoryContent appKey={appKey} />;
-  } else if (['minesweeper', 'flappy', 'chrome', 'tumbleblocks', 'mazemuncher'].includes(appKey)) {
-    content = <GameContent appKey={appKey} />;
+  } else if (IMMERSIVE.has(appKey)) {
+    content = <MobileGame appKey={appKey} />;
   } else if (appKey && appKey.startsWith('project-')) {
-    const projectSlug = appKey.replace('project-', '');
-    const project = projects.find(p => p.slug === projectSlug);
-    if (project) {
-      content = <ProjectDetail project={project} onBack={handleClose} />;
-    } else {
-      content = <ProjectList onProjectTap={setSelectedProject} />;
-    }
+    const project = projects.find((p) => p.slug === appKey.replace('project-', ''));
+    content = project ? <ProjectDetail project={project} /> : <ProjectList onProjectTap={setSelectedProject} />;
   } else {
     content = <ProjectList onProjectTap={setSelectedProject} />;
   }
 
   return (
-    <div
-      className={`${styles.backdrop} ${visible ? styles.backdropVisible : ''}`}
-      onClick={handleClose}
+    <motion.div
+      className={`${styles.app} ${tone === 'dark' ? styles.appLight : ''}`}
+      initial={{ clipPath: clip }}
+      animate={{ clipPath: closing ? clip : 'inset(0px 0px 0px 0px round 0px)' }}
+      transition={SPRING}
+      onAnimationComplete={() => {
+        if (closing) {
+          setShown(null);
+          setClosing(false);
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={shown.label}
     >
-      <div
-        ref={sheetRef}
-        className={`${styles.sheet} ${visible ? styles.sheetVisible : ''}`}
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+      <motion.div
+        className={styles.appBody}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={closing ? { scale: 0.9, opacity: 0 } : { scale: 1, opacity: 1 }}
+        transition={closing ? { duration: 0.22 } : { ...SPRING, opacity: { duration: 0.28, delay: 0.1 } }}
       >
-        {/* Drag handle */}
-        <div className={styles.handle} />
+        <StatusBar tone={tone} />
+        {immersive ? (
+          <div className={styles.immersive}>{content}</div>
+        ) : (
+          <>
+            <header className={styles.nav}>
+              {selectedProject && (
+                <button type="button" className={styles.back} onClick={() => setSelectedProject(null)}>
+                  <svg width="12" height="20" viewBox="0 0 12 20" fill="none" aria-hidden>
+                    <path d="M10 2L2 10l8 8" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {shown.label}
+                </button>
+              )}
+              <h1 className={styles.largeTitle}>{title}</h1>
+            </header>
+            <div className={styles.contentArea}>{content}</div>
+          </>
+        )}
+      </motion.div>
 
-        {/* Header */}
-        <div className={styles.header}>
-          <span className={styles.headerTitle}>
-            {selectedProject ? selectedProject.name : title}
-          </span>
-          <button type="button" className={styles.closeBtn} onClick={handleClose} aria-label="Close">
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-              <line x1="1" y1="1" x2="10" y2="10" stroke="rgba(235,235,245,0.6)" strokeWidth="1.8" strokeLinecap="round"/>
-              <line x1="10" y1="1" x2="1" y2="10" stroke="rgba(235,235,245,0.6)" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </button>
-        </div>
+      {/* The icon itself, filling the frame as it opens and as it closes. */}
+      <motion.div
+        className={styles.appIcon}
+        style={{ background: shown.cover ? `center / cover url("${shown.cover}")` : shown.style || '#1c1c1e' }}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: closing ? 1 : 0 }}
+        transition={closing ? { duration: 0.2, delay: 0.05 } : { duration: 0.3, delay: 0.12 }}
+        aria-hidden
+      >
+        {!shown.cover && (shown.imgSrc ? <img src={shown.imgSrc} alt="" /> : <span className={styles.appIconGlyph}>{shown.icon}</span>)}
+      </motion.div>
 
-        {/* Content */}
-        <div className={styles.contentArea}>
-          {content}
-        </div>
-      </div>
-    </div>
+      <HomeIndicator tone={tone} onClose={close} />
+    </motion.div>
   );
 }

@@ -30,6 +30,9 @@ function FolderPreview({ apps }) {
 
 export default function AppIcon({ app, wiggle, onTap, onLongPress, showBadge, dockMode }) {
   const timerRef = useRef(null);
+  const faceRef = useRef(null);
+  // Apps zoom out of the icon that opened them, so the tap reports where it is.
+  const tap = () => onTap?.(faceRef.current?.getBoundingClientRect() ?? null);
   const movedRef = useRef(false);
   const startedRef = useRef(false);
 
@@ -50,13 +53,13 @@ export default function AppIcon({ app, wiggle, onTap, onLongPress, showBadge, do
     clearTimeout(timerRef.current);
     if (!movedRef.current && startedRef.current) {
       e.preventDefault();
-      onTap?.();
+      tap();
     }
     startedRef.current = false;
   };
 
   const onClick = (e) => {
-    if (!('ontouchstart' in window)) onTap?.();
+    if (!('ontouchstart' in window)) tap();
   };
 
   const isFolder = app.type === 'folder';
@@ -74,14 +77,15 @@ export default function AppIcon({ app, wiggle, onTap, onLongPress, showBadge, do
       >
         {/* Icon face */}
         <div
+          ref={faceRef}
           className={styles.face}
-          style={{ background: isFolder ? 'rgba(0,0,0,0)' : (app.style || '#3a3a3c') }}
+          style={{ background: isFolder ? 'rgba(0,0,0,0)' : app.cover ? `center / cover no-repeat url("${app.cover}")` : app.style || '#3a3a3c' }}
         >
           {isFolder ? (
             <div className={styles.folderBg}>
               <FolderPreview apps={app.apps || []} />
             </div>
-          ) : app.imgSrc ? (
+          ) : app.cover ? null : app.imgSrc ? (
             <img
               src={app.imgSrc}
               alt=""

@@ -60,3 +60,92 @@
   line-height: 1.7;
   color: var(--text-muted, #737378);
 }
+
+/* ─── Phone: stats on top, the well filling the middle, controls below ─── */
+.mobile {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 4px 16px calc(env(safe-area-inset-bottom, 0px) + 34px);
+  background: #000;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+}
+
+.mobileStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.mobileStats div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #1c1c1e;
+}
+
+.mobileStats span {
+  font-size: 12px;
+  color: rgba(235, 235, 245, 0.6);
+}
+
+.mobileStats b {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.mobileBoard {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+}
+
+.mobileBoard .board {
+  height: 100%;
+  aspect-ratio: 10 / 18;
+  max-width: 100%;
+}
+
+.mobileBoard .canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.pad button {
+  display: grid;
+  place-items: center;
+  height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: #1c1c1e;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pad button:active {
+  background: #3a3a3c;
+}
+
+.pad svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

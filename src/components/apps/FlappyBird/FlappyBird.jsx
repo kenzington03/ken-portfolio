@@ -186,7 +186,7 @@ function drawGround(ctx, groundX) {
   }
 }
 
-export default function FlappyBird() {
+export default function FlappyBird({ mobile = false }) {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -316,7 +316,7 @@ export default function FlappyBird() {
         ctx.fillStyle = '#fff';
         ctx.font = '15px system-ui';
         ctx.textAlign = 'center';
-        ctx.fillText('Click or Space to start', W / 2, H / 2 + 5);
+        ctx.fillText(mobile ? 'Tap to start' : 'Click or Space to start', W / 2, H / 2 + 5);
       }
 
       raf = requestAnimationFrame(loop);
@@ -344,13 +344,18 @@ export default function FlappyBird() {
   }, [flap, gameOver]);
 
   return (
-    <div className={styles.wrap} data-game-window>
+    <div
+      className={`${styles.wrap} ${mobile ? styles.mobile : ''}`}
+      data-game-window
+      // Phone: tap anywhere on the screen to flap, as in the real game.
+      onPointerDown={mobile ? () => !gameOver && flap() : undefined}
+    >
       <canvas
         ref={canvasRef}
         width={W}
         height={H}
         className={styles.canvas}
-        onClick={flap}
+        onClick={mobile ? undefined : flap}
         aria-label="Flappy Bird game"
       />
       <GameOverScreen

@@ -38,3 +38,43 @@
   cursor: pointer;
   image-rendering: pixelated;
 }
+
+/* Phone: Safari's offline page, with the runner across the full width. */
+.mobile {
+  background: #fff;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.offline {
+  padding: 28vh 32px 6px;
+  text-align: center;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+}
+
+.offlineTitle {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.4px;
+}
+
+.offlineText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #86868b;
+}
+
+.mobile .gameArea {
+  flex: 0 0 auto;
+  background: #fff;
+  padding-top: 18px;
+}
+
+.mobile .canvas {
+  width: 100%;
+  height: auto;
+}

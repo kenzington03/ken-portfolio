@@ -102,7 +102,7 @@ function readLegacyHi() {
   }
 }
 
-export default function ChromeDino() {
+export default function ChromeDino({ mobile = false }) {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
   const [hi, setHi] = useState(() => getLocalBest('chromedino') ?? readLegacyHi());
@@ -222,7 +222,7 @@ export default function ChromeDino() {
       }
 
       // bg
-      ctx.fillStyle = '#f7f7f7';
+      ctx.fillStyle = mobile ? '#fff' : '#f7f7f7';
       ctx.fillRect(0, 0, W, H);
 
       // clouds
@@ -259,7 +259,7 @@ export default function ChromeDino() {
         ctx.fillStyle = '#535353';
         ctx.font = '14px system-ui';
         ctx.textAlign = 'center';
-        ctx.fillText('Press Space or click to start', W / 2, 110);
+        ctx.fillText(mobile ? 'Tap to start' : 'Press Space or click to start', W / 2, 110);
       }
 
       raf = requestAnimationFrame(loop);
@@ -285,17 +285,29 @@ export default function ChromeDino() {
   }, [jump, gameOver]);
 
   return (
-    <div className={styles.page} data-game-window>
-      <div className={styles.chromeBar}>
-        <span className={styles.tab}>New Tab</span>
-      </div>
+    <div
+      className={`${styles.page} ${mobile ? styles.mobile : ''}`}
+      data-game-window
+      // Phone: tap anywhere to jump.
+      onPointerDown={mobile ? () => !gameOver && jump() : undefined}
+    >
+      {mobile ? (
+        <div className={styles.offline}>
+          <p className={styles.offlineTitle}>You Are Not Connected to the Internet</p>
+          <p className={styles.offlineText}>This page can’t be displayed because your iPhone is not connected to the internet. Tap to jump the cacti while you wait.</p>
+        </div>
+      ) : (
+        <div className={styles.chromeBar}>
+          <span className={styles.tab}>New Tab</span>
+        </div>
+      )}
       <div className={styles.gameArea}>
         <canvas
           ref={canvasRef}
           width={W}
           height={H}
           className={styles.canvas}
-          onClick={jump}
+          onClick={mobile ? undefined : jump}
           aria-label="Chrome Dino game"
         />
         <GameOverScreen

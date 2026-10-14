@@ -1,0 +1,130 @@
+/* iOS App Library: a search field, then two columns of frosted category
+   tiles, each a 2 x 2 of icons with the category name underneath. */
+
+.library {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px 22px calc(120px + env(safe-area-inset-bottom, 0px));
+  scrollbar-width: none;
+}
+
+.library::-webkit-scrollbar {
+  display: none;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 38px;
+  margin-bottom: 22px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  color: rgba(255, 255, 255, 0.72);
+  font: 400 17px/1 -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 22px;
+}
+
+.tileWrap {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+}
+
+.tile {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 14px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(30px) saturate(170%);
+  -webkit-backdrop-filter: blur(30px) saturate(170%);
+}
+
+.cell {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  aspect-ratio: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease;
+}
+
+.cell:active {
+  transform: scale(0.92);
+}
+
+.cluster {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  padding: 3px;
+}
+
+.glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 23%;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+.glyph img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.svg {
+  display: grid;
+  place-items: center;
+  transform: scale(0.95);
+}
+
+.glyphSmall .svg {
+  transform: scale(0.4);
+}
+
+.folder {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 14%;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.folder span {
+  aspect-ratio: 1;
+  border-radius: 22%;
+  background-size: cover;
+  background-position: center;
+}
+
+.label {
+  font: 400 12px/1.2 -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}

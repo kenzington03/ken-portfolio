@@ -23,3 +23,8 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Light apps: the glyphs go black, as iOS does. */
+.dark {
+  filter: invert(1);
+}

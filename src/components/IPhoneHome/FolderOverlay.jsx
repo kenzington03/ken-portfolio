@@ -23,9 +23,14 @@ export default function FolderOverlay({ folder, onClose, onAppTap }) {
     setTimeout(onClose, 260);
   };
 
-  const handleAppTap = (app) => {
-    handleClose();
-    setTimeout(() => onAppTap?.(app), 260);
+  // As on iOS: the app zooms straight out of its icon in the folder; the
+  // folder closes behind it.
+  const handleAppTap = (app, rect) => {
+    onAppTap?.(app, rect);
+    setTimeout(() => {
+      setVisible(false);
+      onClose();
+    }, 450);
   };
 
   return (
@@ -49,7 +54,7 @@ export default function FolderOverlay({ folder, onClose, onAppTap }) {
               app={app}
               wiggle={false}
               showBadge={false}
-              onTap={() => handleAppTap(app)}
+              onTap={(rect) => handleAppTap(app, rect)}
             />
           ))}
         </div>

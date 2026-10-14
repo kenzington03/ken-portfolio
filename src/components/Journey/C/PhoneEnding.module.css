@@ -1,4 +1,6 @@
-/* The phone ending: an iPhone in a dark room, words above it, then in. */
+/* The phone ending: an iPhone 15 Pro in a dark room, words above it, then in.
+   Geometry comes from PhoneEnding.jsx as CSS variables (px), so corners stay
+   circular (percentage radii would turn elliptical and skew the shape). */
 
 .runway {
   position: relative;
@@ -20,15 +22,16 @@
 .glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(70% 46% at 50% 58%, color-mix(in srgb, var(--c) 34%, transparent), transparent 72%);
+  background: radial-gradient(80% 40% at 50% calc(var(--top) + 30%), color-mix(in srgb, var(--c) 30%, transparent), transparent 72%);
 }
 
 /* Word + line sit centred in the space between the top bar and the phone. */
 .words {
   position: absolute;
-  inset: 64px 0 auto;
-  height: calc(60vh - 64px - min(56vw, 29vh) * 1.0833 - 16px);
-  min-height: 130px;
+  top: 64px;
+  left: 0;
+  right: 0;
+  height: calc(var(--top) - 64px - 12px);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -64,64 +67,91 @@
   text-wrap: balance;
 }
 
-/* The device: titanium edge, black bezel, the same wallpaper the iPhone
-   home screen uses. */
+/* The body: natural titanium edge, black glass bezel. */
 .device {
   position: absolute;
-  left: 50%;
-  top: 60%;
-  width: min(56vw, 29vh);
-  aspect-ratio: 9 / 19.5;
-  margin: calc(min(56vw, 29vh) * -1.0833) 0 0 calc(min(56vw, 29vh) * -0.5);
-  padding: 3.2%;
-  border-radius: 17% / 7.9%;
-  background: #0a0a0c;
-  box-shadow: inset 0 0 0 1.5px #55555c, inset 0 0 0 3px #1c1c20, 0 30px 80px -20px rgba(0, 0, 0, 0.9);
-  transform-origin: 50% 50%;
+  left: var(--left);
+  top: var(--top);
+  width: var(--w);
+  height: var(--h);
+  padding: var(--bezel);
+  border-radius: var(--corner);
+  background: #050506;
+  box-shadow:
+    inset 0 0 0 1.5px #6c6c72,
+    inset 0 0 0 3px #2a2a2e,
+    inset 0 0 0 4px #0b0b0c,
+    0 40px 90px -30px rgba(0, 0, 0, 0.9);
+  transform-origin: 50% 0;
   will-change: transform;
+}
+
+/* Side buttons: action + volume on the left, power on the right. */
+.button {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #4a4a50, #2a2a2e);
+}
+
+.button[data-side='left'] {
+  left: -2px;
+  top: calc(var(--w) * 0.36);
+  height: calc(var(--w) * 0.16);
+  box-shadow: 0 calc(var(--w) * 0.22) 0 #3a3a3f;
+}
+
+.button[data-side='right'] {
+  right: -2px;
+  top: calc(var(--w) * 0.5);
+  height: calc(var(--w) * 0.26);
 }
 
 .screen {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 14.5% / 6.7%;
-  background: #000 url('/assets/ui/wallpaper-mobile.jpg') center / cover;
+  border-radius: calc(var(--corner) - var(--bezel));
+  background: #000 url('/assets/ui/wallpaper-mobile.jpg') center top / cover;
   overflow: hidden;
 }
 
+/* Dynamic Island: 126 x 37 pt on a 393 pt wide screen, 11 pt from the top. */
 .island {
   position: absolute;
   left: 50%;
-  top: 2.4%;
-  width: 31%;
-  aspect-ratio: 3.4 / 1;
+  top: calc(var(--sw) * 0.028);
+  width: calc(var(--sw) * 0.32);
+  height: calc(var(--sw) * 0.094);
   border-radius: 999px;
   background: #000;
   transform: translateX(-50%);
 }
 
+/* Lock screen: date over the large clock, as iOS 16 sets them. */
 .lock {
   position: absolute;
-  inset: 13% 0 auto;
+  top: calc(var(--sw) * 0.17);
+  left: 0;
+  right: 0;
   display: grid;
   justify-items: center;
-  gap: 2%;
+  gap: calc(var(--sw) * 0.005);
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
 }
 
 .date {
-  font-size: clamp(8px, 2.6vw, 11px);
+  font-size: calc(var(--sw) * 0.052);
   font-weight: 600;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .time {
-  font-size: clamp(34px, 12.5vw, 56px);
+  font-size: calc(var(--sw) * 0.25);
   font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
 }

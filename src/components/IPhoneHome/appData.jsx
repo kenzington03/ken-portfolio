@@ -253,6 +253,15 @@ export const HOME_APPS = [
   },
 ];
 
+/* Home screen pages. Page one is the short list (who, work, how to reach
+   him, and the games); page two holds the rest; past the last page is the
+   App Library with everything, as on iOS. */
+const byId = (id) => HOME_APPS.find((a) => a.id === id);
+export const HOME_PAGES = [
+  ['portfolio', 'about', 'contact', 'resume', 'games'].map(byId),
+  ['claude', 'milestone', 'social', 'print'].map(byId),
+];
+
 /* Real iOS dock: Phone / Safari / Messages / Spotify. Phone is
    intercepted before any app sheet opens (IPhoneHome.jsx) and just
    dials straight out via tel:. Safari reuses the Chrome Dino game's
@@ -311,3 +320,16 @@ export const SEARCHABLE_APPS = [
   DOCK_APPS.find((a) => a.id === 'safari'),
   DOCK_APPS.find((a) => a.id === 'spotify'),
 ].filter(Boolean);
+
+/* App Library categories (iOS: each tile shows three apps and a cluster of
+   the rest; tapping the cluster opens the whole category). */
+const games = HOME_APPS.find((a) => a.id === 'games').apps;
+const dockApp = (id) => DOCK_APPS.find((a) => a.id === id);
+export const APP_LIBRARY = [
+  { id: 'suggestions', label: 'Suggestions', apps: ['about', 'portfolio', 'contact', 'resume'].map(byId) },
+  { id: 'recent', label: 'Recently Added', apps: [byId('claude'), dockApp('spotify'), byId('imessage'), dockApp('safari')] },
+  { id: 'work', label: 'Work', apps: [byId('milestone'), byId('social'), byId('print'), ...PROJECT_APPS] },
+  { id: 'games', label: 'Games', apps: games },
+  { id: 'projects', label: 'Projects', apps: PROJECT_APPS },
+  { id: 'utilities', label: 'Utilities', apps: [dockApp('phone'), dockApp('safari'), byId('imessage'), byId('contact')] },
+];

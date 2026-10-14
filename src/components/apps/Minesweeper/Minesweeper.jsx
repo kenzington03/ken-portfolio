@@ -8,6 +8,11 @@ const DIFFICULTIES = [
   { id: 'intermediate', label: 'Intermediate', rows: 16, cols: 16, mines: 40, cell: 22 },
   { id: 'expert', label: 'Expert', rows: 16, cols: 30, mines: 99, cell: 20 },
 ];
+// On a phone the boards stand upright (Expert is 16 wide, 30 tall) and the
+// cells grow to fill the width.
+const MOBILE_DIFFICULTIES = DIFFICULTIES.map((d) => (d.cols > d.rows ? { ...d, rows: d.cols, cols: d.rows } : d));
+const LONG_PRESS_MS = 380;
+const mobileCell = (cols) => Math.floor(Math.min(40, (window.innerWidth - 24 - (cols - 1) * 2) / cols));
 
 function formatTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
@@ -57,8 +62,11 @@ function cloneBoard(board) {
   return board.map((row) => row.map((cell) => ({ ...cell })));
 }
 
-export default function Minesweeper() {
+export default function Minesweeper({ mobile = false }) {
   const { unlock } = useOS();
+  // Phone: tap reveals, long-press (or Flag mode) plants a flag.
+  const [flagMode, setFlagMode] = useState(false);
+  const pressRef = useRef({ timer: 0, fired: false });
   const [difficulty, setDifficulty] = useState(null);
   const [board, setBoard] = useState(null);
   const [gameOver, setGameOver] = useState(false);
@@ -169,7 +177,24 @@ export default function Minesweeper() {
     [checkWin, unlock, stopTimer, difficulty]
   );
 
+  const toggleFlag = (r, c) => {
+    if (gameOver || won || board[r][c].revealed) return;
+    const next = cloneBoard(board);
+    next[r][c].flagged = !next[r][c].flagged;
+    setFlags((f) => f + (next[r][c].flagged ? 1 : -1));
+    setBoard(next);
+    navigator.vibrate?.(12);
+  };
+
   const onCellClick = (r, c) => {
+    if (mobile && pressRef.current.fired) {
+      pressRef.current.fired = false;
+      return;
+    }
+    if (mobile && flagMode) {
+      toggleFlag(r, c);
+      return;
+    }
     if (gameOver || won || board[r][c].revealed || board[r][c].flagged) return;
     if (!startedRef.current) {
       startedRef.current = true;
@@ -180,21 +205,28 @@ export default function Minesweeper() {
 
   const onRightClick = (e, r, c) => {
     e.preventDefault();
-    if (gameOver || won || board[r][c].revealed) return;
-    const next = cloneBoard(board);
-    next[r][c].flagged = !next[r][c].flagged;
-    setFlags((f) => f + (next[r][c].flagged ? 1 : -1));
-    setBoard(next);
+    toggleFlag(r, c);
   };
+
+  const pressStart = (r, c) => {
+    clearTimeout(pressRef.current.timer);
+    pressRef.current.fired = false;
+    pressRef.current.timer = setTimeout(() => {
+      pressRef.current.fired = true;
+      toggleFlag(r, c);
+    }, LONG_PRESS_MS);
+  };
+  const pressEnd = () => clearTimeout(pressRef.current.timer);
 
   /* ─── Difficulty picker ─── */
   if (!difficulty) {
     return (
-      <div className={styles.game}>
+      <div className={`${styles.game} ${mobile ? styles.mobile : ''}`}>
         <div className={styles.pickerWrap}>
+          {mobile && <p className={styles.mobileTitle}>Minesweeper</p>}
           <p className={styles.pickerTitle}>Choose a difficulty</p>
           <div className={styles.pickerList}>
-            {DIFFICULTIES.map((d) => (
+            {(mobile ? MOBILE_DIFFICULTIES : DIFFICULTIES).map((d) => (
               <button
                 key={d.id}
                 type="button"
@@ -214,10 +246,11 @@ export default function Minesweeper() {
   }
 
   const gameKey = `minesweeper-${difficulty.id}`;
+  const cellSize = mobile ? mobileCell(difficulty.cols) : difficulty.cell;
 
   return (
-    <div className={styles.game}>
-      <div className={styles.header} style={{ maxWidth: difficulty.cols * difficulty.cell }}>
+    <div className={`${styles.game} ${mobile ? styles.mobile : ''}`}>
+      <div className={styles.header} style={{ maxWidth: difficulty.cols * cellSize + (mobile ? (difficulty.cols - 1) * 2 : 0) }}>
         <span>🚩 {difficulty.mines - flags}</span>
         <button type="button" className={styles.difficultyTag} onClick={changeDifficulty}>
           {difficulty.label}
@@ -227,7 +260,7 @@ export default function Minesweeper() {
       <div className={styles.boardWrap}>
         <div
           className={styles.board}
-          style={{ gridTemplateColumns: `repeat(${difficulty.cols}, ${difficulty.cell}px)` }}
+          style={{ gridTemplateColumns: `repeat(${difficulty.cols}, ${cellSize}px)` }}
         >
           {board.map((row, r) =>
             row.map((cell, c) => {
@@ -251,9 +284,12 @@ export default function Minesweeper() {
                   key={`${r}-${c}`}
                   type="button"
                   className={className}
-                  style={{ width: difficulty.cell, height: difficulty.cell }}
+                  style={{ width: cellSize, height: cellSize, fontSize: mobile ? Math.round(cellSize * 0.5) : undefined }}
                   onClick={() => onCellClick(r, c)}
                   onContextMenu={(e) => onRightClick(e, r, c)}
+                  onTouchStart={mobile ? () => pressStart(r, c) : undefined}
+                  onTouchEnd={mobile ? pressEnd : undefined}
+                  onTouchMove={mobile ? pressEnd : undefined}
                   disabled={gameOver || won}
                 >
                   {content}
@@ -281,9 +317,25 @@ export default function Minesweeper() {
         />
       </div>
 
-      <button type="button" className={styles.restart} onClick={restart}>
-        New game
-      </button>
+      {mobile ? (
+        <div className={styles.mobileBar}>
+          <div className={styles.segmented} role="radiogroup" aria-label="Tap to">
+            <button type="button" role="radio" aria-checked={!flagMode} className={!flagMode ? styles.segOn : ''} onClick={() => setFlagMode(false)}>
+              Reveal
+            </button>
+            <button type="button" role="radio" aria-checked={flagMode} className={flagMode ? styles.segOn : ''} onClick={() => setFlagMode(true)}>
+              Flag
+            </button>
+          </div>
+          <button type="button" className={styles.mobileRestart} onClick={restart}>
+            New Game
+          </button>
+        </div>
+      ) : (
+        <button type="button" className={styles.restart} onClick={restart}>
+          New game
+        </button>
+      )}
     </div>
   );
 }

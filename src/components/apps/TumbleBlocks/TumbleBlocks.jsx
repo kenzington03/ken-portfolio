@@ -64,7 +64,7 @@ function speedForLevel(level) {
   return Math.max(120, 800 - (level - 1) * 65);
 }
 
-export default function TumbleBlocks() {
+export default function TumbleBlocks({ mobile = false }) {
   const canvasRef = useRef(null);
   const [score, setScore] = useState(0);
   const [lines, setLines] = useState(0);
@@ -277,10 +277,10 @@ export default function TumbleBlocks() {
         ctx.fillStyle = '#fff';
         ctx.font = '13px system-ui';
         ctx.textAlign = 'center';
-        ctx.fillText('Press Space to start', W / 2, H / 2 - 4);
+        ctx.fillText(mobile ? 'Tap to start' : 'Press Space to start', W / 2, H / 2 - 4);
         ctx.font = '11px system-ui';
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        ctx.fillText('← → move · ↑ rotate · ↓ soft drop', W / 2, H / 2 + 16);
+        ctx.fillText(mobile ? 'Drag to move · tap to rotate · flick down to drop' : '← → move · ↑ rotate · ↓ soft drop', W / 2, H / 2 + 16);
       }
 
       raf = requestAnimationFrame(draw);
@@ -291,6 +291,102 @@ export default function TumbleBlocks() {
   }, [started, gameOver]);
 
   const level = levelForLines(lines);
+
+  // Phone: drag sideways moves a cell at a time, a tap rotates, a quick
+  // flick down drops; the buttons underneath do the same.
+  const touch = useRef(null);
+  const onTouchStart = (e) => {
+    if (gameOver) return;
+    if (!started) {
+      begin();
+      return;
+    }
+    const t = e.touches[0];
+    touch.current = { x0: t.clientX, y0: t.clientY, ax: t.clientX, t0: performance.now(), moved: false };
+  };
+  const onTouchMove = (e) => {
+    const g = touch.current;
+    if (!g) return;
+    const t = e.touches[0];
+    const cellPx = (canvasRef.current?.getBoundingClientRect().width || COLS * CELL) / COLS;
+    while (t.clientX - g.ax > cellPx) {
+      move(1);
+      g.ax += cellPx;
+      g.moved = true;
+    }
+    while (g.ax - t.clientX > cellPx) {
+      move(-1);
+      g.ax -= cellPx;
+      g.moved = true;
+    }
+  };
+  const onTouchEnd = (e) => {
+    const g = touch.current;
+    touch.current = null;
+    if (!g) return;
+    const t = e.changedTouches[0];
+    const dy = t.clientY - g.y0;
+    const dt = performance.now() - g.t0;
+    if (dy > 50 && dy / dt > 0.5) hardDrop();
+    else if (!g.moved && Math.abs(dy) < 10 && Math.abs(t.clientX - g.x0) < 10) rotate();
+  };
+  const press = (fn) => (e) => {
+    e.stopPropagation();
+    if (!started) begin();
+    else if (!gameOver) fn();
+  };
+
+  if (mobile) {
+    return (
+      <div className={`${styles.wrap} ${styles.mobile}`} data-game-window>
+        <div className={styles.mobileStats}>
+          <div>
+            <span>Score</span>
+            <b>{score}</b>
+          </div>
+          <div>
+            <span>Level</span>
+            <b>{level}</b>
+          </div>
+          <div>
+            <span>Lines</span>
+            <b>{lines}</b>
+          </div>
+        </div>
+        <div className={styles.mobileBoard} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} onClick={begin}>
+          <div className={styles.board}>
+            <canvas ref={canvasRef} width={COLS * CELL} height={ROWS * CELL} className={styles.canvas} aria-label="Tetris game" />
+            <GameOverScreen
+              open={gameOver}
+              gameKey="tumbleblocks"
+              gameLabel="Tetris"
+              score={score}
+              level={level}
+              extraStat={{ label: 'Lines cleared', value: lines }}
+              onPlayAgain={playAgain}
+            />
+          </div>
+        </div>
+        <div className={styles.pad}>
+          <button type="button" aria-label="Move left" onClick={press(() => move(-1))}>
+            <svg viewBox="0 0 24 24" aria-hidden><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+          <button type="button" aria-label="Rotate" onClick={press(rotate)}>
+            <svg viewBox="0 0 24 24" aria-hidden><path d="M19 12a7 7 0 1 1-2.05-4.95M19 4v4h-4" /></svg>
+          </button>
+          <button type="button" aria-label="Soft drop" onClick={press(softDrop)}>
+            <svg viewBox="0 0 24 24" aria-hidden><path d="M5 9l7 7 7-7" /></svg>
+          </button>
+          <button type="button" aria-label="Drop" onClick={press(hardDrop)}>
+            <svg viewBox="0 0 24 24" aria-hidden><path d="M5 6l7 7 7-7M5 18h14" /></svg>
+          </button>
+          <button type="button" aria-label="Move right" onClick={press(() => move(1))}>
+            <svg viewBox="0 0 24 24" aria-hidden><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrap} data-game-window>

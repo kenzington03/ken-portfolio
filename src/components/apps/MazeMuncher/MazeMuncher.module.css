@@ -29,3 +29,104 @@
   display: block;
   cursor: pointer;
 }
+
+/* ─── Phone: score on top, the maze full width, a d-pad below ─── */
+.mobile {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 4px 16px calc(env(safe-area-inset-bottom, 0px) + 34px);
+  background: #000;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  touch-action: none;
+}
+
+.mobileHud {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.mobileHud div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #1c1c1e;
+}
+
+.mobileHud span {
+  font-size: 12px;
+  color: rgba(235, 235, 245, 0.6);
+}
+
+.mobileHud b {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.mobileHud .lives {
+  color: #ffd60a;
+  letter-spacing: 2px;
+}
+
+.mobile .boardWrap {
+  width: 100%;
+}
+
+.mobile .canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 56px);
+  gap: 6px;
+  margin-top: auto;
+}
+
+.dpad button {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: #1c1c1e;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dpad button:active {
+  background: #3a3a3c;
+}
+
+.dpad [data-dir='ArrowUp'] {
+  grid-area: 1 / 2;
+}
+
+.dpad [data-dir='ArrowLeft'] {
+  grid-area: 2 / 1;
+}
+
+.dpad [data-dir='ArrowRight'] {
+  grid-area: 2 / 3;
+}
+
+.dpad [data-dir='ArrowDown'] {
+  grid-area: 3 / 2;
+}
+
+.dpad svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

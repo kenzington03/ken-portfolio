@@ -22,7 +22,7 @@ import { playShutter, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
 import { WORK } from '../content.js';
 import TimelineC from './TimelineC.jsx';
-import PhoneEnding, { PHONE_CENTER } from './PhoneEnding.jsx';
+import PhoneEnding, { phoneLogoPoint } from './PhoneEnding.jsx';
 import styles from './JourneyC.module.css';
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -595,7 +595,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       return { x: l.x + l.ez[0] * drop, y: l.y + l.ez[1] * drop, m: [-l.ex[0] * wpp, -l.ex[1] * wpp, -l.ez[0] * wpp, -l.ez[1] * wpp] };
     }
     const k = (51 / 900) * (vh / LOGO_EL_W);
-    if (phone) return { x: vw / 2, y: vh * PHONE_CENTER, m: [k, 0, 0, k] };
+    if (phone) return { ...phoneLogoPoint(), m: [k, 0, 0, k] };
     return { x: vw / 2, y: vh * 0.638, m: [-k, 0, 0, -k * 0.857] };
   };
   const logoTransform = useTransform([morphT, turnT, settleT], ([k, turn, settle]) => {
