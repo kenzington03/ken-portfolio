@@ -504,10 +504,17 @@ function Panel({ progress, enter, exit, enterAxis = 'x', exitAxis = 'x', reduced
   );
 }
 
-// The logo's box height as a share of the lid's on-screen width (measured: a
-// 59px logo on a 494px-wide lid at 1440x900).
-const LOGO_PER_LID = 0.143;
-// The Apple logo (same glyph as the menu bar's).
+// The lid's logo, reverse engineered from the 3D model (measured at 1440x900:
+// 51 x 55 px, #090a0e, rotated 180 degrees as seen from behind the lid).
+// Its width as a share of the lid's width, and how far below the lid's middle
+// it sits (along the lid's depth), both in the lid's own units.
+const LID_LOGO_W = 0.1033;
+const LID_LOGO_DROP = 0.0059;
+const LID_LOGO_FILL = '#090a0e';
+// The Apple logo (same glyph as the menu bar's), and its exact bounds.
+const APPLE_BOX = { x: 3.864, y: 2, w: 16.226, h: 20 };
+const LOGO_EL_W = 100; // the logo element's width in CSS px before transforming
+const LOGO_EL_H = (LOGO_EL_W * APPLE_BOX.h) / APPLE_BOX.w;
 const APPLE_PATH =
   'M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z';
 
@@ -569,36 +576,61 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
   const tlFade = useTransform(nowT, (t) => within(t, [0, 0.4]));
   const barAlpha = useTransform(nowT, (t) => 1 - inOut(within(t, [0.5, 1])));
-  // The chrome ball → the Apple logo (on the ruler) → down onto the lid,
-  // shrinking to the lid logo's size, then handing over to the real one.
-  const morphT = useTransform(nowT, (t) => inOut(within(t, [0.06, 0.34])));
-  const drop = useTransform(nowT, (t) => inOut(within(t, [0.3, 0.78])));
-  // Where it lands: the 3D scene reports the lid logo's place on screen
-  // (logoRef). Until the laptop has loaded, and on phones (the middle of the
-  // phone), fixed fallbacks stand in.
-  const LOGO_Y = phone ? PHONE_CENTER : 0.638;
-  const LOGO_H = phone ? 0.06 : 0.079; // the logo's box, as a share of the viewport height (glyph = 20/24 of it)
-  const MARK_H = 0.09; // the logo's box on the ruler, before it travels
-  const target = () => {
+  // The ball → an upright Apple logo, which rises, turns (spins 180 degrees
+  // and leans back to the lid's angle) and settles exactly where the lid's
+  // logo is; the MacBook then comes to life around it. The logo is the lid
+  // logo from the start (its colour and finish), so the hand-over is invisible.
+  const morphT = useTransform(nowT, (t) => inOut(within(t, [0.04, 0.26])));
+  const turnT = useTransform(nowT, (t) => inOut(within(t, [0.24, 0.6])));
+  const settleT = useTransform(nowT, (t) => inOut(within(t, [0.24, 0.7])));
+  // Where the logo ends: the 3D scene reports the lid's place and angle on
+  // screen (logoRef). Until it has loaded, and on phones (no lid), a stand-in.
+  const finalLogo = () => {
+    const vw = window.innerWidth;
     const vh = window.innerHeight;
     const l = !phone && logoRef.current;
-    if (l && l.lidW > 0) return { x: l.x, y: l.y, h: l.lidW * LOGO_PER_LID };
-    return { x: window.innerWidth / 2, y: vh * LOGO_Y, h: vh * LOGO_H };
+    if (l && l.lidW > 0) {
+      const wpp = (LID_LOGO_W * l.lidW) / LOGO_EL_W; // lid units per element px
+      const drop = LID_LOGO_DROP * l.lidW;
+      return { x: l.x + l.ez[0] * drop, y: l.y + l.ez[1] * drop, m: [-l.ex[0] * wpp, -l.ex[1] * wpp, -l.ez[0] * wpp, -l.ez[1] * wpp] };
+    }
+    const k = (51 / 900) * (vh / LOGO_EL_W);
+    if (phone) return { x: vw / 2, y: vh * PHONE_CENTER, m: [k, 0, 0, k] };
+    return { x: vw / 2, y: vh * 0.638, m: [-k, 0, 0, -k * 0.857] };
   };
-  const markTop = useTransform(drop, (m) => {
-    const from = window.innerHeight * 0.54 + 71; // dead centre of the ruler line
-    return from + (target().y - from) * m;
+  const logoTransform = useTransform([morphT, turnT, settleT], ([k, turn, settle]) => {
+    const vh = window.innerHeight;
+    const x0 = window.innerWidth / 2;
+    const y0 = vh * 0.54 + 71 - vh * 0.06 * k; // on the ruler, then up a little
+    const f = finalLogo();
+    const [a, b, c, d] = f.m;
+    // Final matrix as rotate(theta) x [[sx, sk], [0, sy]], so it can be eased.
+    let theta = Math.atan2(b, a);
+    if (theta < -0.01) theta += Math.PI * 2; // always turn the same way
+    const sx = Math.hypot(a, b);
+    const sk = Math.cos(theta) * c + Math.sin(theta) * d;
+    const sy = -Math.sin(theta) * c + Math.cos(theta) * d;
+    const s0 = (vh * 0.075) / LOGO_EL_H; // upright, on the ruler
+    const grow = 0.25 + 0.75 * k;
+    const th = theta * turn;
+    const ssx = (s0 + (sx - s0) * settle) * grow;
+    const ssy = (s0 + (sy - s0) * settle) * grow;
+    const ssk = sk * settle * grow;
+    const cos = Math.cos(th);
+    const sin = Math.sin(th);
+    const x = x0 + (f.x - x0) * settle;
+    const y = y0 + (f.y - y0) * settle;
+    return `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`;
   });
-  const markLeft = useTransform(drop, (m) => {
-    const from = window.innerWidth / 2;
-    return from + (target().x - from) * m;
+  const ballTransform = useTransform(morphT, (k) => {
+    const y = window.innerHeight * 0.54 + 71;
+    return `translate(${(window.innerWidth / 2).toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) scale(${1 - 0.5 * k})`;
   });
-  const ballScale = useTransform(morphT, (k) => 1 + 1.4 * k);
-  const ballOpacity = useTransform(morphT, (k) => 1 - within(k, [0.25, 0.75]));
-  const logoScale = useTransform([morphT, drop], ([k, m]) => (0.35 + 0.65 * k) * (1 + (target().h / (window.innerHeight * MARK_H) - 1) * m));
-  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.2, 0.7]) * (flatRef.current ? 1 : 1 - within(t, [0.84, 0.98])));
-  const logoRotate = useTransform(morphT, (k) => (1 - k) * -24);
-  // Waits for the timeline to clear, so the two never overlap.
+  const ballOpacity = useTransform(morphT, (k) => 1 - within(k, [0.2, 0.7]));
+  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.15, 0.55]) * (flatRef.current ? 1 : 1 - within(t, [0.93, 0.99])));
+  // The silver edge that lets a black logo read on a black page fades as the
+  // lid appears behind it (phones have no lid: it stays).
+  const rimOpacity = useTransform(nowT, (t) => (phone ? 1 : 1 - within(t, [0.6, 0.88])));
   const lineOpacity = useTransform(nowT, (t) => within(t, [0.42, 0.66]));
 
   // Scrolling on through About brings line two in early (and line one, if a
@@ -899,7 +931,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const deck = deckRef.current;
     if (!deck) return 0;
     const travel = deck.offsetHeight - window.innerHeight;
-    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.3);
+    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.5);
   }, []);
 
   const flat = !use3D && !phone;
@@ -951,22 +983,28 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             <Panel progress={progress} enter="ab>tl" reduced={reduced} className={styles.timelinePanel} aria-label="Career timeline">
               <TimelineC progress={tlProgress} fade={tlFade} />
 
-              {/* The chrome ball marks where you are; at Now it becomes the Apple
-                  logo and settles onto the MacBook's lid. */}
-              <motion.div className={styles.mark} style={{ top: markTop, left: markLeft }} aria-hidden>
-                <motion.span className={styles.ball} style={{ scale: ballScale, opacity: ballOpacity }} />
-                <motion.svg className={styles.logo} viewBox="0 0 24 24" style={{ scale: logoScale, opacity: logoOpacity, rotate: logoRotate }}>
-                  <defs>
-                    <linearGradient id="chrome" x1="0" y1="0" x2="0.35" y2="1">
-                      <stop offset="0" stopColor="#ffffff" />
-                      <stop offset="0.45" stopColor="#b9b9c2" />
-                      <stop offset="0.55" stopColor="#8d8d97" />
-                      <stop offset="1" stopColor="#e9e9ee" />
-                    </linearGradient>
-                  </defs>
-                  <path fill="url(#chrome)" d={APPLE_PATH} />
-                </motion.svg>
-              </motion.div>
+              {/* The ball marks where you are; at Now it becomes the lid's own
+                  Apple logo, turns, and settles where the MacBook appears. */}
+              <motion.span className={styles.ball} style={{ transform: ballTransform, opacity: ballOpacity }} aria-hidden />
+              <motion.svg
+                className={styles.logo}
+                viewBox={`${APPLE_BOX.x} ${APPLE_BOX.y} ${APPLE_BOX.w} ${APPLE_BOX.h}`}
+                style={{ width: LOGO_EL_W, height: LOGO_EL_H, transform: logoTransform, opacity: logoOpacity }}
+                aria-hidden
+              >
+                <defs>
+                  <linearGradient id="lidLogoSheen" x1="0" y1="0" x2="0.4" y2="1">
+                    <stop offset="0" stopColor="#4a4a54" />
+                    <stop offset="0.5" stopColor={LID_LOGO_FILL} />
+                    <stop offset="1" stopColor="#24242b" />
+                  </linearGradient>
+                </defs>
+                <path fill={LID_LOGO_FILL} d={APPLE_PATH} />
+                <motion.g style={{ opacity: rimOpacity }}>
+                  <path fill="url(#lidLogoSheen)" d={APPLE_PATH} />
+                  <path fill="none" stroke="rgba(236, 236, 240, 0.55)" strokeWidth="0.22" d={APPLE_PATH} />
+                </motion.g>
+              </motion.svg>
               <motion.div className={styles.storyLineWrap} style={{ opacity: lineOpacity }}>
                 <p className={styles.bridgeLine}>{phone ? 'The rest of the story lives on my phone.' : 'The rest of the story lives on my Mac.'}</p>
                 {flat && (

@@ -52,26 +52,32 @@ function TopAnchor({ anchorRef }) {
 }
 
 /**
- * Reports where the lid's middle (the Apple logo) is on screen, and how wide
- * the lid is there, in CSS px, so a DOM element can land exactly on the logo.
+ * Reports how the lid's logo sits on screen, so a DOM logo can match it
+ * exactly: its centre (the middle of the lid), and where one world unit
+ * along the lid's width (x) and depth (z) lands on screen there, in CSS px.
+ * The lid's width (world units) sizes the logo.
  */
 function LogoAnchor({ logoRef }) {
   const { scene, camera, size } = useThree();
-  const tmp = useMemo(() => ({ box: new THREE.Box3(), c: new THREE.Vector3(), a: new THREE.Vector3(), b: new THREE.Vector3() }), []);
+  const tmp = useMemo(() => ({ box: new THREE.Box3(), c: new THREE.Vector3(), p: new THREE.Vector3() }), []);
   const lid = useRef(null);
   useFrame(() => {
     if (!lid.current) lid.current = scene.getObjectByName('Lid') ?? null;
     if (!lid.current) return;
-    const { box, c, a, b } = tmp;
+    const { box, c, p } = tmp;
     box.setFromObject(lid.current);
     box.getCenter(c);
-    a.set(box.min.x, c.y, c.z).project(camera);
-    b.set(box.max.x, c.y, c.z).project(camera);
-    c.project(camera);
+    const toScreen = (v) => [(v.x * 0.5 + 0.5) * size.width, (1 - (v.y * 0.5 + 0.5)) * size.height];
+    const D = 0.05;
+    const [cx, cy] = toScreen(p.copy(c).project(camera));
+    const [xx, xy] = toScreen(p.copy(c).setX(c.x + D).project(camera));
+    const [zx, zy] = toScreen(p.copy(c).setZ(c.z + D).project(camera));
     logoRef.current = {
-      x: (c.x * 0.5 + 0.5) * size.width,
-      y: (1 - (c.y * 0.5 + 0.5)) * size.height,
-      lidW: Math.abs(b.x - a.x) * 0.5 * size.width,
+      x: cx,
+      y: cy,
+      ex: [(xx - cx) / D, (xy - cy) / D],
+      ez: [(zx - cx) / D, (zy - cy) / D],
+      lidW: box.max.x - box.min.x,
     };
   });
   return null;

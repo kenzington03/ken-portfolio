@@ -851,24 +851,16 @@
   background: transparent;
 }
 
-/* The chrome ball on the ruler, where the focus line meets it. At Now it
-   turns into the Apple logo, which drops onto the MacBook's lid and hands
-   over to the real one. Both are centred on the same point. */
-.mark {
-  position: absolute;
-  left: 50%;
-  z-index: 2;
-  width: 9vh;
-  height: 9vh;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
+/* The ball on the ruler, where the focus line meets it, in the finish of
+   the MacBook's lid logo (black glass with a silver edge). At Now it becomes
+   that logo; both are positioned by transform from the panel's top-left. */
 .ball,
 .logo {
   position: absolute;
-  inset: 0;
-  margin: auto;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  pointer-events: none;
   will-change: transform, opacity;
 }
 
@@ -876,15 +868,12 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #d4d4da 32%, #8a8a94 70%, #c9c9cf 100%);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 16px rgba(220, 220, 235, 0.35);
+  background: radial-gradient(circle at 35% 30%, #4a4a54 0%, #16161b 45%, #090a0e 100%);
+  box-shadow: 0 0 0 1px rgba(236, 236, 240, 0.55), 0 0 14px rgba(220, 220, 235, 0.25);
 }
 
 .logo {
-  width: 100%;
-  height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 0 10px rgba(220, 220, 240, 0.25));
 }
 
 /* The focus line hangs from the active card and ends on the ruler, at the ball. */
