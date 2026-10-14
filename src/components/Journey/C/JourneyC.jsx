@@ -374,7 +374,7 @@ function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
 const BEATS = [
   ['about', 35], // both lines type on their own (on time); a short hold, then on
   ['ab>tl', 60], // About leaves left, the timeline arrives from the right
-  ['tl', 150], // ends with Now dead centre, on the orange line
+  ['tl', 110], // the whole ruler fills in one frame, then zooms in on Now (dead centre)
   ['now', 80], // the timeline clears; the chrome ball becomes the Apple logo and settles on the MacBook's lid
 ];
 const TOTAL = BEATS.reduce((n, [, len]) => n + len, 0);
@@ -626,7 +626,11 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const y = window.innerHeight * 0.54 + 71;
     return `translate(${(window.innerWidth / 2).toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) scale(${1 - 0.5 * k})`;
   });
-  const ballOpacity = useTransform(morphT, (k) => 1 - within(k, [0.2, 0.7]));
+  // Shown from the moment the timeline's own ball (same spot) hands over.
+  const ballOpacity = useTransform([morphT, nowT], ([k, t]) => (t > 0 ? 1 - within(k, [0.2, 0.7]) : 0));
+  // The logo starts white (as the ball) and darkens to the lid's black glass
+  // as the laptop appears around it.
+  const whiteOpacity = useTransform(nowT, (t) => (phone ? 1 : 1 - within(t, [0.48, 0.84])));
   const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.15, 0.55]) * (flatRef.current ? 1 : 1 - within(t, [0.93, 0.99])));
   // The silver edge that lets a black logo read on a black page fades as the
   // lid appears behind it (phones have no lid: it stays).
@@ -1004,6 +1008,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
                   <path fill="url(#lidLogoSheen)" d={APPLE_PATH} />
                   <path fill="none" stroke="rgba(236, 236, 240, 0.55)" strokeWidth="0.22" d={APPLE_PATH} />
                 </motion.g>
+                <motion.path fill="#fff" d={APPLE_PATH} style={{ opacity: whiteOpacity }} />
               </motion.svg>
               <motion.div className={styles.storyLineWrap} style={{ opacity: lineOpacity }}>
                 <p className={styles.bridgeLine}>{phone ? 'The rest of the story lives on my phone.' : 'The rest of the story lives on my Mac.'}</p>

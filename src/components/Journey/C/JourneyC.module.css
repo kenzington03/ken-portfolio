@@ -851,9 +851,9 @@
   background: transparent;
 }
 
-/* The ball on the ruler, where the focus line meets it, in the finish of
-   the MacBook's lid logo (black glass with a silver edge). At Now it becomes
-   that logo; both are positioned by transform from the panel's top-left. */
+/* The ball at Now (it takes over from the timeline's own, same spot, same
+   look): white, then it becomes the Apple logo, which darkens to the lid's
+   black glass as it settles. Positioned by transform from the panel's top-left. */
 .ball,
 .logo {
   position: absolute;
@@ -868,28 +868,12 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #4a4a54 0%, #16161b 45%, #090a0e 100%);
-  box-shadow: 0 0 0 1px rgba(236, 236, 240, 0.55), 0 0 14px rgba(220, 220, 235, 0.25);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 0 18px rgba(255, 255, 255, 0.45);
 }
 
 .logo {
   overflow: visible;
-}
-
-/* The focus line hangs from the active card and ends on the ruler, at the ball. */
-.timelinePanel [class*='focusLine'] {
-  bottom: auto;
-  height: 71px;
-}
-
-/* The active card keeps inside the screen (TimelineC sets --shift). */
-.timelinePanel [class*='roleCard'] {
-  translate: calc(-50% + var(--shift, 0px)) 0;
-}
-
-/* v4 drew its own dot at the top of the focus line; the seed replaces it. */
-.timelinePanel [class*='focusLine']::before {
-  display: none;
 }
 
 .storyLineWrap {

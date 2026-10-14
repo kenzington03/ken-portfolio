@@ -1,11 +1,10 @@
-/* The career ruler (from the v4 intro, now used only by Journey C's
-   timeline). Colours come from the journey's tokens. */
+/* The career timeline: the whole ruler in one frame, cards above and below,
+   a white ball on the tip. Colours come from the journey's tokens; the
+   ruler's height on screen comes in as --ruler-y. */
 
-.tlSticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100dvh;
+.tl {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
@@ -26,7 +25,7 @@
   top: 84px;
   display: flex;
   font-family: var(--display);
-  font-size: clamp(120px, 17vw, 270px);
+  font-size: clamp(96px, 15vw, 240px);
   font-weight: 800;
   font-variation-settings: 'wdth' 70;
   line-height: 1;
@@ -54,85 +53,61 @@
   line-height: 1;
 }
 
-.focusLine {
+/* Everything that zooms: ruler, ticks, cards, the ball. */
+.camera {
   position: absolute;
-  top: 54%;
-  bottom: 0;
-  z-index: 1;
-  width: 1px;
-  background: var(--accent);
-}
-
-.focusLine::before {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: -5px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.tlTrack {
-  position: absolute;
-  inset: 0 auto 0 0;
+  inset: 0;
   will-change: transform;
 }
 
 .ruler {
   position: absolute;
-  top: calc(54% + 70px);
+  top: calc(var(--ruler-y) - 1px);
   height: 2px;
+  border-radius: 1px;
   background: var(--line);
 }
 
 .rulerFill {
   position: absolute;
   inset: 0;
+  border-radius: 1px;
   background: var(--accent);
   transform-origin: left;
 }
 
-.tick,
-.tickMinor {
+.tick {
   position: absolute;
-  top: calc(54% + 70px);
+  top: var(--ruler-y);
 }
 
 .tick::before {
   content: '';
   position: absolute;
   left: 0;
-  top: -14px;
+  top: -12px;
   width: 1px;
-  height: 16px;
-  background: var(--ink);
+  height: 12px;
+  background: var(--muted);
 }
 
 .tick b {
   position: absolute;
   left: 0;
-  top: 14px;
+  top: 10px;
   transform: translateX(-50%);
   font: 600 13px/1 var(--display);
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.tickNow::before {
+  background: var(--accent);
 }
 
 .tickNow b {
   color: var(--accent);
-}
-
-.tickMinor::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: -7px;
-  width: 1px;
-  height: 8px;
-  background: var(--muted);
-  opacity: 0.6;
 }
 
 .roles {
@@ -141,74 +116,87 @@
   list-style: none;
 }
 
-.role {
+/* A role's years, laid on the ruler. */
+.span {
   position: absolute;
-  top: 54%;
+  top: calc(var(--ruler-y) - 3px);
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 70%, #fff);
 }
 
-.roleSpan {
+.card {
   position: absolute;
-  left: 0;
-  top: 60px;
-  width: var(--span);
-  height: 4px;
-  border-radius: 2px;
-  background: transparent;
-  transition: background-color 300ms ease;
-}
-
-.roleOn .roleSpan {
-  background: color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
-.roleCard {
-  position: absolute;
-  left: var(--mid);
-  translate: -50% 0;
-  width: 300px;
-  padding: 20px 22px 22px;
-  border-radius: 20px;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--line);
+  padding: 12px 14px 13px;
+  border-radius: 14px;
+  background: #1c1c1e;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.1);
   color: var(--ink);
-  opacity: 0.55;
-  transform: scale(0.96);
-  transform-origin: center bottom;
-  transition: opacity 360ms var(--ease), transform 360ms var(--ease), background-color 360ms ease, color 360ms ease;
+  will-change: transform, opacity;
 }
 
-.roleHigh .roleCard {
-  bottom: 24px;
+/* Above the ruler, clear of the tick marks; below it, clear of the years. */
+.cardHigh {
+  bottom: calc(100% - var(--ruler-y) + 26px);
 }
 
-.roleLow .roleCard {
-  top: 110px;
-  transform-origin: center top;
+.cardLow {
+  top: calc(var(--ruler-y) + 36px);
 }
 
-.roleOn .roleCard {
+.card h3 {
+  margin: 0 0 4px;
+  font: 700 clamp(14px, 1.35vw, 19px) / 1.1 var(--display);
+  font-variation-settings: 'wdth' 88;
+  letter-spacing: -0.01em;
+}
+
+.card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* The job the tip is on. */
+.cardOn {
   background: var(--ink);
   color: var(--paper);
-  box-shadow: none;
-  opacity: 1;
-  transform: none;
 }
 
-.roleCard h3 {
-  margin: 12px 0 4px;
-  font: 700 clamp(22px, 1.9vw, 28px) / 1.05 var(--display);
-  font-variation-settings: 'wdth' 88;
-  letter-spacing: -0.02em;
+.cardOn p {
+  color: color-mix(in srgb, var(--paper) 60%, transparent);
 }
 
-.roleCard p {
-  margin: 0;
-  font-size: 15px;
-  opacity: 0.75;
+/* The ball on the tip: white, as the Apple logo it becomes. */
+.tip {
+  position: absolute;
+  top: var(--ruler-y);
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 0 18px rgba(255, 255, 255, 0.45);
 }
 
 @media (max-width: 900px) {
   .tlTitle {
     display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .card {
+    padding: 8px 9px 9px;
+    border-radius: 11px;
+  }
+  .card h3 {
+    font-size: 13px;
+  }
+  .card p {
+    font-size: 11px;
+  }
+  .tick b {
+    font-size: 11px;
   }
 }

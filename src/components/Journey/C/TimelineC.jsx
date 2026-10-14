@@ -1,26 +1,22 @@
-// The v4 career ruler Ken asked to keep: an odometer year that rolls with the
-// scroll, a lens ruler sliding under an orange focus line, the active stint
-// in ink. A gist only: company and years (verified against LinkedIn), no
-// titles. It is a deck panel now: the deck hands it a 0..1 `progress`.
-// (Styles in Timeline.module.css; the journey supplies the colour tokens.)
+// Ten years in one frame. The whole ruler, 2015 to Now, fits the screen;
+// scrolling fills it left to right, a white ball riding the tip, and each
+// job pops up as the tip reaches it (and stays, so by the end all six are
+// there). Then the camera zooms in on Now, sliding it to the centre of the
+// screen, where the journey turns the ball into the Apple logo.
+// Company and years only (verified against LinkedIn), no titles.
 
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { motion, useMotionValueEvent, useTransform } from 'framer-motion';
 import { ROLES } from '../../../data/about.js';
 import styles from './Timeline.module.css';
 
 const START = 2015;
 const NOW_YEAR = 2026.75;
-const FIRST = 2015.5; // where the scroll begins (Ken's first stint starts Aug 2015)
-// The ruler runs all the way to Now, which lands dead centre, on the focus line.
-const END = NOW_YEAR;
-const FOCUS = 0.5;
+const FIRST = 2015.3;
 const CHRONO = [...ROLES].reverse();
+const YEARS = Array.from({ length: Math.floor(NOW_YEAR) - START + 1 }, (_, i) => START + i);
 const endOf = (r) => (r.to === null ? NOW_YEAR : r.to);
 const midOf = (r) => (r.from + endOf(r)) / 2;
-const YEARS = Array.from({ length: Math.floor(NOW_YEAR) - START + 1 }, (_, i) => START + i);
-const ROLL = 0.22;
-const smooth = (t) => t * t * (3 - 2 * t);
 const yearOf = (v) => Math.floor(v + 0.05);
 const years = (r) => {
   const a = yearOf(r.from);
@@ -28,6 +24,16 @@ const years = (r) => {
   const b = yearOf(r.to - 0.1);
   return a === b ? `${a}` : `${a} to ${b}`;
 };
+
+// The fill runs over the first part of the scroll, the zoom over the rest.
+const FILL_END = 0.74;
+const ZOOM = 2.6;
+
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+const within = (v, a, b) => clamp01((v - a) / (b - a));
+const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const smooth = (t) => t * t * (3 - 2 * t);
+const ROLL = 0.22;
 
 function Wheel({ year, place }) {
   const y = useTransform(year, (v) => {
@@ -49,53 +55,77 @@ function Wheel({ year, place }) {
   );
 }
 
+/** Ruler geometry and card positions for the current viewport. */
+function layout() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const narrow = vw < 700;
+  const margin = narrow ? 22 : Math.max(48, vw * 0.06);
+  const left = margin;
+  const right = vw - margin;
+  const x = (yr) => left + ((yr - START) / (NOW_YEAR - START)) * (right - left);
+  const cardW = narrow ? 104 : Math.min(230, (right - left) / 3.4);
+  // Alternate rows above / below the ruler; within a row, cards never
+  // overlap and never leave the screen.
+  const rows = [[], []];
+  CHRONO.forEach((r, i) => rows[i % 2].push({ i, want: x(midOf(r)) - cardW / 2 }));
+  const pos = [];
+  rows.forEach((row) => {
+    let prev = -Infinity;
+    row.forEach((c) => {
+      c.at = Math.max(c.want, prev + 10, 8);
+      prev = c.at + cardW;
+    });
+    let limit = vw - 8;
+    [...row].reverse().forEach((c) => {
+      c.at = Math.min(c.at, limit - cardW);
+      limit = c.at - 10;
+      pos[c.i] = c.at;
+    });
+  });
+  return { vw, vh, narrow, left, right, x, cardW, pos, rulerY: vh * 0.54 + 71 };
+}
+
 /**
- * `progress` 0..1 runs the ten years and ends with Now at the centre of the
- * screen; `fade` 0..1 then clears it away so the laptop can appear there.
+ * `progress` 0..1 runs the fill, then the zoom into Now; `fade` 0..1 then
+ * clears the timeline so the laptop can appear.
  */
 export default function TimelineC({ progress, fade }) {
-  const [vw, setVw] = useState(() => window.innerWidth);
-  useEffect(() => {
-    const on = () => setVw(window.innerWidth);
+  const [g, setG] = useState(layout);
+  useLayoutEffect(() => {
+    const on = () => setG(layout());
     window.addEventListener('resize', on);
     return () => window.removeEventListener('resize', on);
   }, []);
-  const yw = Math.max(240, Math.min(360, vw * 0.23));
-  const year = useTransform(progress, (v) => FIRST + Math.min(1, Math.max(0, v)) * (END - FIRST));
-  const chrome = useTransform(fade, (f) => 1 - f);
-  const rulerOpacity = useTransform(fade, (f) => 1 - Math.max(0, (f - 0.55) / 0.45));
-  const x = useTransform(year, (v) => -(v - START) * yw);
-  const fill = useTransform(year, (v) => (v - START) / (NOW_YEAR - START));
-  const [active, setActive] = useState(0);
 
+  const year = useTransform(progress, (p) => FIRST + (NOW_YEAR - FIRST) * inOut(within(p, 0, FILL_END)));
+  const zoom = useTransform(progress, (p) => inOut(within(p, FILL_END, 1)));
+  // The camera: scales about Now while sliding Now to the centre.
+  const camera = useTransform(zoom, (z) => {
+    const tx = (g.vw / 2 - g.x(NOW_YEAR)) * z;
+    return `translate3d(${tx.toFixed(2)}px, 0, 0) scale(${(1 + (ZOOM - 1) * z).toFixed(4)})`;
+  });
+  const fill = useTransform(year, (v) => (v - START) / (NOW_YEAR - START));
+  const tipX = useTransform(year, (v) => g.x(v));
+  // The ball keeps its size while the camera zooms, so it matches the one
+  // that takes over from it.
+  const tipScale = useTransform(zoom, (z) => 1 / (1 + (ZOOM - 1) * z));
+  // The cards step back as the camera closes in; the ruler goes with the fade.
+  const cardsOpacity = useTransform(zoom, (z) => 1 - within(z, 0.25, 0.7));
+  const chrome = useTransform(fade, (f) => 1 - f);
+  const rulerOpacity = useTransform(fade, (f) => 1 - within(f, 0.55, 1));
+  // Once the timeline is done the journey's own ball (same spot, same look)
+  // takes over.
+  const tipOpacity = useTransform([progress, fade], ([p, f]) => (p >= 1 && f > 0 ? 0 : 1));
+
+  const [shown, setShown] = useState(0);
   useMotionValueEvent(year, 'change', (v) => {
-    let idx = 0;
-    CHRONO.forEach((r, i) => {
-      if (v >= r.from - 0.12) idx = i;
-    });
-    setActive((c) => (c === idx ? c : idx));
+    const n = CHRONO.filter((r) => v >= r.from).length;
+    setShown((c) => (c === n ? c : n));
   });
 
-  const pad = vw * FOCUS;
-  const trackW = pad + (NOW_YEAR - START) * yw + vw;
-  const pos = (yr) => pad + (yr - START) * yw;
-  // The active card is centred on its role, but never allowed off screen:
-  // on a narrow screen it slides along the edge instead of being cut off.
-  const CARD_W = 250;
-  const edge = Math.min(24, vw * 0.04);
-  const shiftOf = useRef(null);
-  shiftOf.current = (v) => {
-    const r = CHRONO[active];
-    if (!r) return '0px';
-    const at = pos(midOf(r)) - (v - START) * yw;
-    const lo = edge + CARD_W / 2;
-    const hi = vw - edge - CARD_W / 2;
-    return `${Math.round(Math.min(hi, Math.max(lo, at)) - at)}px`;
-  };
-  const shift = useTransform(year, (v) => shiftOf.current(v));
-
   return (
-    <div className={styles.tlSticky} style={{ position: 'absolute', inset: 0, height: 'auto' }}>
+    <div className={styles.tl} style={{ '--ruler-y': `${g.rulerY}px` }}>
       <motion.h2 className={styles.tlTitle} style={{ opacity: chrome }}>
         Ten years, six teams.
       </motion.h2>
@@ -105,42 +135,53 @@ export default function TimelineC({ progress, fade }) {
         <Wheel year={year} place={10} />
         <Wheel year={year} place={1} />
       </motion.div>
-      <motion.div className={styles.focusLine} style={{ left: pad, opacity: chrome }} aria-hidden />
 
-      <motion.div className={styles.tlTrack} style={{ x, width: trackW, opacity: rulerOpacity }}>
-        <div className={styles.ruler} style={{ left: pad, width: (NOW_YEAR - START) * yw }}>
-          <motion.span className={styles.rulerFill} style={{ scaleX: fill }} />
-        </div>
-        {YEARS.map((y) => (
-          <span key={y} className={styles.tick} style={{ left: pos(y) }}>
-            <b>{y}</b>
+      <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: `${g.x(NOW_YEAR)}px ${g.rulerY}px` }}>
+        <motion.div style={{ opacity: rulerOpacity }}>
+          <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }}>
+            <motion.span className={styles.rulerFill} style={{ scaleX: fill }} />
+          </div>
+          {YEARS.map((y) => (
+            <span key={y} className={styles.tick} style={{ left: g.x(y) }}>
+              {(!g.narrow || y % 2 === 1) && <b>{y}</b>}
+            </span>
+          ))}
+          <span className={`${styles.tick} ${styles.tickNow}`} style={{ left: g.x(NOW_YEAR) }}>
+            <b>Now</b>
           </span>
-        ))}
-        {YEARS.flatMap((y) => [0.25, 0.5, 0.75].map((q) => y + q))
-          .filter((v) => v < NOW_YEAR)
-          .map((v) => (
-            <span key={v} className={styles.tickMinor} style={{ left: pos(v) }} />
-          ))}
-        <span className={`${styles.tick} ${styles.tickNow}`} style={{ left: pos(NOW_YEAR) }}>
-          <b>Now</b>
-        </span>
+        </motion.div>
 
-        <motion.ol className={styles.roles} style={{ opacity: chrome }}>
-          {CHRONO.map((r, i) => (
-            <motion.li
-              key={r.company}
-              className={`${styles.role} ${i % 2 ? styles.roleHigh : styles.roleLow} ${i === active ? styles.roleOn : ''}`}
-              style={{ left: pos(r.from), '--span': `${(endOf(r) - r.from) * yw}px`, '--mid': `${(midOf(r) - r.from) * yw}px`, '--shift': i === active ? shift : '0px' }}
-              aria-current={i === active ? 'step' : undefined}
-            >
-              <span className={styles.roleSpan} aria-hidden />
-              <div className={styles.roleCard} style={{ width: CARD_W }}>
-                <h3 style={{ marginTop: 0 }}>{r.company}</h3>
-                <p>{years(r)}</p>
-              </div>
-            </motion.li>
-          ))}
+        <motion.ol className={styles.roles} style={{ opacity: cardsOpacity }}>
+          {CHRONO.map((r, i) => {
+            const on = i < shown;
+            const high = i % 2 === 0;
+            const active = i === shown - 1;
+            return (
+              <li key={r.company} className={styles.role} aria-current={active ? 'step' : undefined}>
+                {/* The years the role covers, drawn on the ruler. */}
+                <motion.span
+                  className={styles.span}
+                  style={{ left: g.x(r.from), width: g.x(endOf(r)) - g.x(r.from) }}
+                  initial={false}
+                  animate={{ opacity: on ? (active ? 1 : 0.5) : 0 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <motion.div
+                  className={`${styles.card} ${high ? styles.cardHigh : styles.cardLow} ${active ? styles.cardOn : ''}`}
+                  style={{ left: g.pos[i], width: g.cardW, transformOrigin: `${g.x(midOf(r)) - g.pos[i]}px ${high ? '100%' : '0%'}` }}
+                  initial={false}
+                  animate={on ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.6, y: high ? 14 : -14 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+                >
+                  <h3>{r.company}</h3>
+                  <p>{years(r)}</p>
+                </motion.div>
+              </li>
+            );
+          })}
         </motion.ol>
+
+        <motion.span className={styles.tip} style={{ left: tipX, opacity: tipOpacity, scale: tipScale }} aria-hidden />
       </motion.div>
     </div>
   );
