@@ -52,13 +52,22 @@ function Chapter({ q, index }) {
   const opacity = useTransform([tin, tout], ([i, o]) => Math.min(1, i * 2.5) * (1 - o));
   // Rotating slide: tips up from behind the phone, tips away over the top.
   const transform = useTransform([tin, tout], ([i, o]) => `translate3d(0, ${((1 - i) * 120 - o * 50).toFixed(1)}%, 0) rotateX(${((1 - i) * -78 + o * 72).toFixed(1)}deg)`);
+  // The caption arrives a scroll after its word, word by word.
+  const reveal = useTransform(q, (v) => within(v, [a + 0.075, a + 0.14]));
   const ch = CHAPTERS[index];
+  const words = CHAPTER_CAPTIONS[ch.id].split(' ');
   return (
     <motion.div className={styles.chapter} style={{ opacity, transform }}>
       <span className={styles.word} style={{ color: ch.color }}>
         {ch.word}
       </span>
-      <span className={styles.caption}>{CHAPTER_CAPTIONS[ch.id]}</span>
+      <motion.span className={styles.caption} style={{ '--p': reveal, '--n': words.length, '--c': ch.color }}>
+        {words.map((w, j) => (
+          <span key={j} className={styles.captionWord} style={{ '--i': j }}>
+            {w}{' '}
+          </span>
+        ))}
+      </motion.span>
     </motion.div>
   );
 }

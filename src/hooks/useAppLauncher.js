@@ -87,12 +87,16 @@ export function useAppLauncher(windowManager, achievements) {
         animationOrigin: options.animationOrigin ?? null,
       });
 
-      if (appId === 'finder') unlock('explorer');
-      if (appId === 'contact') unlock('contact_sent');
-      if (appId === 'pdfviewer') unlock('cv_download');
-      if (appId === 'trash') unlock('trash_diver');
+      // Windows the site opens itself (options.auto) earn nothing: these are
+      // for what a visitor does.
+      if (!options.auto) {
+        if (appId === 'finder') unlock('explorer');
+        if (appId === 'contact') unlock('contact_sent');
+        if (appId === 'pdfviewer') unlock('cv_download');
+        if (appId === 'trash') unlock('trash_diver');
+      }
 
-      trackWindowCount(windowCount + 1);
+      if (!options.auto) trackWindowCount(windowCount + 1);
 
       return id;
     },

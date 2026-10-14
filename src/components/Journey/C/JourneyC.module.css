@@ -8,7 +8,12 @@
   --ink: #111113;
   --muted: #64646a;
   --line: rgba(17, 17, 19, 0.14);
-  --accent: #ff4f1a;
+  /* The three chapter colours (Build, Move, Ship), used across the journey. */
+  --blue: #3d7bff;
+  --pink: #ff3d8b;
+  --yellow: #ffb224;
+  --spectrum: linear-gradient(90deg, var(--blue), var(--pink) 55%, var(--yellow));
+  --accent: var(--pink);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --gutter: clamp(20px, 3.6vw, 56px);
   --display: 'Anybody', 'Cabinet Grotesk', system-ui, sans-serif;
@@ -121,7 +126,7 @@
 
 .progressRing {
   fill: none;
-  stroke: #ff4f1a;
+  stroke: url(#c-spectrum);
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-dasharray: 1;
@@ -259,7 +264,7 @@
 .deckBar span {
   display: block;
   height: 100%;
-  background: var(--accent);
+  background: var(--spectrum) 0 0 / 100vw 100% no-repeat;
   transform-origin: left;
 }
 
@@ -632,40 +637,122 @@
   }
 }
 
+/* ---------- The grid: a design canvas under About and the timeline ---------- */
+.grid {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* Draws in from the middle when the dark section arrives. */
+  -webkit-mask-image: radial-gradient(circle at 50% 55%, #000 0%, transparent 0%);
+  mask-image: radial-gradient(circle at 50% 55%, #000 0%, transparent 0%);
+}
+
+.gridOn {
+  animation: gridIn 1600ms cubic-bezier(0.22, 0.8, 0.2, 1) 120ms both;
+}
+
+@property --gr {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+@keyframes gridIn {
+  from {
+    --gr: 0%;
+  }
+  to {
+    --gr: 75%;
+  }
+}
+
+.gridOn {
+  -webkit-mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--gr) - 30%), transparent var(--gr));
+  mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--gr) - 30%), transparent var(--gr));
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(236, 236, 240, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(236, 236, 240, 0.06) 1px, transparent 1px);
+  will-change: transform;
+}
+
 /* ---------- About: line one top-left with prints on the right; line two
    bottom-right with prints on the left ---------- */
 .aboutPanel {
   overflow: hidden;
+  background: transparent;
 }
 
 .aboutOne {
   position: absolute;
-  top: clamp(84px, 12vh, 124px);
+  top: clamp(96px, 14vh, 140px);
   left: var(--gutter);
-  width: min(48%, 760px);
+  width: min(52%, 640px);
 }
 
+/* 1. Who: quiet, one line. */
 .aboutName {
-  margin: 0 0 clamp(16px, 3vh, 30px);
-  font-size: 16px;
+  margin: 0 0 clamp(18px, 3.2vh, 32px);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--muted);
 }
 
 .aboutTwo {
   position: absolute;
   right: var(--gutter);
-  bottom: clamp(44px, 9vh, 96px);
-  width: min(46%, 720px);
+  bottom: clamp(56px, 11vh, 120px);
+  width: min(40%, 460px);
 }
 
 .aboutLine {
   margin: 0;
+}
+
+/* 2. The statement: the display face, big and tight. */
+.aboutLead {
+  max-width: 16ch;
   font-family: var(--display);
-  font-size: clamp(32px, 4.5vw, 76px);
-  font-weight: 760;
+  font-size: clamp(38px, 4.7vw, 82px);
+  font-weight: 800;
   font-variation-settings: 'wdth' 80;
-  line-height: 0.97;
+  line-height: 0.94;
   letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+/* 3. The supporting line: the text face, smaller and lighter, under a short
+   bar in the three chapter colours. */
+.aboutSupport {
+  max-width: 22ch;
+  font-family: var(--text);
+  font-size: clamp(20px, 2.1vw, 32px);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--ink) 74%, transparent);
+}
+
+.signature {
+  display: block;
+  width: 56px;
+  height: 3px;
+  margin-bottom: 18px;
+  border-radius: 2px;
+  background: var(--spectrum);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 700ms var(--ease);
+}
+
+.signatureOn {
+  transform: none;
 }
 
 .untyped {
@@ -701,7 +788,7 @@
 /* Starts the moment the deck un-pins (hence the overlap), so the laptop is
    already moving as the last panel lifts away: no dead scroll. */
 .runway {
-  height: 300vh;
+  height: 420vh;
   margin-top: -100vh;
   pointer-events: none;
 }
@@ -929,8 +1016,11 @@
   .aboutName {
     font-size: 14px;
   }
-  .aboutLine {
-    font-size: clamp(28px, 8.2vw, 42px);
+  .aboutLead {
+    font-size: clamp(32px, 9.4vw, 46px);
+  }
+  .aboutSupport {
+    font-size: clamp(18px, 5vw, 22px);
   }
   .aboutTwo {
     left: var(--gutter);

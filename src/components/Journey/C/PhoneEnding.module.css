@@ -4,7 +4,7 @@
 
 .runway {
   position: relative;
-  height: 300vh;
+  height: 400vh;
   /* Starts as the deck un-pins, so the device is there the moment the lights
      are out (same trick as the Mac runway). */
   margin-top: -100vh;
@@ -63,8 +63,20 @@
   max-width: 26ch;
   font: 500 15px/1.35 'Satoshi', -apple-system, sans-serif;
   text-align: center;
-  color: rgba(236, 236, 233, 0.82);
+  color: rgba(236, 236, 233, 0.86);
   text-wrap: balance;
+}
+
+/* Each word rises out of a blur in the chapter's colour and settles to
+   white; --p (0..1) comes from the scroll, --i is the word's place. */
+.captionWord {
+  --t: clamp(0, calc((var(--p) * (var(--n) + 3) - var(--i)) / 3), 1);
+  display: inline-block;
+  white-space: pre;
+  opacity: var(--t);
+  filter: blur(calc((1 - var(--t)) * 8px));
+  transform: translate3d(0, calc((1 - var(--t)) * 0.7em), 0);
+  color: color-mix(in srgb, var(--c) clamp(0%, calc((1 - var(--t)) * 140%), 100%), rgba(236, 236, 233, 0.9));
 }
 
 /* The body: natural titanium edge, black glass bezel. */

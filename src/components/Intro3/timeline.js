@@ -4,20 +4,22 @@ import { ease, ramp } from '../Intro/introTimeline.js';
 /* v3: the MacBook gets its own scroll runway, so these beats run on
    `macProgress` (0 at the start of the runway, 1 at the end of the page).
    The Rig is unchanged from v1/v2; only the chapter words are new. */
+// The chapters take most of the runway (each word lands, then its caption a
+// scroll later); the lid, the wake and the dive follow.
 export const BEATS = {
-  orbit: [0, 0.7],
-  lid: [0.62, 0.78],
-  wake: [0.7, 0.82],
-  dive: [0.82, 0.97],
+  orbit: [0, 0.74],
+  lid: [0.68, 0.83],
+  wake: [0.77, 0.87],
+  dive: [0.87, 0.98],
 };
 
-export const HANDOFF_AT = 0.965;
+export const HANDOFF_AT = 0.975;
 
 export const CHAPTERS = [
   {
     id: 'build',
     word: 'Build',
-    from: 0.04,
+    from: 0.03,
     to: 0.26,
     color: '#3d7bff',
     caption: 'Brands from zero. Fluid AI, Truearte, Step-Set-Go, Sampoorna.',
@@ -26,15 +28,15 @@ export const CHAPTERS = [
     id: 'move',
     word: 'Move',
     from: 0.26,
-    to: 0.47,
+    to: 0.49,
     color: '#ff3d8b',
     caption: 'Campaigns that move. Films and event visuals for Milestone’s Momentum 2026.',
   },
   {
     id: 'ship',
     word: 'Ship',
-    from: 0.47,
-    to: 0.68,
+    from: 0.49,
+    to: 0.72,
     color: '#ffb224',
     caption: 'Interfaces that ship. Including this one.',
   },

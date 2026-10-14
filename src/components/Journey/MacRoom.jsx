@@ -14,8 +14,20 @@ const World = lazy(() => import('./World.jsx'));
 const CLOSE_MS = 1300;
 // Shut Down closes the lid and comes to rest on the Ship chapter (word and
 // caption fully in, lid shut, before the lid beat begins).
-const CLOSED_AT = 0.575;
+const CLOSED_AT = 0.645;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
+
+/** Reveals a chapter's caption word by word (t 0..1): each word rises out of
+ *  a blur in the chapter's colour and settles to white. */
+function setCaption(chapterEl, t) {
+  const words = chapterEl.__captionWords || (chapterEl.__captionWords = chapterEl.querySelectorAll('[data-caption-word]'));
+  // Each word takes `SPREAD` words' worth of time to arrive, so they overlap.
+  const SPREAD = 3;
+  const n = words.length;
+  words.forEach((w, i) => {
+    w.style.setProperty('--t', clamp01((t * (n + SPREAD) - i) / SPREAD).toFixed(3));
+  });
+}
 // The words' window runs from under the top bar to just above the laptop;
 // the word + caption sit centred in it (even space above and below).
 const WORD_TOP = 64;
@@ -124,7 +136,7 @@ export default function MacRoom({
       const c = roomColor(p);
       if (glowRef.current) {
         glowRef.current.style.setProperty('--room', `${Math.round(c.r * 255)} ${Math.round(c.g * 255)} ${Math.round(c.b * 255)}`);
-        glowRef.current.style.opacity = String(ramp(p, 0.0, 0.08) * (1 - ramp(p, 0.72, 0.84)));
+        glowRef.current.style.opacity = String(ramp(p, 0.0, 0.08) * (1 - ramp(p, 0.75, 0.87)));
       }
 
       CHAPTERS.forEach((ch, i) => {
@@ -140,9 +152,11 @@ export default function MacRoom({
           const travel = winH ? (winH - WORD_TOP) / 2 + el.offsetHeight / 2 + 12 : el.offsetHeight * 1.2;
           el.style.opacity = String(quietRef.current ? 0 : Math.min(1, inT * 2.5) * (1 - outT));
           el.style.transform = `translate3d(0, ${((1 - inT) * travel - outT * travel * 0.5).toFixed(1)}px, 0) rotateX(${((1 - inT) * -78 + outT * 72).toFixed(1)}deg)`;
+          setCaption(el, ramp(p, ch.from + 0.075, ch.from + 0.135));
         } else {
           el.style.opacity = String(vis);
           el.style.transform = `translate3d(0, ${(1 - inT) * 8 - outT * 8}vh, 0)`;
+          setCaption(el, ramp(p, ch.from + 0.075, ch.from + 0.135));
         }
       });
       if (railRef.current) railRef.current.style.transform = `scaleX(${ramp(p, CHAPTERS[0].from, CHAPTERS[CHAPTERS.length - 1].to)})`;
@@ -200,7 +214,14 @@ export default function MacRoom({
             <span className={styles.word} style={{ color: ch.color }}>
               {ch.word}
             </span>
-            <span className={styles.caption}>{CHAPTER_CAPTIONS[ch.id]}</span>
+            {/* The caption comes in a scroll after its word, word by word. */}
+            <span className={styles.caption} style={{ '--c': ch.color }}>
+              {CHAPTER_CAPTIONS[ch.id].split(' ').map((w, j) => (
+                <span key={j} className={styles.captionWord} data-caption-word="">
+                  {w}{' '}
+                </span>
+              ))}
+            </span>
           </div>
         ))}
       </div>

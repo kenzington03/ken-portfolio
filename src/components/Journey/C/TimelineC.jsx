@@ -55,16 +55,23 @@ function Wheel({ year, place }) {
   );
 }
 
-/** Ruler geometry and card positions for the current viewport. */
-function layout() {
+// The ruler's widest on a large screen: compact enough to read as one line.
+const MAX_RULER = 1000;
+export const ROLE_COLORS = ['var(--blue)', 'var(--pink)', 'var(--yellow)'];
+
+/** Ruler geometry and card positions for the current viewport. The grid
+ *  behind the journey uses the same numbers: one cell per year, its lines
+ *  through the year ticks and the ruler. */
+export function timelineLayout() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const narrow = vw < 700;
-  const margin = narrow ? 22 : Math.max(48, vw * 0.06);
-  const left = margin;
-  const right = vw - margin;
-  const x = (yr) => left + ((yr - START) / (NOW_YEAR - START)) * (right - left);
-  const cardW = narrow ? 104 : Math.min(230, (right - left) / 3.4);
+  const span = Math.min(vw - 2 * (narrow ? 22 : Math.max(48, vw * 0.06)), MAX_RULER);
+  const left = Math.round((vw - span) / 2);
+  const right = left + span;
+  const yearW = span / (NOW_YEAR - START);
+  const x = (yr) => left + (yr - START) * yearW;
+  const cardW = narrow ? 104 : Math.min(220, span / 3.6);
   // Alternate rows above / below the ruler; within a row, cards never
   // overlap and never leave the screen.
   const rows = [[], []];
@@ -83,29 +90,39 @@ function layout() {
       pos[c.i] = c.at;
     });
   });
-  return { vw, vh, narrow, left, right, x, cardW, pos, rulerY: vh * 0.54 + 71 };
+  return { vw, vh, narrow, left, right, x, yearW, cardW, pos, rulerY: vh * 0.54 + 71 };
 }
+
+/** The camera at zoom `z` (0..1): scales about Now while sliding Now to the centre. */
+export function timelineCamera(g, z) {
+  const tx = (g.vw / 2 - g.x(NOW_YEAR)) * z;
+  return {
+    transform: `translate3d(${tx.toFixed(2)}px, 0, 0) scale(${(1 + (ZOOM - 1) * z).toFixed(4)})`,
+    origin: `${g.x(NOW_YEAR)}px ${g.rulerY}px`,
+  };
+}
+
+/** Zoom amount (0..1) for a timeline progress. */
+export const timelineZoom = (p) => inOut(within(p, FILL_END, 1));
 
 /**
  * `progress` 0..1 runs the fill, then the zoom into Now; `fade` 0..1 then
  * clears the timeline so the laptop can appear.
  */
 export default function TimelineC({ progress, fade }) {
-  const [g, setG] = useState(layout);
+  const [g, setG] = useState(timelineLayout);
   useLayoutEffect(() => {
-    const on = () => setG(layout());
+    const on = () => setG(timelineLayout());
     window.addEventListener('resize', on);
     return () => window.removeEventListener('resize', on);
   }, []);
 
   const year = useTransform(progress, (p) => FIRST + (NOW_YEAR - FIRST) * inOut(within(p, 0, FILL_END)));
-  const zoom = useTransform(progress, (p) => inOut(within(p, FILL_END, 1)));
-  // The camera: scales about Now while sliding Now to the centre.
-  const camera = useTransform(zoom, (z) => {
-    const tx = (g.vw / 2 - g.x(NOW_YEAR)) * z;
-    return `translate3d(${tx.toFixed(2)}px, 0, 0) scale(${(1 + (ZOOM - 1) * z).toFixed(4)})`;
-  });
-  const fill = useTransform(year, (v) => (v - START) / (NOW_YEAR - START));
+  const zoom = useTransform(progress, timelineZoom);
+  const camera = useTransform(zoom, (z) => timelineCamera(g, z).transform);
+  // The fill reveals a fixed blue → pink → yellow gradient, so the tip's
+  // colour moves through the years.
+  const fillClip = useTransform(year, (v) => `inset(0 ${(100 * (1 - (v - START) / (NOW_YEAR - START))).toFixed(3)}% 0 0)`);
   const tipX = useTransform(year, (v) => g.x(v));
   // The ball keeps its size while the camera zooms, so it matches the one
   // that takes over from it.
@@ -116,7 +133,7 @@ export default function TimelineC({ progress, fade }) {
   const rulerOpacity = useTransform(fade, (f) => 1 - within(f, 0.55, 1));
   // Once the timeline is done the journey's own ball (same spot, same look)
   // takes over.
-  const tipOpacity = useTransform([progress, fade], ([p, f]) => (p >= 1 && f > 0 ? 0 : 1));
+  const tipOpacity = useTransform(fade, (f) => (f > 0 ? 0 : 1));
 
   const [shown, setShown] = useState(0);
   useMotionValueEvent(year, 'change', (v) => {
@@ -136,10 +153,10 @@ export default function TimelineC({ progress, fade }) {
         <Wheel year={year} place={1} />
       </motion.div>
 
-      <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: `${g.x(NOW_YEAR)}px ${g.rulerY}px` }}>
+      <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: timelineCamera(g, 0).origin }}>
         <motion.div style={{ opacity: rulerOpacity }}>
           <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }}>
-            <motion.span className={styles.rulerFill} style={{ scaleX: fill }} />
+            <motion.span className={styles.rulerFill} style={{ clipPath: fillClip }} />
           </div>
           {YEARS.map((y) => (
             <span key={y} className={styles.tick} style={{ left: g.x(y) }}>
@@ -161,14 +178,14 @@ export default function TimelineC({ progress, fade }) {
                 {/* The years the role covers, drawn on the ruler. */}
                 <motion.span
                   className={styles.span}
-                  style={{ left: g.x(r.from), width: g.x(endOf(r)) - g.x(r.from) }}
+                  style={{ left: g.x(r.from), width: g.x(endOf(r)) - g.x(r.from), background: ROLE_COLORS[i % 3] }}
                   initial={false}
                   animate={{ opacity: on ? (active ? 1 : 0.5) : 0 }}
                   transition={{ duration: 0.3 }}
                 />
                 <motion.div
                   className={`${styles.card} ${high ? styles.cardHigh : styles.cardLow} ${active ? styles.cardOn : ''}`}
-                  style={{ left: g.pos[i], width: g.cardW, transformOrigin: `${g.x(midOf(r)) - g.pos[i]}px ${high ? '100%' : '0%'}` }}
+                  style={{ left: g.pos[i], width: g.cardW, transformOrigin: `${g.x(midOf(r)) - g.pos[i]}px ${high ? '100%' : '0%'}`, '--role': ROLE_COLORS[i % 3] }}
                   initial={false}
                   animate={on ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.6, y: high ? 14 : -14 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 28 }}

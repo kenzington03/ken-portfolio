@@ -70,10 +70,9 @@
 
 .rulerFill {
   position: absolute;
-  inset: 0;
-  border-radius: 1px;
-  background: var(--accent);
-  transform-origin: left;
+  inset: -1px 0;
+  border-radius: 2px;
+  background: var(--spectrum);
 }
 
 .tick {
@@ -94,20 +93,21 @@
 .tick b {
   position: absolute;
   left: 0;
-  top: 10px;
+  top: 12px;
   transform: translateX(-50%);
-  font: 600 13px/1 var(--display);
+  font: 700 clamp(15px, 1.5vw, 21px) / 1 var(--display);
+  font-variation-settings: 'wdth' 84;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   white-space: nowrap;
 }
 
 .tickNow::before {
-  background: var(--accent);
+  background: var(--yellow);
 }
 
 .tickNow b {
-  color: var(--accent);
+  color: var(--yellow);
 }
 
 .roles {
@@ -122,7 +122,6 @@
   top: calc(var(--ruler-y) - 3px);
   height: 6px;
   border-radius: 3px;
-  background: color-mix(in srgb, var(--accent) 70%, #fff);
 }
 
 .card {
@@ -145,6 +144,9 @@
 }
 
 .card h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin: 0 0 4px;
   font: 700 clamp(14px, 1.35vw, 19px) / 1.1 var(--display);
   font-variation-settings: 'wdth' 88;
@@ -155,6 +157,16 @@
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+}
+
+/* Each job carries its colour (blue, pink, yellow in turn). */
+.card h3::before {
+  content: '';
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--role);
 }
 
 /* The job the tip is on. */
@@ -197,6 +209,6 @@
     font-size: 11px;
   }
   .tick b {
-    font-size: 11px;
+    font-size: 12px;
   }
 }

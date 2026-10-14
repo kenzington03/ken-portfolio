@@ -21,7 +21,7 @@ import { POSES } from '../../Intro3/timeline.js';
 import { playShutter, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
 import { WORK } from '../content.js';
-import TimelineC from './TimelineC.jsx';
+import TimelineC, { timelineCamera, timelineLayout, timelineZoom } from './TimelineC.jsx';
 import PhoneEnding, { phoneLogoPoint } from './PhoneEnding.jsx';
 import styles from './JourneyC.module.css';
 
@@ -140,6 +140,11 @@ function Aperture({ open }) {
   return (
     <svg className={styles.aperture} viewBox="-56 -56 112 112" aria-hidden>
       <defs>
+        <linearGradient id="c-spectrum" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#3d7bff" />
+          <stop offset="0.55" stopColor="#ff3d8b" />
+          <stop offset="1" stopColor="#ffb224" />
+        </linearGradient>
         <clipPath id="c-iris">
           <circle r={R} />
         </clipPath>
@@ -571,6 +576,16 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
 
   const { scrollYProgress: progress } = useScroll({ target: deckRef, offset: ['start start', 'end end'] });
   const tlProgress = useTransform(progress, (v) => within(v, SPAN.tl));
+  // The grid: a design canvas behind About and the timeline, one cell per
+  // year, its lines through the ruler and the year ticks. It stays put while
+  // the panels pass over it and zooms with the timeline's camera.
+  const [tg, setTg] = useState(timelineLayout);
+  useEffect(() => {
+    const on = () => setTg(timelineLayout());
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  const gridTransform = useTransform(tlProgress, (p) => timelineCamera(tg, timelineZoom(p)).transform);
   // "Now" beat: the timeline clears, the MacBook fades in where Now was, and
   // the ball (Now's marker) drops into the lid and dissolves at the logo.
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
@@ -635,7 +650,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // The silver edge that lets a black logo read on a black page fades as the
   // lid appears behind it (phones have no lid: it stays).
   const rimOpacity = useTransform(nowT, (t) => (phone ? 1 : 1 - within(t, [0.6, 0.88])));
-  const lineOpacity = useTransform(nowT, (t) => within(t, [0.42, 0.66]));
+  // Clears again just before the deck lets go, so BUILD rises into clean space.
+  const lineOpacity = useTransform(nowT, (t) => within(t, [0.42, 0.62]) * (flatRef.current ? 1 : 1 - within(t, [0.88, 1])));
+  const gridOpacity = useTransform(nowT, (t) => 1 - within(t, [0.1, 0.5]));
 
   // Scrolling on through About brings line two in early (and line one, if a
   // visitor somehow got here without it).
@@ -975,13 +992,29 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       <div className={styles.page} inert={heroShown || undefined}>
         <div ref={deckRef} className={styles.deck} style={{ height: `${TOTAL + 100}vh` }}>
           <div className={styles.deckSticky}>
+            <motion.div className={`${styles.grid} ${lines[0] || aboutInstant ? styles.gridOn : ''}`} style={{ opacity: gridOpacity }} aria-hidden>
+              <motion.div
+                className={styles.gridLines}
+                style={{
+                  transform: gridTransform,
+                  transformOrigin: timelineCamera(tg, 0).origin,
+                  backgroundSize: `${tg.yearW}px ${tg.yearW}px`,
+                  backgroundPosition: `${tg.left % tg.yearW}px ${tg.rulerY % tg.yearW}px`,
+                }}
+              />
+            </motion.div>
             <Panel progress={progress} exit="ab>tl" reduced={reduced} className={styles.aboutPanel} aria-label="About">
               <Collage lines={lines} instant={aboutInstant} />
-              <div className={styles.aboutOne}>
-                <p className={styles.aboutName}>Kenneth Nathanael, designer in Hyderabad.</p>
-                <TypedLine text={ABOUT[0]} on={lines[0]} instant={aboutInstant} onDone={lineOneDone} />
+              {/* Both blocks sit on the grid: the statement from its left edge,
+                  the supporting line to its right edge. */}
+              <div className={styles.aboutOne} style={tg.narrow ? undefined : { left: tg.left }}>
+                <p className={styles.aboutName}>Kenneth Nathanael · Designer, Hyderabad</p>
+                <TypedLine text={ABOUT[0]} on={lines[0]} instant={aboutInstant} onDone={lineOneDone} className={styles.aboutLead} />
               </div>
-              <TypedLine text={ABOUT[1]} on={lines[1]} instant={aboutInstant} className={styles.aboutTwo} />
+              <div className={styles.aboutTwo} style={tg.narrow ? undefined : { right: tg.vw - tg.right }}>
+                <span className={`${styles.signature} ${lines[1] || aboutInstant ? styles.signatureOn : ''}`} aria-hidden />
+                <TypedLine text={ABOUT[1]} on={lines[1]} instant={aboutInstant} className={styles.aboutSupport} />
+              </div>
             </Panel>
 
             <Panel progress={progress} enter="ab>tl" reduced={reduced} className={styles.timelinePanel} aria-label="Career timeline">
