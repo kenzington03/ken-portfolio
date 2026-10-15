@@ -640,19 +640,25 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   }, []);
   const gridTransform = useTransform(tlProgress, (p) => timelineCamera(tg, p));
 
-  // "Now": the ball at Now becomes the Apple logo itself, which grows big and
-  // rises to the centre while the page dims to night around it and the line
-  // rises in; then the logo swivels in 3D, shrinking, and flies down onto the
-  // MacBook's lid as the laptop comes up around it.
+  // "Now": one motion, one colour. The ball at Now becomes the Apple logo
+  // where it stands, glides the short way to where the lid's logo will be,
+  // turning once to the lid's angle; then the page dissolves into the MacBook
+  // around it (the logo holds still, so it is the same logo throughout), and
+  // the line rises above.
+  // Phones (and the flat fallback) have no lid: the logo turns white once, as
+  // the page goes dark, and rests where the lock-screen clock will be.
+  const lidRef = useRef(!phone && use3D);
+  lidRef.current = !phone && use3D;
+  const hasLid = () => lidRef.current && logoRef.current?.lidW > 0;
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
-  const paperOpacity = useTransform(nowT, (t) => 1 - inOut(within(t, [0.14, 0.36])));
+  const DISSOLVE = phone || !use3D ? [0.14, 0.4] : [0.42, 0.74];
+  const paperOpacity = useTransform(nowT, (t) => 1 - inOut(within(t, DISSOLVE)));
   const tlFade = useTransform(nowT, (t) => within(t, [0, 0.14]));
   const barAlpha = useTransform(nowT, (t) => 1 - within(t, [0, 0.12]));
-  const lineReveal = useTransform(nowT, (t) => within(t, [0.3, 0.48]));
-  const lineOpacity = useTransform(nowT, (t) => (flatRef.current ? 1 : 1 - within(t, [0.9, 1])));
-  const morphT = useTransform(nowT, (t) => inOut(within(t, [0, 0.24])));
-  const turnT = useTransform(nowT, (t) => inOut(within(t, [0.42, 0.8])));
-  const settleT = useTransform(nowT, (t) => inOut(within(t, [0.44, 0.84])));
+  const lineReveal = useTransform(nowT, (t) => within(t, phone ? [0.5, 0.68] : [0.7, 0.86]));
+  const lineOpacity = useTransform(nowT, (t) => (flatRef.current ? 1 : 1 - within(t, [0.93, 1])));
+  const morphT = useTransform(nowT, (t) => inOut(within(t, [0, 0.22])));
+  const settleT = useTransform(nowT, (t) => inOut(within(t, phone ? [0.3, 0.82] : [0.18, 0.5])));
   // Where the logo ends: the 3D scene reports the lid's place and angle on
   // screen (logoRef). Until it has loaded, and on phones (no lid), a stand-in.
   const finalLogo = () => {
@@ -668,11 +674,11 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (phone) return { ...phoneLogoPoint(), m: [k, 0, 0, k] };
     return { x: vw / 2, y: vh * 0.638, m: [-k, 0, 0, -k * 0.857] };
   };
-  const logoTransform = useTransform([morphT, turnT, settleT], ([k, turn, settle]) => {
+  const logoTransform = useTransform([morphT, settleT], ([k, settle]) => {
     const vh = window.innerHeight;
+    // Born at Now, on the ruler, a little larger than it will sit on the lid.
     const x0 = tg.vw / 2;
-    // Born at Now on the ruler; grows big and rises to the centre, a little high.
-    const y0 = tg.rulerY + (vh * 0.42 - tg.rulerY) * k;
+    const y0 = tg.rulerY;
     const f = finalLogo();
     const [a, b, c, d] = f.m;
     // Final matrix as rotate(theta) x [[sx, sk], [0, sy]], so it can be eased.
@@ -681,29 +687,26 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const sx = Math.hypot(a, b);
     const sk = Math.cos(theta) * c + Math.sin(theta) * d;
     const sy = -Math.sin(theta) * c + Math.cos(theta) * d;
-    const big = (vh * (phone ? 0.2 : 0.26)) / LOGO_EL_H; // big and prominent
-    const grow = 0.06 + 0.94 * k;
-    const th = theta * turn;
-    const ssx = (big + (sx - big) * settle) * grow;
-    const ssy = (big + (sy - big) * settle) * grow;
+    const start = (vh * (phone ? 0.075 : 0.085)) / LOGO_EL_H;
+    const grow = 0.12 + 0.88 * k;
+    const th = theta * settle;
+    const ssx = (start + (sx - start) * settle) * grow;
+    const ssy = (start + (sy - start) * settle) * grow;
     const ssk = sk * settle * grow;
     const cos = Math.cos(th);
     const sin = Math.sin(th);
     const x = x0 + (f.x - x0) * settle;
     const y = y0 + (f.y - y0) * settle;
-    // The swivel: one full turn about the vertical axis on the way down.
-    const spin = 360 * turn;
-    return `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) perspective(900px) rotateY(${spin.toFixed(2)}deg) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`;
+    return `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`;
   });
-  // The ball (Now's marker, same spot and size as the timeline's) swells as
-  // the logo grows out of it, and is gone by the time the logo is whole.
-  const ballTransform = useTransform(morphT, (k) => `translate(${(tg.vw / 2).toFixed(2)}px, ${tg.rulerY.toFixed(2)}px) translate(-50%, -50%) scale(${(1 + 2.5 * k).toFixed(3)})`);
-  const ballOpacity = useTransform([nowT, morphT], ([t, k]) => (t > 0 ? 1 - within(k, [0.1, 0.45]) : 0));
-  // Ink on paper, white as the page goes to night, then the lid's black
-  // glass as the laptop comes up (phones have no lid: it stays white).
-  const whiteOpacity = useTransform(nowT, (t) => within(t, [0.22, 0.28]) * (phone ? 1 : 1 - within(t, [0.68, 0.9])));
-  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.08, 0.4]) * (flatRef.current ? 1 : 1 - within(t, [0.94, 0.99])));
-  const rimOpacity = useTransform(nowT, (t) => within(t, [0.3, 0.4]) * (phone ? 1 : 1 - within(t, [0.72, 0.92])));
+  // The ball (Now's marker, same spot and size as the timeline's) swells a
+  // touch as the logo grows out of it, and is gone once the logo is whole.
+  const ballTransform = useTransform(morphT, (k) => `translate(${(tg.vw / 2).toFixed(2)}px, ${tg.rulerY.toFixed(2)}px) translate(-50%, -50%) scale(${(1 + 1.6 * k).toFixed(3)})`);
+  const ballOpacity = useTransform([nowT, morphT], ([t, k]) => (t > 0 ? 1 - within(k, [0.15, 0.5]) : 0));
+  // Without a lid to land on, the logo turns white once, as the page darkens.
+  const mid = (DISSOLVE[0] + DISSOLVE[1]) / 2;
+  const whiteOpacity = useTransform(nowT, (t) => (hasLid() ? 0 : within(t, [mid - 0.02, mid + 0.02])));
+  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.1, 0.45]) * (flatRef.current ? 1 : 1 - within(t, [0.94, 0.99])));
   const gridOpacity = useTransform(nowT, (t) => 1 - within(t, [0, 0.2]));
 
   useMotionValueEvent(progress, 'change', (v) => {
@@ -716,7 +719,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (within(v, SPAN.about) > 0.35) setLines((cur) => (cur[0] && cur[1] ? cur : [true, true]));
   });
   useMotionValueEvent(nowT, 'change', (t) => {
-    const d = t > 0.26;
+    const d = t > mid;
     setDark((cur) => (cur === d ? cur : d));
   });
 
@@ -956,13 +959,16 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     });
   }, []);
 
-  // The laptop starts arriving, faintly, as the logo begins to turn.
-  const sceneFadeFrom = useCallback(() => {
+  // The laptop comes up under the page as it dissolves (a cross-dissolve),
+  // once the logo is already sitting where the lid's will be.
+  const nowY = useCallback((t) => {
     const deck = deckRef.current;
     if (!deck) return 0;
     const travel = deck.offsetHeight - window.innerHeight;
-    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.45);
+    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * t);
   }, []);
+  const sceneFadeFrom = useCallback(() => nowY(0.4), [nowY]);
+  const sceneFadeTo = useCallback(() => nowY(0.72), [nowY]);
 
   const flat = !use3D && !phone;
 
@@ -982,6 +988,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         wordsOnTop
         arrive="fade"
         sceneFadeFrom={sceneFadeFrom}
+        sceneFadeTo={sceneFadeTo}
         logoRef={logoRef}
       />
 
@@ -1043,8 +1050,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
               )}
             </motion.div>
 
-            {/* A white ball born in the dark at Now; it becomes the lid's own
-                Apple logo, turns, and settles as the MacBook comes up. */}
+            {/* Now's ball becomes the lid's own Apple logo and settles onto it
+                as the MacBook comes up underneath. */}
             <motion.span className={styles.ball} style={{ transform: ballTransform, opacity: ballOpacity }} aria-hidden />
             <motion.svg
               className={styles.logo}
@@ -1052,18 +1059,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
               style={{ width: LOGO_EL_W, height: LOGO_EL_H, transform: logoTransform, opacity: logoOpacity }}
               aria-hidden
             >
-              <defs>
-                <linearGradient id="lidLogoSheen" x1="0" y1="0" x2="0.4" y2="1">
-                  <stop offset="0" stopColor="#4a4a54" />
-                  <stop offset="0.5" stopColor={LID_LOGO_FILL} />
-                  <stop offset="1" stopColor="#24242b" />
-                </linearGradient>
-              </defs>
               <path fill={LID_LOGO_FILL} d={APPLE_PATH} />
-              <motion.g style={{ opacity: rimOpacity }}>
-                <path fill="url(#lidLogoSheen)" d={APPLE_PATH} />
-                <path fill="none" stroke="rgba(236, 236, 240, 0.55)" strokeWidth="0.22" d={APPLE_PATH} />
-              </motion.g>
               <motion.path fill="#fff" d={APPLE_PATH} style={{ opacity: whiteOpacity }} />
             </motion.svg>
 

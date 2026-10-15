@@ -45,6 +45,7 @@ export default function MacRoom({
   poses,
   sway = true,
   sceneFadeFrom, // () => y where the 3D starts fading in (default: runway top - 1 vh)
+  sceneFadeTo, // () => y where it is fully in (default: runway top)
   arrive = 'rise', // 'rise' lifts the laptop in; 'fade' holds it still (when something hands off to it)
   wordsOnTop = false, // overhead flows: the Mac fills the middle, so words sit above it
   alwaysLive = false, // the Mac is on screen from the first frame (The Desk)
@@ -117,7 +118,8 @@ export default function MacRoom({
       }
 
       const fadeFrom = sceneFadeFrom ? sceneFadeFrom() : runTop - vh;
-      const sceneT = use3D && readyRef.current ? (alwaysLive ? 1 : ease(ramp(y, fadeFrom, runTop))) : 0;
+      const fadeTo = sceneFadeTo ? sceneFadeTo() : runTop;
+      const sceneT = use3D && readyRef.current ? (alwaysLive ? 1 : ease(ramp(y, fadeFrom, fadeTo))) : 0;
       if (sceneRef.current) {
         sceneRef.current.style.opacity = String(sceneT);
         // The laptop arrives by rising into place (no scaling: scaling a live
@@ -174,7 +176,7 @@ export default function MacRoom({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [active, mode, onReachScreen, use3D, runwayRef, sceneFadeFrom, alwaysLive, onFrame, arrive]);
+  }, [active, mode, onReachScreen, use3D, runwayRef, sceneFadeFrom, sceneFadeTo, alwaysLive, onFrame, arrive]);
 
   // Shut Down: start dived-in and glide back to the top.
   useEffect(() => {
