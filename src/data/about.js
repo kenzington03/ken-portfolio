@@ -39,7 +39,7 @@ export const ROLES = [
   { company: 'WebAnatomy', role: 'Visual Designer', dates: 'Jan 2020 - Jun 2020', from: 2020.0, to: 2020.5 },
   { company: 'MiGrocer', role: 'Visual Designer', dates: 'Nov 2018 - Feb 2020', from: 2018.83, to: 2020.12 },
   { company: 'Cowboy Studios', role: 'Graphic Designer', dates: 'Jun 2016 - Jul 2018', from: 2016.42, to: 2018.58 },
-  { company: 'DreamWorks Dedicated Unit', role: 'Live sketching', dates: 'Aug 2015 - Feb 2016', from: 2015.58, to: 2016.17 },
+  { company: 'DreamWorks Dedicated Unit', role: 'Artist Model', dates: 'Aug 2015 - Feb 2016', from: 2015.58, to: 2016.17 },
 ];
 
 export const NOW = 'Now: Design Lead at Milestone Technologies. Learning R3F, shipping motion.';

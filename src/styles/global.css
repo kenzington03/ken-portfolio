@@ -63,6 +63,9 @@ body,
   color: var(--text-primary);
   background: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
+  /* A sideways trackpad swipe must never take the visitor back a page
+     (Chrome's swipe-to-navigate): the site uses that gesture itself. */
+  overscroll-behavior-x: none;
 }
 
 /* Scroll intro: the page itself scrolls (the OS never does). */

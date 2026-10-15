@@ -1,6 +1,7 @@
-/* The career chart: ink on paper, a hairline ruler, large light years under
-   it, each role as type on a stem above it. The ruler's height comes in as
-   --ruler-y; colours from the journey's tokens (ink, muted, one accent). */
+/* The career: one frame, ink on paper. A hairline ruler with small year
+   ticks, a dot where each job began, a ball on the tip; only the job the
+   ball is on is written out (company above, title and years below). A faint
+   giant year behind. --ruler-y comes from TimelineC. */
 
 .tl {
   position: absolute;
@@ -8,58 +9,36 @@
   overflow: hidden;
 }
 
-.head {
+.title {
   position: absolute;
   top: 84px;
   left: var(--gutter);
-  right: var(--gutter);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
+  margin: 0;
+  font: 500 clamp(17px, 1.4vw, 21px) / 1.3 var(--text);
+  letter-spacing: -0.01em;
+  color: var(--muted);
 }
 
-.odometer {
-  display: flex;
+/* The year, very large and very faint, centred behind the chart. */
+.ghost {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--ruler-y) - 0.36em);
+  margin: 0;
+  transform: translate(-50%, -50%);
   font-family: var(--display);
-  font-size: clamp(88px, 13vw, 220px);
+  font-size: clamp(180px, 30vw, 520px);
   font-weight: 800;
   font-variation-settings: 'opsz' 96, 'wdth' 85;
   line-height: 1;
-  letter-spacing: -0.045em;
-  color: var(--ink);
+  letter-spacing: -0.05em;
   font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--ink) 4.5%, transparent);
+  pointer-events: none;
+  user-select: none;
 }
 
-.wheel {
-  display: inline-block;
-  height: 0.84em;
-  overflow: hidden;
-}
-
-.wheelStrip {
-  display: flex;
-  flex-direction: column;
-  margin-top: -0.09em;
-  will-change: transform;
-}
-
-.wheelStrip span {
-  display: block;
-  height: 1em;
-  line-height: 1;
-}
-
-.title {
-  margin: 0.6em 0 0;
-  max-width: 14ch;
-  font: 500 clamp(17px, 1.5vw, 22px) / 1.25 var(--text);
-  letter-spacing: -0.01em;
-  color: var(--muted);
-  text-align: right;
-}
-
-/* Everything that pans and zooms. */
+/* Everything that zooms. */
 .camera {
   position: absolute;
   inset: 0;
@@ -70,133 +49,81 @@
   position: absolute;
   top: var(--ruler-y);
   height: 1px;
-  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
 }
 
 .inked {
   position: absolute;
   left: 0;
-  top: -1px;
-  height: 3px;
-  border-radius: 2px;
+  top: -0.5px;
+  height: 2px;
   background: var(--ink);
 }
 
-/* Years: large, light, under the ruler; the one you are in is set in ink. */
-.year {
+/* A small tick per year, its number just under the line. */
+.tick {
   position: absolute;
   top: var(--ruler-y);
 }
 
-.year::before {
+.tick::before {
   content: '';
   position: absolute;
   left: 0;
-  top: -6px;
+  top: -4px;
   width: 1px;
-  height: 12px;
-  background: color-mix(in srgb, var(--ink) 30%, transparent);
+  height: 9px;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
 }
 
-.year b {
+.tick b {
   position: absolute;
   left: 0;
-  top: 18px;
+  top: 14px;
   transform: translateX(-50%);
-  font-family: var(--display);
-  font-size: clamp(26px, 2.7vw, 46px);
-  font-weight: 300;
-  font-variation-settings: 'opsz' 96, 'wdth' 90;
-  letter-spacing: -0.03em;
+  font: 500 12px/1 var(--text);
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--ink) 26%, transparent);
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--ink) 32%, transparent);
   white-space: nowrap;
-  transition: color 300ms ease, font-weight 300ms ease;
+  transition: color 300ms ease;
 }
 
-.yearOn b {
+.tickPast b {
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.tickOn b {
   color: var(--ink);
-  font-weight: 500;
 }
 
-.yearNow b {
+.tickNow::before {
+  background: var(--accent);
+}
+
+.tickNow b {
   color: var(--accent);
 }
 
-.roles {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* Each role hangs from its start on the ruler. */
-.role {
+/* Where each job began. */
+.start {
   position: absolute;
   top: var(--ruler-y);
-  height: 0;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 40%, transparent);
+  transition: background-color 300ms ease, box-shadow 300ms ease;
 }
 
-.span {
-  position: absolute;
-  left: 0;
-  top: -2px;
-  height: 5px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--ink) 55%, transparent);
-  transform-origin: left;
+.startOn {
+  background: var(--ink);
+  box-shadow: none;
 }
 
-.stem {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 1px;
-  background: color-mix(in srgb, var(--ink) 35%, transparent);
-  transform-origin: bottom;
-}
-
-.label {
-  position: absolute;
-  left: 12px;
-  width: max-content;
-  max-width: min(360px, 24vw);
-  will-change: transform, opacity, clip-path;
-}
-
-.label h3 {
-  margin: 0 0 6px;
-  font-family: var(--display);
-  font-size: clamp(22px, 2.1vw, 40px);
-  font-weight: 650;
-  font-variation-settings: 'opsz' 48, 'wdth' 92;
-  line-height: 1.02;
-  letter-spacing: -0.025em;
-  color: var(--ink);
-}
-
-.title_ {
-  margin: 0 0 3px;
-  font: 500 clamp(15px, 1.05vw, 18px) / 1.3 var(--text);
-  color: color-mix(in srgb, var(--ink) 78%, transparent);
-}
-
-.when {
-  margin: 0;
-  font: 400 clamp(13px, 0.9vw, 15px) / 1.3 var(--text);
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
-
-/* The role you are on: its span and stem take the accent. */
-.roleOn .span {
-  background: var(--accent);
-}
-
-.roleOn .stem {
-  background: var(--accent);
-}
-
-/* The tip: an ink ball riding the end of the inked line. */
+/* The ball. */
 .tip {
   position: absolute;
   top: var(--ruler-y);
@@ -205,28 +132,95 @@
   margin: -7px 0 0 -7px;
   border-radius: 50%;
   background: var(--ink);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+/* The words that travel with the ball. */
+.now {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  pointer-events: none;
+}
+
+.above,
+.below {
+  position: absolute;
+  left: 18px;
+  right: 0;
+}
+
+.above {
+  bottom: calc(100% - var(--ruler-y) + 30px);
+  height: 2.4em;
+  font-size: clamp(34px, 3.6vw, 60px);
+}
+
+.below {
+  top: calc(var(--ruler-y) + 46px);
+}
+
+.company {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  margin: 0;
+  font-family: var(--display);
+  font-size: inherit;
+  font-weight: 600;
+  font-variation-settings: 'opsz' 96, 'wdth' 92;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.detail {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.jobTitle {
+  margin: 0 0 6px;
+  font: 500 clamp(17px, 1.3vw, 21px) / 1.3 var(--text);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.when {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0;
+  font: 400 clamp(14px, 1vw, 16px) / 1.3 var(--text);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.count {
+  font-size: 0.85em;
+  color: color-mix(in srgb, var(--ink) 35%, transparent);
 }
 
 @media (max-width: 700px) {
-  .head {
+  .title {
     top: 76px;
   }
-  .title {
-    display: none;
+  .above {
+    font-size: 30px;
   }
-  .label {
-    left: 8px;
-    max-width: 170px;
+  .below {
+    top: calc(var(--ruler-y) + 40px);
   }
-  .label h3 {
-    font-size: 17px;
-    margin-bottom: 4px;
-  }
-  .title_ {
-    font-size: 12px;
+  .jobTitle {
+    font-size: 16px;
   }
   .when {
+    font-size: 13px;
+  }
+  .tick b {
     font-size: 11px;
   }
 }

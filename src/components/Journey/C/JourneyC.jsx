@@ -228,7 +228,17 @@ function Loader({ reduced, onDone }) {
 // PREVIEW: ?theme=dark shows the hero on a dark set, for comparison.
 const HERO_DARK = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('theme') === 'dark';
 
-function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
+// The camera's readout: a running timecode while he walks in (25 fps).
+const timecode = (sec) => {
+  const f = Math.floor((sec % 1) * 25);
+  const s = Math.floor(sec);
+  const p2 = (n) => String(n).padStart(2, '0');
+  return `00:00:${p2(s)}:${p2(f)}`;
+};
+const localTime = () => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+
+function Hero({ go, reduced, instant, onOpenMac, onScrollOn, phone }) {
+  const tcRef = useRef(null);
   const [shot, setShot] = useState(!!instant);
   // The letters rise a frame after mount, so there is always a start to
   // animate from (even when there is no loader in front).
@@ -299,6 +309,19 @@ function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
       ? {}
       : { initial: { opacity: 0, y: 26 }, animate: shot ? { opacity: 1, y: 0 } : undefined, transition: { duration: 0.9, ease: EASE, delay: d } };
 
+  // The timecode runs with the footage until the shot is taken.
+  useEffect(() => {
+    if (shot || !go) return undefined;
+    let raf = 0;
+    const tick = () => {
+      const v = videoRef.current;
+      if (tcRef.current && v) tcRef.current.textContent = timecode(Math.max(0, v.currentTime - HERO_VIDEO.startAt));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [go, shot]);
+
   return (
     <div className={`${styles.hero} ${HERO_DARK ? styles.heroDark : ''}`}>
       <div className={`${styles.set} ${shot ? styles.setShot : ''}`} aria-hidden>
@@ -314,13 +337,30 @@ function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
         </span>
       </div>
 
+      {/* The camera's readout: REC and a running timecode while he walks
+          in; once the shot is taken, where and when it was taken. */}
+      <motion.p className={`${styles.hud} ${shot ? styles.hudShot : ''}`} initial={reduced ? false : { opacity: 0 }} animate={go || instant ? { opacity: 1 } : undefined} transition={{ duration: 0.6, delay: 0.2 }} aria-hidden>
+        {shot ? (
+          <>
+            <span>Hyderabad</span>
+            <span>{localTime()}</span>
+          </>
+        ) : (
+          <>
+            <i className={styles.rec} />
+            <span>REC</span>
+            <span ref={tcRef}>00:00:00:00</span>
+          </>
+        )}
+      </motion.p>
+
       <div className={styles.heroCopy}>
         <h1 className={styles.hello}>
           <motion.span
             className={styles.hi}
             {...(reduced ? {} : { initial: { opacity: 0, y: 18 }, animate: go || instant ? { opacity: 1, y: 0 } : undefined, transition: { duration: 0.9, ease: EASE, delay: 0.25 } })}
           >
-            Hi I&apos;m
+            Hi, I&apos;m
           </motion.span>
           {/* The name rises letter by letter, thin and narrow; when the
               shutter fires it snaps to full weight, as if the photo inflated it. */}
@@ -334,21 +374,22 @@ function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
             </span>
           </span>
         </h1>
-        <motion.div className={styles.heroMeta} {...rise(0.5)}>
+      </div>
+
+      <div className={styles.heroFoot}>
+        <motion.div className={styles.heroMeta} {...rise(0.45)}>
           <p className={styles.role}>Designer</p>
           <p className={styles.tagline}>Trial and error, but mostly error.</p>
         </motion.div>
-        <motion.div className={styles.heroActions} {...rise(0.65)}>
+        <motion.div className={styles.heroActions} {...rise(0.6)}>
           <button type="button" className={styles.btn} onClick={onOpenMac}>
             {phone ? 'Open my iPhone' : 'Open my Mac'}
           </button>
+          <button type="button" className={styles.btnGhost} onClick={onScrollOn}>
+            Scroll
+            <i aria-hidden />
+          </button>
         </motion.div>
-      </div>
-
-      {/* One quiet hint; gone the moment they scroll. */}
-      <div className={`${styles.scrollCue} ${shot && cue ? styles.scrollCueOn : ''}`} aria-hidden>
-        <span>Scroll</span>
-        <i />
       </div>
 
       {flash > 0 && <div key={flash} className={styles.flash} aria-hidden />}
@@ -367,7 +408,7 @@ const BEATS = [
   ['hero>ab', 60], // About rises from below as the hero lifts away
   ['about', 40], // "10 years" rolls up and both lines type themselves (on time)
   ['ab>tl', 60], // About leaves left, the timeline arrives from the right
-  ['tl', 150], // the ruler fills and pans in, then zooms in on Now (dead centre)
+  ['tl', 130], // the ball travels 2015 to Now in one frame, then the camera zooms in on Now
   ['now', 110], // the iris into the dark; the line rises; the ball becomes the logo and settles as the Mac comes up
 ];
 const TOTAL = BEATS.reduce((n, [, len]) => n + len, 0);
@@ -568,7 +609,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const [dark, setDark] = useState(closing);
   const [contactOpen, setContactOpen] = useState(false);
   const [idle, setIdle] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const deckRef = useRef(null);
   const flatRef = useRef(!use3D && !phone);
   flatRef.current = !use3D && !phone;
@@ -671,7 +711,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const gridOpacity = useTransform(nowT, (t) => 1 - within(t, [0, 0.2]));
 
   useMotionValueEvent(progress, 'change', (v) => {
-    if (v > 0.003) setScrolled((c) => c || true);
     // About types itself as it arrives; back on the hero it resets, so the
     // next visit types again.
     const arrive = within(v, SPAN['hero>ab']);
@@ -733,8 +772,17 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         swallowUntil = t + 5000;
         return;
       }
-      if (swallowUntil && !push && t < swallowUntil) e.preventDefault();
-      else swallowUntil = 0;
+      if (swallowUntil && !push && t < swallowUntil) {
+        e.preventDefault();
+        return;
+      }
+      swallowUntil = 0;
+      // Sideways swipes move the journey too (people swipe sideways the
+      // moment the timeline arrives): left or right scrolls on or back.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 0.5) {
+        e.preventDefault();
+        window.scrollBy(0, e.deltaX * (e.deltaMode === 1 ? 16 : 1));
+      }
     };
     const onTouch = (e) => closingRef.current && e.preventDefault();
     window.addEventListener('wheel', onWheel, { passive: false });
@@ -773,6 +821,15 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     cancelRef.current?.();
     cancelRef.current = tweenScroll(runwayRef.current?.offsetTop ?? maxScroll(), 2800);
   }, [use3D, onReachScreen, phone]);
+
+  // The hero's Scroll button: a glide down to About.
+  const scrollToAbout = useCallback(() => {
+    const deck = deckRef.current;
+    if (!deck) return;
+    const travel = deck.offsetHeight - window.innerHeight;
+    cancelRef.current?.();
+    cancelRef.current = tweenScroll(deck.offsetTop + travel * SPAN.about[0], 1300);
+  }, []);
 
   // The laptop starts arriving, faintly, as the logo begins to turn.
   const sceneFadeFrom = useCallback(() => {
@@ -831,7 +888,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             </motion.div>
 
             <Panel progress={progress} exit="hero>ab" exitAxis="y" reduced={reduced} className={styles.heroPanel} aria-label="Ken">
-              <Hero go={loaded} reduced={reduced} instant={closing} onOpenMac={openMac} cue={!scrolled} phone={phone} />
+              <Hero go={loaded} reduced={reduced} instant={closing} onOpenMac={openMac} onScrollOn={scrollToAbout} phone={phone} />
             </Panel>
 
             <Panel progress={progress} enter="hero>ab" enterAxis="y" exit="ab>tl" reduced={reduced} className={styles.aboutPanel} aria-label="About">
