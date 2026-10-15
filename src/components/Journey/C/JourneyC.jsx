@@ -424,6 +424,9 @@ const SPAN = (() => {
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const sineInOut = (t) => (1 - Math.cos(Math.PI * t)) / 2;
+const sineOut = (t) => Math.sin((Math.PI * t) / 2);
+const smooth01 = (t) => t * t * (3 - 2 * t);
 const within = (v, [a, b]) => clamp01((v - a) / (b - a));
 
 /* ------------------------------------------------------------------ */
@@ -654,12 +657,12 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   lidRef.current = !phone && use3D;
   const hasLid = () => lidRef.current && logoRef.current?.lidW > 0;
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
-  const DISSOLVE = [0.36, 0.64];
+  const DISSOLVE = [0.36, 0.76];
   const mid = (DISSOLVE[0] + DISSOLVE[1]) / 2;
-  const paperOpacity = useTransform(nowT, (t) => 1 - inOut(within(t, DISSOLVE)));
+  const paperOpacity = useTransform(nowT, (t) => 1 - smooth01(within(t, DISSOLVE)));
   const tlFade = useTransform(nowT, (t) => within(t, [0, 0.12]));
   const barAlpha = useTransform(nowT, (t) => 1 - within(t, [0, 0.12]));
-  const lineReveal = useTransform(nowT, (t) => within(t, [0.07, 0.28]));
+  const lineReveal = useTransform(nowT, (t) => within(t, [0.14, 0.31]));
   const lineOpacity = useTransform(nowT, (t) => (flatRef.current ? 1 : 1 - within(t, [0.93, 1])));
   // Ink on paper, white on night: it flips as the page crosses the middle.
   const lineColor = useTransform(nowT, (t) => {
@@ -667,10 +670,11 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const c = Math.round(18 + (236 - 18) * k);
     return `rgb(${c}, ${c}, ${Math.round(20 + (234 - 20) * k)})`;
   });
-  const morphT = useTransform(nowT, (t) => inOut(within(t, [0, 0.14])));
-  const growT = useTransform(nowT, (t) => inOut(within(t, [0.04, 0.3])));
-  const placeT = useTransform(nowT, (t) => inOut(within(t, [0.34, 0.52])));
-  const settleT = useTransform(nowT, (t) => inOut(within(t, [0.34, 0.78])));
+  // The glides do the easing; these stay gentle so nothing is rushed.
+  const morphT = useTransform(nowT, (t) => smooth01(within(t, [0, 0.17])));
+  const growT = useTransform(nowT, (t) => smooth01(within(t, [0.12, 0.31])));
+  const placeT = useTransform(nowT, (t) => smooth01(within(t, [0.33, 0.5])));
+  const settleT = useTransform(nowT, (t) => smooth01(within(t, [0.33, 0.8])));
   // Where the logo ends: the 3D scene reports the lid's place and angle on
   // screen (logoRef). Until it has loaded, and on phones (no lid), a stand-in.
   const finalLogo = () => {
@@ -702,7 +706,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     // Formed a little larger than the lid's logo, then grows a touch more.
     const base = (vh * (phone ? 0.075 : 0.085)) / LOGO_EL_H;
     const big = (vh * (phone ? 0.1 : 0.125)) / LOGO_EL_H;
-    const start = (base + (big - base) * grow) * (0.12 + 0.88 * k);
+    const start = (base + (big - base) * grow) * (0.3 + 0.7 * k);
     const th = theta * settle;
     const ssx = start + (sx - start) * settle;
     const ssy = start + (sy - start) * settle;
@@ -728,8 +732,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const arrive = within(v, SPAN['hero>ab']);
     if (arrive > 0.55) setLines((cur) => (cur[0] ? cur : [true, cur[1]]));
     else if (arrive <= 0) setLines((cur) => (cur[0] || cur[1] ? [false, false] : cur));
-    // Scrolling on through About brings line two in early.
-    if (within(v, SPAN.about) > 0.35) setLines((cur) => (cur[0] && cur[1] ? cur : [true, true]));
   });
   useMotionValueEvent(nowT, 'change', (t) => {
     const d = t > mid;
@@ -780,13 +782,18 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (!active) return undefined;
     let last = 0;
     let prevMag = 0;
-    let swallowUntil = 0;
     let step = -1; // the stop the page is on, or gliding to (-1: none)
     let lastY = window.scrollY;
     let gliding = false;
     let touchY = null;
     let steppedAt = 0;
+    let gestureSum = 0;
+    let gestureSpent = false;
+    let gestureFirst = 0;
+    let gestureSure = false;
     let settleTimer = 0;
+    // Reduced motion: the page scrolls normally, no stops.
+    const stepping = !reduced;
 
     const vh = () => window.innerHeight;
     const deckAt = (f) => {
@@ -808,21 +815,44 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         { id: 'hero', y: deckAt(0) },
         { id: 'about', y: spanAt(SPAN.about, 0.4), ms: 1300 },
         ...timelineStops().map((p, i) => ({ id: `role${i}`, y: spanAt(SPAN.tl, p) })),
-        { id: 'logo', y: spanAt(SPAN.now, 0.31), ms: 1700 },
-        { id: 'mac', y: spanAt(SPAN.now, 0.88), ms: 2100 },
+        // From the last role: ease into Now (the zoom), then, slowly, the
+        // ball becomes the logo as the line rises.
+        { id: 'logo', y: spanAt(SPAN.now, 0.31), ms: 3000, via: { y: spanAt(SPAN.tl, 1), ms: 1300 } },
+        { id: 'mac', y: spanAt(SPAN.now, 0.88), ms: 3000 },
       ];
       if (runwayRef.current) (phone ? PHONE_STOPS : CHAPTER_STOPS).forEach((t, i) => list.push({ id: `chapter${i}`, y: runAt(t), ms: 1300 }));
       return list;
     };
-    const glide = (y, ms, then) => {
+    const glide = (y, ms, via) => {
       gliding = true;
       clearTimeout(settleTimer);
       cancelRef.current?.();
-      cancelRef.current = tweenScroll(y, ms, () => {
+      const land = () => {
+        // A touch cancels a tween (tweenScroll's own rule); here the glide
+        // finishes what it started instead, so no stop is ever half reached.
+        const to = Math.min(y, maxScroll());
+        if (gliding && Math.abs(window.scrollY - to) > 2) {
+          cancelRef.current = tweenScroll(to, 420, land);
+          return;
+        }
         gliding = false;
         lastY = window.scrollY;
-        then?.();
-      });
+      };
+      // Long, cinematic glides ease gently (sine), so what they carry (the
+      // ball becoming the logo, the page becoming the laptop) is spread over
+      // the whole glide instead of rushed through its middle.
+      const curve = ms >= 2000 ? sineInOut : undefined;
+      if (via) {
+        // Two legs: it comes to rest at the waypoint, then sets off again
+        // at once and slows into the stop (the ball starts turning into the
+        // logo as soon as the zoom lands, and settles as the logo).
+        cancelRef.current = tweenScroll(via.y, via.ms, () => {
+          if (!gliding) return;
+          cancelRef.current = tweenScroll(y, ms, land, sineOut);
+        });
+        return;
+      }
+      cancelRef.current = tweenScroll(y, ms, land, curve);
     };
     const msFor = (from, to) => Math.min(1500, Math.max(720, 520 + (Math.abs(to - from) / vh()) * 900));
     const goTo = (i, msOverride) => {
@@ -842,10 +872,11 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       // Neighbouring stops can ask for their own pace (the logo and the
       // laptop take their time), in both directions.
       const paced = Math.abs(i - prev) === 1 ? (i > prev ? s[i].ms : s[prev].ms) : null;
-      glide(s[i].y, msOverride ?? paced ?? msFor(window.scrollY, s[i].y));
+      const via = i === prev + 1 ? s[i].via : null;
+      glide(s[i].y, msOverride ?? paced ?? msFor(window.scrollY, s[i].y), via);
     };
     const nearest = (s, y) => s.reduce((best, x, i) => (Math.abs(x.y - y) < Math.abs(s[best].y - y) ? i : best), 0);
-    const inRange = (s, y) => s.length > 0 && y <= s[s.length - 1].y + 2;
+    const inRange = (s, y) => stepping && s.length > 0 && y <= s[s.length - 1].y + 2;
     // Which stop to move from: the one the page is on or gliding to, else
     // wherever it is now.
     const next = (dir) => {
@@ -891,31 +922,45 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const t = e.timeStamp || performance.now();
       const sideways = Math.abs(e.deltaX) > Math.abs(e.deltaY);
       const delta = sideways ? e.deltaX : e.deltaY;
-      const mag = Math.abs(delta);
+      const mag = Math.abs(delta) * (e.deltaMode === 1 ? 16 : 1);
       const gap = t - last;
-      const push = gap > 160 || mag > prevMag * 1.3 + 2;
+      // Gestures: a pause starts a new one; so does a clear surge in the
+      // middle of the last one's coasting (a second swipe on top of it). A
+      // gesture steps once, when it has travelled a real distance, so a
+      // trackpad's coasting tail (tiny deltas, sometimes far apart) never
+      // does. A gesture that overlaps a glide is spent.
+      const surge = mag >= 12 && mag > prevMag * 1.5 + 4 && t - steppedAt > 1200;
+      if (gap > 220 || surge) {
+        gestureSum = 0;
+        gestureSpent = gliding;
+        gestureFirst = mag;
+        // After a long pause (a mouse wheel click, a new swipe) it counts at
+        // once; after a short one it must build up first, or it is the last
+        // gesture's coasting resuming after a hiccup.
+        gestureSure = gap > 600 || surge;
+      }
+      gestureSum += mag;
+      if (mag > gestureFirst * 1.3 + 1) gestureSure = true;
       last = t;
       prevMag = mag;
       if (closingRef.current) {
-        e.preventDefault();
-        swallowUntil = t + 5000;
-        return;
-      }
-      if (swallowUntil && !push && t < swallowUntil) {
+        gestureSpent = true; // the swipe that pressed Shut Down is still coasting
         e.preventDefault();
         return;
       }
-      swallowUntil = 0;
-      const s = stops();
-      if (inRange(s, window.scrollY) || (step >= 0 && gliding)) {
+      // Nothing moves the page under a glide (it would cancel it); the
+      // input that arrives meanwhile is dropped, not queued.
+      if (gliding) {
+        gestureSpent = true;
         e.preventDefault();
-        // A step needs a new gesture: a pause, or a fresh push well after the
-        // last step (a swipe's own ramp-up must not count as several).
-        const fresh = gap > 160 || (push && t - steppedAt > 600);
-        if (fresh && mag > 1) {
+        return;
+      }
+      if (inRange(stops(), window.scrollY)) {
+        e.preventDefault();
+        if (!gestureSpent && gestureSure && gestureSum >= 30) {
+          gestureSpent = true;
           steppedAt = t;
           goTo(next(Math.sign(delta)));
-          swallowUntil = t + 1500; // this swipe's tail moves nothing
         }
         return;
       }
@@ -930,16 +975,16 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       touchY = e.touches[0]?.clientY ?? null;
     };
     const onTouchMove = (e) => {
-      if (closingRef.current || (touchY != null && engaged())) e.preventDefault();
+      if (closingRef.current || gliding || (touchY != null && engaged())) e.preventDefault();
     };
     const onTouchEnd = (e) => {
       if (touchY == null || closingRef.current) return;
       const dy = touchY - (e.changedTouches[0]?.clientY ?? touchY);
       touchY = null;
-      if (Math.abs(dy) > 24 && (engaged() || gliding)) goTo(next(Math.sign(dy)));
+      if (Math.abs(dy) > 24 && !gliding && engaged()) goTo(next(Math.sign(dy)));
     };
     const onKey = (e) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || closingRef.current || !engaged()) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || closingRef.current || (!engaged() && !gliding)) return;
       const tag = e.target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (e.key === ' ' && (tag === 'BUTTON' || tag === 'A')) return;
@@ -947,7 +992,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const back = ['ArrowUp', 'PageUp', 'ArrowLeft'].includes(e.key);
       if (!fwd && !back) return;
       e.preventDefault();
-      goTo(next(fwd ? 1 : -1));
+      if (!gliding) goTo(next(fwd ? 1 : -1));
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -966,7 +1011,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('keydown', onKey);
     };
-  }, [active, phone]);
+  }, [active, phone, reduced]);
 
   // "Keep scrolling": armed by scrolling, cleared by the next scroll. Never
   // at the very top (the hero has its own cue), nor in the Mac's room.
@@ -1010,7 +1055,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * t);
   }, []);
   const sceneFadeFrom = useCallback(() => nowY(0.4), [nowY]);
-  const sceneFadeTo = useCallback(() => nowY(0.7), [nowY]);
+  const sceneFadeTo = useCallback(() => nowY(0.8), [nowY]);
 
   const flat = !use3D && !phone;
 

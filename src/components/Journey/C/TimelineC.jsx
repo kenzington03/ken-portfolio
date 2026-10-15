@@ -1,11 +1,12 @@
 // Ten years in one frame, quietly. A hairline ruler spans the screen with a
-// small tick per year and a dot where each job began. The ball travels from
-// 2015 to Now one role at a time (the journey steps it: one scroll, one role);
-// only the job the ball is on is written out: the company large above the
-// ball, Ken's title and the years below it. The words travel with the ball
-// and change with a short slide, so nothing can ever overlap. The year rolls
-// big in the top left. At the end the camera zooms in on Now, dead centre,
-// where the ball becomes the Apple logo.
+// small tick per year. The ball visits each role one at a time (the journey
+// steps it: one scroll, one role): the internships first, in blue, then the
+// work, in ink. Arriving at a role draws its span along the ruler in its
+// colour. Only the role the ball is on is written out: the company large
+// above the ball, Ken's title and the years below it; the words travel with
+// the ball and change with a short slide, so nothing can ever overlap. The
+// year rolls big in the top left. At the end the camera zooms in on Now, dead
+// centre, where the ball becomes the Apple logo.
 
 import { useLayoutEffect, useState } from 'react';
 import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useTransform } from 'framer-motion';
@@ -14,8 +15,9 @@ import styles from './Timeline.module.css';
 
 const START = 2015;
 const NOW_YEAR = 2026.75;
-const FIRST = 2015.6; // the first job starts here, so there is always one to show
-const CHRONO = [...ROLES].reverse();
+const byStart = (a, b) => a.from - b.from;
+// The order the ball visits: internships, then work, each oldest first.
+const SEQ = [...ROLES.filter((r) => r.internship).sort(byStart), ...ROLES.filter((r) => !r.internship).sort(byStart)];
 const keyOf = (r) => `${r.company}-${r.from}`;
 
 // Company logos: drop a transparent SVG or PNG named after the company
@@ -28,15 +30,13 @@ const logoFor = (r) => {
   return hit ? hit[1] : null;
 };
 
-// What sits behind the chart. 'band' shades the span of the job the ball is
-// on; 'glow' lights the grid up around the ball as it travels; 'grid' is the
-// plain grid. ?tlbg= picks one while comparing.
+// Behind the chart, the plain grid. ?tlbg=glow inks the grid darker around
+// the ball instead, for comparing.
 const pickBg = () => {
   try {
-    const v = new URLSearchParams(window.location.search).get('tlbg');
-    return ['band', 'glow', 'grid'].includes(v) ? v : 'band';
+    return new URLSearchParams(window.location.search).get('tlbg') === 'glow' ? 'glow' : 'grid';
   } catch {
-    return 'band';
+    return 'grid';
   }
 };
 const YEARS = Array.from({ length: Math.floor(NOW_YEAR) - START + 1 }, (_, i) => START + i);
@@ -56,31 +56,37 @@ const EASE = [0.16, 1, 0.3, 1];
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
 const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
-const yearAt = (p) => FIRST + (NOW_YEAR - FIRST) * inOut(within(p, 0, FILL_END));
 const smooth = (t) => t * t * (3 - 2 * t);
 const ROLL = 0.22;
 
-/** Progress at which the ball reaches year `yr` (inverse of yearAt). */
-function progressFor(yr) {
-  const target = clamp01((yr - FIRST) / (NOW_YEAR - FIRST));
-  let lo = 0;
-  let hi = 1;
-  for (let i = 0; i < 30; i += 1) {
-    const mid = (lo + hi) / 2;
-    if (inOut(mid) < target) lo = mid;
-    else hi = mid;
+/** The year the ball rests on for a role: just past its start, and never
+ *  while the year is rolling over, so the wheel reads the year it began. */
+const restYear = (r) => {
+  const yr = r.from + 0.03;
+  const f = yr - Math.floor(yr);
+  return f < ROLL + 0.02 ? Math.floor(yr) + ROLL + 0.02 : yr;
+};
+// One even step of scroll per role; after the last, on to Now.
+const STOPS = SEQ.map((_, i) => (i / SEQ.length) * FILL_END);
+const PATH = [...SEQ.map(restYear), NOW_YEAR];
+const KNOTS = [...STOPS, FILL_END];
+const yearAt = (p) => {
+  if (p <= 0) return PATH[0];
+  for (let i = 0; i < KNOTS.length - 1; i += 1) {
+    if (p <= KNOTS[i + 1]) return PATH[i] + (PATH[i + 1] - PATH[i]) * within(p, KNOTS[i], KNOTS[i + 1]);
   }
-  return ((lo + hi) / 2) * FILL_END;
-}
-
-/** Where the ball stops, one per job: just past each start, and never while
- *  the year is rolling over, so the wheel always reads the year it began. */
-export const timelineStops = () =>
-  CHRONO.map((r) => {
-    const yr = Math.max(FIRST, r.from + 0.03);
-    const f = yr - Math.floor(yr);
-    return progressFor(f < ROLL + 0.02 ? Math.floor(yr) + ROLL + 0.02 : yr);
+  return NOW_YEAR;
+};
+const roleAt = (p) => {
+  let n = 0;
+  STOPS.forEach((s, i) => {
+    if (p >= s - 0.002) n = i;
   });
+  return n;
+};
+
+/** Where the ball rests, one stop per role, as timeline progress. */
+export const timelineStops = () => [...STOPS];
 
 function Wheel({ year, place }) {
   // The wheel turns over just after New Year (v - ROLL), not before it.
@@ -147,7 +153,6 @@ export default function TimelineC({ progress, fade }) {
   const year = useTransform(progress, yearAt);
   const zoom = useTransform(progress, (p) => inOut(within(p, FILL_END, 1)));
   const camera = useTransform(progress, (p) => timelineCamera(g, p));
-  const inked = useTransform(year, (v) => g.x(v) - g.left);
   const tipX = useTransform(year, (v) => g.x(v));
   // The words follow the ball, kept on screen.
   const labelX = useTransform(year, (v) => Math.min(Math.max(g.x(v) - 18, g.left - 18), g.right - g.labelW + 18));
@@ -159,13 +164,13 @@ export default function TimelineC({ progress, fade }) {
 
   const [active, setActive] = useState(0);
   const [current, setCurrent] = useState(START);
-  useMotionValueEvent(year, 'change', (v) => {
-    const n = Math.max(0, CHRONO.filter((r) => v >= r.from - 0.02).length - 1);
+  useMotionValueEvent(progress, 'change', (p) => {
+    const n = roleAt(p);
     setActive((c) => (c === n ? c : n));
-    const y = yearOf(v);
+    const y = yearOf(yearAt(p));
     setCurrent((c) => (c === y ? c : y));
   });
-  const role = CHRONO[active];
+  const role = SEQ[active];
   const [bg] = useState(pickBg);
   const glowMask = useMotionTemplate`radial-gradient(${g.yearW * 3}px ${g.yearW * 3}px at ${tipX}px ${g.rulerY}px, #000 0%, transparent 100%)`;
   const logo = logoFor(role);
@@ -184,15 +189,6 @@ export default function TimelineC({ progress, fade }) {
       </motion.div>
 
       <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: timelineOrigin(g), opacity: chart }}>
-        {bg === 'band' && (
-          <motion.span
-            className={styles.band}
-            initial={false}
-            animate={{ left: g.x(role.from), width: g.x(role.to ?? NOW_YEAR) - g.x(role.from) }}
-            transition={{ type: 'spring', stiffness: 120, damping: 22 }}
-            aria-hidden
-          />
-        )}
         {bg === 'glow' && (
           <motion.span
             className={styles.glow}
@@ -205,9 +201,20 @@ export default function TimelineC({ progress, fade }) {
             aria-hidden
           />
         )}
-        <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }}>
-          <motion.span className={styles.inked} style={{ width: inked }} />
-        </div>
+        <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }} />
+
+        {/* Each role's span, drawn in its colour once the ball reaches it
+            (work first, so the internships sit on top where they overlap). */}
+        {[...SEQ.map((r, i) => [r, i])]
+          .sort(([a], [b]) => Number(a.internship ?? false) - Number(b.internship ?? false))
+          .map(([r, i]) => (
+            <span
+              key={keyOf(r)}
+              className={`${styles.span} ${r.internship ? styles.intern : ''} ${i <= active ? styles.spanOn : ''}`}
+              style={{ left: g.x(r.from), width: g.x(r.to ?? NOW_YEAR) - g.x(r.from) }}
+              aria-hidden
+            />
+          ))}
 
         {YEARS.map((y) => (
           <span key={y} className={`${styles.tick} ${y <= current ? styles.tickPast : ''} ${y === current ? styles.tickOn : ''}`} style={{ left: g.x(y) }}>
@@ -218,12 +225,12 @@ export default function TimelineC({ progress, fade }) {
           <b>Now</b>
         </span>
 
-        {/* Where each job began: a small dot that fills once reached. */}
-        {CHRONO.map((r, i) => (
-          <span key={keyOf(r)} className={`${styles.start} ${i <= active ? styles.startOn : ''}`} style={{ left: g.x(r.from) }} aria-hidden />
+        {/* Where each role began: a small dot that fills once reached. */}
+        {SEQ.map((r, i) => (
+          <span key={keyOf(r)} className={`${styles.start} ${r.internship ? styles.intern : ''} ${i <= active ? styles.startOn : ''}`} style={{ left: g.x(r.from) }} aria-hidden />
         ))}
 
-        <motion.span className={styles.tip} style={{ left: tipX, scale: tipScale }} aria-hidden />
+        <motion.span className={`${styles.tip} ${role.internship ? styles.intern : ''}`} style={{ left: tipX, scale: tipScale }} aria-hidden />
       </motion.div>
 
       {/* The job the ball is on: company above the line, title and years below. */}
@@ -258,7 +265,7 @@ export default function TimelineC({ progress, fade }) {
                 {years(role)}
                 {role.internship && <span className={styles.tag}>Internship</span>}
                 <span className={styles.count}>
-                  {String(active + 1).padStart(2, '0')} of {String(CHRONO.length).padStart(2, '0')}
+                  {String(active + 1).padStart(2, '0')} of {String(SEQ.length).padStart(2, '0')}
                 </span>
               </p>
             </motion.div>

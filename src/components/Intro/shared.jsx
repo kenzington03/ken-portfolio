@@ -38,8 +38,9 @@ export function maxScroll() {
 /**
  * Tween window scroll; any real user input interrupts it (the user takes
  * over, so `onDone` still fires). Returns a silent cancel fn for cleanup.
+ * `curve` swaps the easing (default: the intro's ease).
  */
-export function tweenScroll(to, ms, onDone) {
+export function tweenScroll(to, ms, onDone, curve = ease) {
   const from = window.scrollY;
   const start = performance.now();
   let raf = 0;
@@ -61,7 +62,7 @@ export function tweenScroll(to, ms, onDone) {
   window.addEventListener('keydown', interrupt);
   const step = (t) => {
     const k = Math.min(1, (t - start) / ms);
-    window.scrollTo(0, from + (to - from) * ease(k));
+    window.scrollTo(0, from + (to - from) * curve(k));
     if (k < 1) raf = requestAnimationFrame(step);
     else interrupt();
   };
