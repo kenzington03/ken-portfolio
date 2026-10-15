@@ -41,7 +41,7 @@ export default function About() {
         <h2 className={styles.sectionTitle}>Experience</h2>
         <div className={styles.timeline}>
           {ROLES.map((job) => (
-            <div key={job.company} className={styles.timelineItem}>
+            <div key={`${job.company}-${job.from}`} className={styles.timelineItem}>
               <div className={styles.company}>{job.company}</div>
               <div className={styles.role}>{job.role}</div>
               <div className={styles.dates}>{job.dates}</div>

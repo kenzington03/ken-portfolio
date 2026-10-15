@@ -6,7 +6,7 @@
 
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { SceneBoundary, maxScroll, tweenScroll } from '../Intro/shared.jsx';
-import { CHAPTERS, HANDOFF_AT, chapterAt, ease, ramp, roomColor } from '../Intro3/timeline.js';
+import { CHAPTERS, CHAPTER_STOPS, HANDOFF_AT, chapterAt, ease, ramp, roomColor } from '../Intro3/timeline.js';
 import { CHAPTER_CAPTIONS } from './content.js';
 import styles from './MacRoom.module.css';
 
@@ -14,7 +14,7 @@ const World = lazy(() => import('./World.jsx'));
 const CLOSE_MS = 1300;
 // Shut Down closes the lid and comes to rest on the Ship chapter (word and
 // caption fully in, lid shut, before the lid beat begins).
-const CLOSED_AT = 0.645;
+const CLOSED_AT = CHAPTER_STOPS[2];
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 /** Reveals a chapter's caption word by word (t 0..1): each word rises out of

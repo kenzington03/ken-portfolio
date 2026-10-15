@@ -113,7 +113,7 @@ function ResumeContent() {
       <div className={styles.resumeSection}>
         <h3 className={styles.sectionHead}>Experience</h3>
         {ROLES.map((r) => (
-          <div key={r.company} className={styles.resumeItem}>
+          <div key={`${r.company}-${r.from}`} className={styles.resumeItem}>
             <p className={styles.resumeRole}>{r.role}</p>
             <p className={styles.resumeOrg}>
               {r.company} · {r.dates.replace(' - ', ' to ')}

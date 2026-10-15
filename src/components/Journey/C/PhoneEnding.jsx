@@ -21,6 +21,8 @@ const WINDOWS = [
   [0.52, 0.76],
 ];
 const ZOOM = [0.78, 1];
+// Where the journey rests on each word, its caption in (one scroll each).
+export const PHONE_STOPS = WINDOWS.map(([a]) => a + 0.15);
 
 // iPhone 15 Pro: 70.6 x 146.6 mm body, ~2.7 mm bezel, 6.1" display with
 // rounded corners. Everything is derived from the body width.

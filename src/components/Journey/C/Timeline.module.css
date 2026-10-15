@@ -36,7 +36,9 @@
 .wheel {
   display: inline-block;
   height: 0.84em;
-  overflow: hidden;
+  /* Clip the roll top and bottom only: the tight tracking lets each digit
+     reach past its box sideways, and those edges must not be cut. */
+  clip-path: inset(0 -0.25em);
 }
 
 .wheelStrip {
@@ -54,11 +56,31 @@
 
 .title {
   margin: 0.4em 0 0;
-  max-width: 12ch;
+  max-width: 22ch;
   font: 500 clamp(17px, 1.4vw, 22px) / 1.3 var(--text);
   letter-spacing: -0.01em;
   color: var(--muted);
   text-align: right;
+}
+
+/* Behind the chart: the span of the job the ball is on. */
+.band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  box-shadow:
+    inset 1px 0 0 color-mix(in srgb, var(--ink) 14%, transparent),
+    inset -1px 0 0 color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+/* Or: the grid, inked darker around the ball as it travels. */
+.glow {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--ink) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--ink) 40%, transparent) 1px, transparent 1px);
 }
 
 /* Everything that zooms. */
@@ -199,6 +221,22 @@
   text-wrap: balance;
 }
 
+.hasLogo {
+  line-height: 0;
+}
+
+/* A supplied logo, inked to match the type. */
+.logo {
+  display: block;
+  height: 0.92em;
+  width: auto;
+  max-width: 6.5em;
+  object-fit: contain;
+  object-position: left bottom;
+  filter: brightness(0);
+  opacity: 0.92;
+}
+
 .detail {
   position: absolute;
   left: 0;
@@ -220,6 +258,21 @@
   font: 400 clamp(14px, 1vw, 16px) / 1.3 var(--text);
   font-variant-numeric: tabular-nums lining-nums;
   color: var(--muted);
+}
+
+.full {
+  margin: -2px 0 8px;
+  font: 400 clamp(13px, 0.95vw, 15px) / 1.3 var(--text);
+  color: var(--muted);
+}
+
+.tag {
+  padding: 2px 8px 3px;
+  border-radius: 999px;
+  font-size: 0.85em;
+  line-height: 1.2;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 22%, transparent);
 }
 
 .count {

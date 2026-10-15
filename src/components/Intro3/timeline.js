@@ -15,6 +15,10 @@ export const BEATS = {
 
 export const HANDOFF_AT = 0.975;
 
+// Where the journey rests on each word, its caption in: one scroll each.
+// Shut Down glides back to the last one.
+export const CHAPTER_STOPS = [0.18, 0.41, 0.645];
+
 export const CHAPTERS = [
   {
     id: 'build',

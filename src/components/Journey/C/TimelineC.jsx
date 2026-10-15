@@ -1,6 +1,6 @@
 // Ten years in one frame, quietly. A hairline ruler spans the screen with a
 // small tick per year and a dot where each job began. The ball travels from
-// 2015 to Now one job at a time (the journey steps it: one scroll, one job);
+// 2015 to Now one role at a time (the journey steps it: one scroll, one role);
 // only the job the ball is on is written out: the company large above the
 // ball, Ken's title and the years below it. The words travel with the ball
 // and change with a short slide, so nothing can ever overlap. The year rolls
@@ -8,7 +8,7 @@
 // where the ball becomes the Apple logo.
 
 import { useLayoutEffect, useState } from 'react';
-import { AnimatePresence, motion, useMotionValueEvent, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useTransform } from 'framer-motion';
 import { ROLES } from '../../../data/about.js';
 import styles from './Timeline.module.css';
 
@@ -16,6 +16,29 @@ const START = 2015;
 const NOW_YEAR = 2026.75;
 const FIRST = 2015.6; // the first job starts here, so there is always one to show
 const CHRONO = [...ROLES].reverse();
+const keyOf = (r) => `${r.company}-${r.from}`;
+
+// Company logos: drop a transparent SVG or PNG named after the company
+// (lower case, dashes: tandem-digital.svg) into src/assets/logos and it
+// replaces the written name, inked to match. Until then the name shows.
+const LOGO_FILES = import.meta.glob('../../../assets/logos/*.{svg,png,webp}', { eager: true, query: '?url', import: 'default' });
+const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+const logoFor = (r) => {
+  const hit = Object.entries(LOGO_FILES).find(([path]) => path.split('/').pop().replace(/\.[a-z]+$/, '') === slug(r.company));
+  return hit ? hit[1] : null;
+};
+
+// What sits behind the chart. 'band' shades the span of the job the ball is
+// on; 'glow' lights the grid up around the ball as it travels; 'grid' is the
+// plain grid. ?tlbg= picks one while comparing.
+const pickBg = () => {
+  try {
+    const v = new URLSearchParams(window.location.search).get('tlbg');
+    return ['band', 'glow', 'grid'].includes(v) ? v : 'band';
+  } catch {
+    return 'band';
+  }
+};
 const YEARS = Array.from({ length: Math.floor(NOW_YEAR) - START + 1 }, (_, i) => START + i);
 const yearOf = (v) => Math.floor(v + 0.05);
 const years = (r) => {
@@ -143,6 +166,9 @@ export default function TimelineC({ progress, fade }) {
     setCurrent((c) => (c === y ? c : y));
   });
   const role = CHRONO[active];
+  const [bg] = useState(pickBg);
+  const glowMask = useMotionTemplate`radial-gradient(${g.yearW * 3}px ${g.yearW * 3}px at ${tipX}px ${g.rulerY}px, #000 0%, transparent 100%)`;
+  const logo = logoFor(role);
 
   return (
     <div className={styles.tl} style={{ '--ruler-y': `${g.rulerY}px` }}>
@@ -154,10 +180,31 @@ export default function TimelineC({ progress, fade }) {
           <Wheel year={year} place={10} />
           <Wheel year={year} place={1} />
         </div>
-        <h2 className={styles.title}>Ten years, six teams.</h2>
+        <h2 className={styles.title}>My career, 2015 to now.</h2>
       </motion.div>
 
       <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: timelineOrigin(g), opacity: chart }}>
+        {bg === 'band' && (
+          <motion.span
+            className={styles.band}
+            initial={false}
+            animate={{ left: g.x(role.from), width: g.x(role.to ?? NOW_YEAR) - g.x(role.from) }}
+            transition={{ type: 'spring', stiffness: 120, damping: 22 }}
+            aria-hidden
+          />
+        )}
+        {bg === 'glow' && (
+          <motion.span
+            className={styles.glow}
+            style={{
+              backgroundSize: `${g.yearW}px ${g.yearW}px`,
+              backgroundPosition: `${g.left % g.yearW}px ${g.rulerY % g.yearW}px`,
+              WebkitMaskImage: glowMask,
+              maskImage: glowMask,
+            }}
+            aria-hidden
+          />
+        )}
         <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }}>
           <motion.span className={styles.inked} style={{ width: inked }} />
         </div>
@@ -173,7 +220,7 @@ export default function TimelineC({ progress, fade }) {
 
         {/* Where each job began: a small dot that fills once reached. */}
         {CHRONO.map((r, i) => (
-          <span key={r.company} className={`${styles.start} ${i <= active ? styles.startOn : ''}`} style={{ left: g.x(r.from) }} aria-hidden />
+          <span key={keyOf(r)} className={`${styles.start} ${i <= active ? styles.startOn : ''}`} style={{ left: g.x(r.from) }} aria-hidden />
         ))}
 
         <motion.span className={styles.tip} style={{ left: tipX, scale: tipScale }} aria-hidden />
@@ -184,30 +231,32 @@ export default function TimelineC({ progress, fade }) {
         <div className={styles.above}>
           <AnimatePresence initial={false}>
             <motion.h3
-              key={role.company}
-              className={styles.company}
+              key={keyOf(role)}
+              className={`${styles.company} ${logo ? styles.hasLogo : ''}`}
               initial={{ y: '60%', opacity: 0, filter: 'blur(6px)' }}
               animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
               exit={{ y: '-40%', opacity: 0, filter: 'blur(6px)' }}
               transition={{ duration: 0.55, ease: EASE }}
             >
-              {role.company}
+              {logo ? <img className={styles.logo} src={logo} alt={role.company} /> : role.company}
             </motion.h3>
           </AnimatePresence>
         </div>
         <div className={styles.below}>
           <AnimatePresence initial={false}>
             <motion.div
-              key={role.company}
+              key={keyOf(role)}
               className={styles.detail}
               initial={{ y: -12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 8, opacity: 0 }}
               transition={{ duration: 0.45, ease: EASE, delay: 0.06 }}
             >
-              <p className={styles.jobTitle}>{role.role}</p>
+              <p className={styles.jobTitle}>{logo ? `${role.role}, ${role.company}` : role.role}</p>
+              {role.full && <p className={styles.full}>{role.full}</p>}
               <p className={styles.when}>
                 {years(role)}
+                {role.internship && <span className={styles.tag}>Internship</span>}
                 <span className={styles.count}>
                   {String(active + 1).padStart(2, '0')} of {String(CHRONO.length).padStart(2, '0')}
                 </span>
