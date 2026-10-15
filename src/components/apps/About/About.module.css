@@ -22,7 +22,7 @@
   height: 180px;
   border-radius: 50%;
   border: 3px solid var(--accent);
-  background: #1c1c1e;
+  background: #1c1c1e url('/assets/profile/ken.jpg') center 20% / cover no-repeat;
   margin-bottom: 20px;
   flex-shrink: 0;
 }

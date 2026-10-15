@@ -1,3 +1,4 @@
+import { assetExists } from '../utils/publicAssets.js';
 import { SIDEBAR_TAG_MAP } from './tags.js';
 import { filterProjects } from '../utils/projectFilters.js';
 
@@ -167,5 +168,6 @@ export function getProjectCoverUrl(project) {
 }
 
 export function getProjectLogoUrl(project) {
-  return project.logo ?? getProjectCoverUrl(project);
+  // A listed logo that is not in the repo falls back to the cover.
+  return project.logo && assetExists(project.logo) !== false ? project.logo : getProjectCoverUrl(project);
 }

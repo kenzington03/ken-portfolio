@@ -4,6 +4,7 @@ import {
   MILESTONE_LOGO,
 } from '../data/milestoneCampaigns.js';
 import { MILESTONE_REEL_VIDEO_KEYS, resolveVideoKeys } from '../data/cloudinaryVideos.js';
+import { assetExists } from './publicAssets.js';
 
 const IMAGE_EXT = ['jpg', 'png', 'jpeg', 'webp'];
 
@@ -12,6 +13,8 @@ function pad(n) {
 }
 
 function probeImage(url) {
+  const known = assetExists(url);
+  if (known !== undefined) return Promise.resolve(known);
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(true);

@@ -47,10 +47,9 @@ export default function JourneyBridge() {
       launch('about', { auto: true, position: { x: Math.round(usableW * 0.03), y: 46 } });
       sequence.current.push(
         setTimeout(() => launch('pdfviewer', { auto: true, position: { x: Math.round(usableW - 680 - usableW * 0.02), y: Math.round(vh * 0.16) } }), MESSY_GAP_MS),
-        setTimeout(
-          () => launch('finder', { auto: true, size: { width: Math.round(Math.min(1180, usableW * 0.7)), height: Math.round(Math.min(760, (vh - 164) * 0.86)) } }),
-          MESSY_GAP_MS * 2,
-        ),
+        // Portfolio on top, nearly full screen (the roomy work size), so the
+        // work gets the room; About and the Resume peek out behind it.
+        setTimeout(() => launch('finder', { auto: true }), MESSY_GAP_MS * 2),
       );
     };
 

@@ -63,6 +63,7 @@ export default function MenuBar({ onOpenAchievements, onShutDown }) {
             type="button"
             className={`${styles.logo} ${appleOpen ? styles.logoActive : ''}`}
             aria-label="Apple menu"
+            data-tour="menu-apple"
             aria-haspopup="menu"
             aria-expanded={appleOpen}
             onClick={() => setAppleOpen((o) => !o)}

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/asset-manifest.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "dev:v7": "vite --port 5179"

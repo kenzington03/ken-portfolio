@@ -3,23 +3,24 @@ import { useOS } from '../../context/OSContext.jsx';
 import { useSeenOnce } from '../../hooks/useSeenOnce.js';
 import styles from './OnboardingTour.module.css';
 
+// Three things worth knowing, in the order a visitor needs them.
 const STEPS = [
   {
-    selector: '[data-tour="dock-portfolio"]',
-    title: 'Start here',
-    text: "This is the Dock, click Portfolio anytime to jump straight into my work.",
-    placement: 'top',
-  },
-  {
     selector: '[data-tour="desktop-icon"]',
-    title: 'Rearrange freely',
-    text: 'These desktop icons can be dragged anywhere you like, make yourself at home.',
+    title: 'Meet Ken',
+    text: 'Start with About Ken for the story, or Contact to say hello. Both live here on the desktop.',
     placement: 'left',
   },
   {
-    selector: '[data-tour="menu-achievements"]',
-    title: 'Little surprises',
-    text: "Explore around and you'll unlock achievements, check progress here.",
+    selector: '[data-tour="dock-portfolio"]',
+    title: 'The work',
+    text: 'Portfolio holds the projects: brands, campaigns, interfaces and motion. Open it from the Dock anytime.',
+    placement: 'top',
+  },
+  {
+    selector: '[data-tour="menu-apple"]',
+    title: 'Done looking?',
+    text: 'Shut Down is in this menu. Or scroll up twice on the desktop, away from any window, to close the Mac.',
     placement: 'bottom',
   },
 ];
@@ -30,7 +31,7 @@ const SPOTLIGHT_PAD = 8;
 
 export default function OnboardingTour() {
   const { helloVisible, helloDismissed, clearTourGate } = useOS();
-  const [seen, markSeen] = useSeenOnce('onboarding-tour-v1');
+  const [seen, markSeen] = useSeenOnce('onboarding-tour-v2');
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);

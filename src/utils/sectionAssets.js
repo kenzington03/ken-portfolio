@@ -5,6 +5,7 @@ import {
   resolveVideoKeys,
 } from '../data/cloudinaryVideos.js';
 import { getSectionManifestImages } from '../data/sectionImageManifest.js';
+import { assetExists } from './publicAssets.js';
 
 const IMAGE_EXT = ['jpg', 'png', 'jpeg', 'webp', 'avif', 'gif'];
 
@@ -13,6 +14,8 @@ function pad(n) {
 }
 
 export function probeImage(url) {
+  const known = assetExists(url);
+  if (known !== undefined) return Promise.resolve(known);
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(true);
@@ -23,6 +26,8 @@ export function probeImage(url) {
 
 /** Supports local paths and absolute URLs (e.g. Cloudinary). */
 export function probeVideo(url) {
+  const known = assetExists(url);
+  if (known !== undefined) return Promise.resolve(known);
   return new Promise((resolve) => {
     const video = document.createElement('video');
     const cleanup = () => {

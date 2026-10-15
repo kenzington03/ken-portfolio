@@ -4,7 +4,7 @@ import styles from './ShutdownPrompt.module.css';
 
 const SWIPES_TO_SHUT_DOWN = 2;
 /** A trackpad flick fires dozens of wheel events; a pause this long ends one swipe. */
-const GESTURE_GAP_MS = 260;
+const GESTURE_GAP_MS = 220;
 const IDLE_RESET_MS = 2600;
 
 const RING_R = 30;
@@ -23,15 +23,25 @@ function scrollableAbove(target) {
   return false;
 }
 
+/** True if the pointer is over an app window (Portfolio, About...): scrolling
+ *  there is reading, never a request to shut down, even at the top. */
+function overWindow(target) {
+  return target instanceof Element && !!target.closest('[role="dialog"]');
+}
+
 /**
- * Scrolling up on the desktop (past anything scrollable) asks to shut down.
- * Each separate swipe fills a fifth of the ring; the fifth shuts down. Any
- * downward scroll or a few idle seconds drains it, a stray flick never
+ * Scrolling up on the desktop itself (not over a window, and past anything
+ * scrollable) asks to shut down. Each swipe fills part of the ring; the last
+ * one shuts down. A swipe counts when it starts after a pause or as a fresh
+ * push on top of the last one's coasting, so two quick swipes do it. Any
+ * downward scroll or a few idle seconds drains it, so a stray flick never
  * surprises anyone.
  */
 export default function ShutdownPrompt({ onShutDown, disabled = false }) {
   const [count, setCount] = useState(0);
   const lastEventRef = useRef(0);
+  const magRef = useRef(0);
+  const countedAtRef = useRef(0);
   const countRef = useRef(0);
   const idleRef = useRef(0);
 
@@ -47,15 +57,19 @@ export default function ShutdownPrompt({ onShutDown, disabled = false }) {
         if (countRef.current) set(0);
         return;
       }
-      if (e.deltaY === 0 || scrollableAbove(e.target)) return;
+      if (e.deltaY === 0 || overWindow(e.target) || scrollableAbove(e.target)) return;
 
-      const now = performance.now();
-      const newSwipe = now - lastEventRef.current > GESTURE_GAP_MS;
+      const now = e.timeStamp || performance.now();
+      const mag = Math.abs(e.deltaY);
+      const surge = mag >= 12 && mag > magRef.current * 1.5 + 4 && now - countedAtRef.current > 350;
+      const newSwipe = now - lastEventRef.current > GESTURE_GAP_MS || surge;
       lastEventRef.current = now;
+      magRef.current = mag;
       window.clearTimeout(idleRef.current);
       idleRef.current = window.setTimeout(() => set(0), IDLE_RESET_MS);
       if (!newSwipe) return;
 
+      countedAtRef.current = now;
       const next = countRef.current + 1;
       set(next);
       if (next >= SWIPES_TO_SHUT_DOWN) {
