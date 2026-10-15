@@ -27,7 +27,8 @@
 }
 
 
-/* ---------- Loader: an iris opening with real progress ---------- */
+/* ---------- Loader: a line to read and one hairline of real progress,
+   on the hero's own paper, so it melts straight into it ---------- */
 .loader {
   position: fixed;
   inset: 0;
@@ -35,96 +36,51 @@
   display: grid;
   place-content: center;
   justify-items: center;
-  gap: clamp(22px, 4vh, 38px);
-  background: #07070a;
-  transition: opacity 560ms ease, transform 700ms var(--ease);
+  gap: 28px;
+  padding: 0 24px;
+  background: var(--paper);
+  transition: opacity 560ms ease;
 }
 
 .loaderOut {
   opacity: 0;
-  transform: scale(1.06);
   pointer-events: none;
-}
-
-.lens {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: clamp(150px, 19vw, 230px);
-  aspect-ratio: 1;
-}
-
-.aperture {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.apertureHole {
-  fill: #ebebe8;
-}
-
-.blade {
-  fill: #15151a;
-  stroke: #33333c;
-  stroke-width: 0.6;
-  stroke-linejoin: round;
-}
-
-.apertureRing {
-  fill: none;
-  stroke: #2a2a31;
-  stroke-width: 1.4;
-}
-
-.progressRing {
-  fill: none;
-  stroke: #ececea;
-  stroke-width: 1.2;
-  stroke-linecap: round;
-  stroke-dasharray: 1;
-  transform: rotate(-90deg);
-}
-
-.pct {
-  position: absolute;
-  font: 700 clamp(15px, 1.5vw, 19px) / 1 var(--display);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: #fff;
-  mix-blend-mode: difference;
 }
 
 .loaderLine {
   display: grid;
   place-items: center;
-  height: 1.3em;
-  font-size: clamp(20px, 2.2vw, 32px);
+  min-height: 2.6em;
+  font-size: clamp(20px, 2.1vw, 30px);
 }
 
 .loaderText {
   margin: 0;
+  max-width: 24ch;
   font-family: var(--display);
   font-size: inherit;
   font-weight: 600;
-  font-variation-settings: 'wdth' 88;
+  font-variation-settings: 'opsz' 48, 'wdth' 92;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  white-space: nowrap;
-  color: transparent;
-  background: linear-gradient(100deg, #5c5c64 0%, #5c5c64 40%, #ffffff 50%, #5c5c64 60%, #5c5c64 100%) 0 0 / 240% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer 2.2s linear infinite;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink);
 }
 
-@keyframes shimmer {
-  from {
-    background-position: 120% 0;
-  }
-  to {
-    background-position: -120% 0;
-  }
+.loaderBar {
+  position: relative;
+  width: clamp(120px, 14vw, 180px);
+  height: 1px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+.loaderBar span {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform-origin: left center;
 }
 
 /* ---------- Bar ---------- */
@@ -1046,11 +1002,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loaderText {
-    animation: none;
-    color: #ececea;
-    background: none;
-  }
   .ken,
   .kenLetter > span,
   .figureIn {

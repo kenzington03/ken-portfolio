@@ -43,11 +43,31 @@ const HERO_VIDEO = {
   rate: 1,
 };
 
-// Shimmering lines for the loader. How many get shown depends on how long
-// loading really takes; the last one always closes it.
-const LOADING = ['Designer, Hyderabad', 'Ten years in', 'Brands, motion, interfaces', 'Trial and error, mostly error'];
-const LOADING_LAST = 'Setting up the shot';
-const LINE_MS = 900;
+// Things to read while it loads: a little about Ken, a little design humour.
+// They come in a shuffled order, so a second visit reads differently.
+const LOADING = [
+  '31 pani puris in one minute. Personal best.',
+  'Hobbies: basketball, music, chess.',
+  'Still trying to bring back Pokémon Go from 2016.',
+  'Kerning the loading text. Please hold.',
+  'Making the logo bigger, as requested.',
+  'No Comic Sans was harmed in this website.',
+  'One does not simply skip the loading screen.',
+  'Cmd+Z is my love language.',
+  'Exporting final_final_v3.psd',
+  'May the fonts be with you.',
+  'Hold my chai.',
+  'It is not a bug. It is a feature.',
+];
+const shuffled = (list) => {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const LINE_MS = 1500;
 const MIN_LOAD_MS = 1700; // with the closing beat the loader lasts about 3.5 s on a fast line
 const MAX_LOAD_MS = 9000;
 // Returning visitors have the assets cached: they go straight in.
@@ -116,44 +136,10 @@ function useAssetProgress(enabled) {
   return p;
 }
 
-/** A six-blade iris. `open` 0..1 widens the hexagonal opening; light shows through. */
-function Aperture({ open }) {
-  const R = 50;
-  const r = 5 + open * 39;
-  const twist = 34 - open * 10;
-  const pt = (rad, deg) => {
-    const a = (deg * Math.PI) / 180;
-    return `${(rad * Math.cos(a)).toFixed(2)},${(rad * Math.sin(a)).toFixed(2)}`;
-  };
-  return (
-    <svg className={styles.aperture} viewBox="-56 -56 112 112" aria-hidden>
-      <defs>
-        <clipPath id="c-iris">
-          <circle r={R} />
-        </clipPath>
-      </defs>
-      <circle r={R} className={styles.apertureHole} />
-      <g clipPath="url(#c-iris)">
-        {Array.from({ length: 6 }, (_, i) => {
-          const a = i * 60 - 90;
-          return (
-            <polygon
-              key={i}
-              className={styles.blade}
-              points={`${pt(r, a)} ${pt(r, a + 60)} ${pt(R + 14, a + 60 + twist)} ${pt(R + 14, a + twist)}`}
-            />
-          );
-        })}
-      </g>
-      <circle r={R} className={styles.apertureRing} />
-      <circle r={R + 4} className={styles.progressRing} pathLength="1" style={{ strokeDashoffset: 1 - open }} />
-    </svg>
-  );
-}
-
 function Loader({ reduced, onDone }) {
   const real = useAssetProgress(true);
   const [shown, setShown] = useState(0);
+  const [lines] = useState(() => shuffled(LOADING));
   const [line, setLine] = useState(0);
   const [out, setOut] = useState(false);
   const realRef = useRef(0);
@@ -178,9 +164,8 @@ function Loader({ reduced, onDone }) {
         lastLineAt = now;
         if (ready) {
           closing = true;
-          setLine(-1); // the closing line
-          setTimeout(() => setOut(true), reduced ? 200 : 520);
-          setTimeout(onDone, reduced ? 220 : 980);
+          setTimeout(() => setOut(true), reduced ? 120 : 260);
+          setTimeout(onDone, reduced ? 200 : 820);
         } else {
           lineRef.current = (lineRef.current + 1) % LOADING.length;
           setLine(lineRef.current);
@@ -194,29 +179,27 @@ function Loader({ reduced, onDone }) {
   }, []);
 
   const pct = Math.round(shown * 100);
-  const text = line === -1 ? LOADING_LAST : LOADING[line];
+  const text = lines[line];
   return (
     <div className={`${styles.loader} ${out ? styles.loaderOut : ''}`} role="status" aria-label={`Loading, ${pct} percent`}>
-      <div className={styles.lens}>
-        <Aperture open={shown} />
-        <span className={styles.pct} aria-hidden>
-          {String(pct).padStart(2, '0')}
-        </span>
-      </div>
-      <div className={styles.loaderLine} aria-hidden>
+      <div className={styles.loaderLine} aria-live="off">
         <AnimatePresence mode="wait" initial={false}>
           <motion.p
             key={text}
             className={styles.loaderText}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.4, ease: EASE }}
+            initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
+            transition={{ duration: 0.45, ease: EASE }}
           >
             {text}
           </motion.p>
         </AnimatePresence>
       </div>
+      {/* Real progress (fonts, the hero clip, the MacBook): one hairline. */}
+      <span className={styles.loaderBar} aria-hidden>
+        <span style={{ transform: `scaleX(${shown.toFixed(4)})` }} />
+      </span>
     </div>
   );
 }
