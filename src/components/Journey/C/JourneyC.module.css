@@ -614,102 +614,127 @@
   will-change: transform;
 }
 
-/* ---------- About: line one top-left with prints on the right; line two
-   bottom-right with prints on the left ---------- */
+/* ---------- About: who, the promise, then the work fanned out ---------- */
 .aboutPanel {
   overflow: hidden;
   background: transparent;
 }
 
-.aboutOne {
+.about {
   position: absolute;
-  top: clamp(84px, 12vh, 128px);
-  left: var(--gutter);
-  width: min(48%, 700px);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(92px, 14vh, 150px) 24px 0;
+  text-align: center;
 }
 
-/* 1. Who: quiet, one line. */
 .aboutName {
-  margin: 0 0 clamp(4px, 1vh, 12px);
+  margin: 0 0 clamp(12px, 2vh, 20px);
   font: 500 15px/1.3 var(--text);
   color: var(--muted);
+  opacity: 0;
+  transition: opacity 600ms ease;
 }
 
-/* 2. The big thing: "10 years". The number is set heavy and tight, the
-   word light beside it, hanging from the number's top. */
-.tenYears {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.06em;
+.aboutHead {
+  max-width: 15ch;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(150px, 27vh, 300px);
-  line-height: 0.8;
+  font-size: clamp(40px, 5.4vw, 90px);
+  font-weight: 700;
+  font-variation-settings: 'opsz' 96, 'wdth' 90;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
   color: var(--ink);
+  text-wrap: balance;
 }
 
-.ten {
-  font-weight: 800;
-  font-variation-settings: 'opsz' 96, 'wdth' 85;
-  letter-spacing: -0.06em;
-  font-variant-numeric: tabular-nums;
-}
-
-.years {
-  margin-top: 0.06em;
-  font-size: 0.3em;
-  font-weight: 300;
-  font-variation-settings: 'opsz' 96, 'wdth' 100;
-  letter-spacing: -0.03em;
-}
-
-.aboutLine {
-  margin: 0;
-}
-
-/* 3. What: the statement, typed under the number. */
-.aboutLead {
-  max-width: 17ch;
-  margin-top: clamp(14px, 2.4vh, 26px);
-  font-family: var(--display);
-  font-size: clamp(30px, 3.3vw, 56px);
-  font-weight: 560;
-  font-variation-settings: 'opsz' 48, 'wdth' 92;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-}
-
-/* 4. How: the supporting line, in the text face, quieter. */
-.aboutSupport {
-  max-width: 28ch;
-  margin-top: clamp(22px, 4vh, 44px);
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-  font: 400 clamp(17px, 1.35vw, 21px) / 1.4 var(--text);
-  letter-spacing: -0.005em;
-  color: color-mix(in srgb, var(--ink) 70%, transparent);
-}
-
-.untyped {
-  visibility: hidden;
-}
-
-/* The typing caret: a signal-orange bar that blinks while it waits. */
-.caret {
+/* Each word rises out of its own line box. */
+.headWord {
   display: inline-block;
-  width: 0.07em;
-  height: 0.82em;
-  margin: 0 0.04em -0.06em 0.05em;
-  background: var(--accent);
-  animation: blink 1s steps(1) infinite;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  vertical-align: top;
 }
 
-@keyframes blink {
-  50% {
-    opacity: 0;
-  }
+.headWord > span {
+  display: inline-block;
+  transform: translateY(105%);
+  transition: transform 900ms var(--ease) calc(80ms + var(--i) * 55ms);
 }
+
+.aboutSub {
+  max-width: 44ch;
+  margin: clamp(16px, 2.6vh, 26px) 0 0;
+  font: 400 clamp(17px, 1.35vw, 21px) / 1.45 var(--text);
+  letter-spacing: -0.005em;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 700ms ease 520ms, transform 900ms var(--ease) 520ms;
+}
+
+/* The work: one stack that fans out into an arc, the middle card in front. */
+.fan {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 220px;
+  --w: clamp(150px, 15vw, 250px);
+  --step: calc(var(--w) * 0.78);
+}
+
+.card {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(76px, 12vh, 124px);
+  width: var(--w);
+  aspect-ratio: 4 / 5;
+  margin: 0 0 0 calc(var(--w) / -2);
+  overflow: hidden;
+  border-radius: clamp(12px, 1.2vw, 18px);
+  background: #dcdcd8;
+  box-shadow:
+    0 1px 2px rgba(18, 18, 20, 0.1),
+    0 30px 60px -24px rgba(18, 18, 20, 0.45);
+  opacity: 0;
+  transform: translateY(40px) scale(0.92);
+  transition:
+    opacity 500ms ease calc(300ms + var(--i) * 60ms),
+    transform 1300ms var(--ease) calc(300ms + var(--i) * 60ms);
+}
+
+.card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aboutOn .aboutName,
+.aboutOn .aboutSub {
+  opacity: 1;
+  transform: none;
+}
+
+.aboutOn .headWord > span {
+  transform: none;
+}
+
+.aboutOn .card {
+  opacity: 1;
+  transform: translateX(calc(var(--k) * var(--step))) translateY(calc(var(--ak) * var(--w) * 0.07)) rotate(calc(var(--k) * 4deg))
+    scale(calc(1 - var(--ak) * 0.06));
+}
+
+.aboutInstant *,
+.aboutInstant .card {
+  transition: none !important;
+}
+
 
 .bridgeLine {
   position: relative;
@@ -831,56 +856,6 @@
   }
 }
 
-/* ---------- About collage: prints and logo stickers ---------- */
-.collage {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.collagePrint {
-  position: absolute;
-  margin: 0;
-}
-
-/* Darkroom prints: the paper settles first, then the picture develops out
-   of the white, shadows first. */
-.collagePrint {
-  padding: clamp(5px, 0.6vw, 9px);
-  background: #f2f2ee;
-  box-shadow: 0 1px 2px rgba(18, 18, 20, 0.12), 0 24px 48px -20px rgba(18, 18, 20, 0.35);
-  opacity: 0;
-  transform: translateY(26px) rotate(calc(var(--r) * 1.8)) scale(1.04);
-  transition: opacity 500ms ease, transform 160ms ease;
-}
-
-.printOn {
-  opacity: 1;
-  transform: rotate(var(--r));
-  transition: opacity 700ms ease var(--d), transform 1300ms var(--ease) var(--d);
-}
-
-.collagePrint img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  opacity: 0;
-  filter: grayscale(1) contrast(1.5);
-  transition: opacity 200ms ease, filter 200ms ease;
-}
-
-.printOn img {
-  opacity: 1;
-  filter: none;
-  transition: opacity 1600ms cubic-bezier(0.45, 0, 0.25, 1) calc(var(--d) + 250ms), filter 2600ms cubic-bezier(0.45, 0, 0.25, 1) calc(var(--d) + 500ms);
-}
-
-.printInstant,
-.printInstant img {
-  transition: none;
-}
-
 /* ---------- Timeline panel and the cut to the dark ---------- */
 .aboutPanel,
 .timelinePanel {
@@ -964,30 +939,27 @@
   .viewfinder {
     inset: 76px 18px 18px;
   }
-  .aboutOne {
-    top: 76px;
-    width: auto;
-    right: var(--gutter);
+  .about {
+    padding-top: 92px;
   }
   .aboutName {
     font-size: 14px;
   }
-  .tenYears {
-    font-size: clamp(110px, 34vw, 150px);
+  .aboutHead {
+    font-size: clamp(34px, 10vw, 46px);
   }
-  .aboutLead {
-    font-size: clamp(26px, 7.4vw, 34px);
-  }
-  .aboutSupport {
-    margin-top: 14px;
+  .aboutSub {
     font-size: 16px;
   }
-  /* Prints tuck into the band under the words. */
-  .collage {
-    inset: 58% -10% 2% -38%;
+  .fan {
+    --w: 44vw;
+    --step: 25vw;
   }
-  .collagePrint {
-    min-width: 36vw;
+  /* Centred in the room under the words, clear of the scroll cue. */
+  .card {
+    top: 50%;
+    bottom: auto;
+    margin-top: calc(var(--w) * -0.7);
   }
   .storyLineWrap {
     height: calc(50vh - 140px);
@@ -1011,8 +983,7 @@
     display: none;
   }
   .scrollCue i::after,
-  .idleHint i::after,
-  .caret {
+  .idleHint i::after {
     animation: none;
   }
 }

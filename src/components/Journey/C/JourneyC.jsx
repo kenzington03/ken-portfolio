@@ -12,7 +12,7 @@
 //   → lid opens → welcome → macOS.
 // Same contract as the other intros.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import ContactCard from '../../Intro/ContactCard.jsx';
@@ -20,7 +20,6 @@ import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../I
 import { CHAPTER_STOPS, POSES } from '../../Intro3/timeline.js';
 import { playShutter, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
-import { WORK } from '../content.js';
 import TimelineC, { timelineCamera, timelineLayout, timelineOrigin, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import styles from './JourneyC.module.css';
@@ -87,7 +86,6 @@ const markSeen = () => {
   }
 };
 
-export const ABOUT = ['Ten years shaping brands, campaigns and interfaces.', 'I start with the idea and stay for the last pixel.'];
 
 /* ------------------------------------------------------------------ */
 /* Loading: real progress (fonts, hero clip, MacBook model)            */
@@ -417,107 +415,45 @@ const within = (v, [a, b]) => clamp01((v - a) / (b - a));
 /* ------------------------------------------------------------------ */
 
 // Typing runs on time, not scroll, so a pause never leaves a word half-typed.
-const KEY_MS = 30;
-const keyDelay = (ch) => KEY_MS + (ch === ' ' ? 14 : 0) + (ch === ',' || ch === '.' ? 150 : 0) + Math.random() * 16;
-
-function TypedLine({ text, on, instant, onDone, className = '' }) {
-  const [n, setN] = useState(instant ? text.length : 0);
-  const doneRef = useRef(onDone);
-  doneRef.current = onDone;
-  useEffect(() => {
-    if (instant) {
-      setN(text.length);
-      return undefined;
-    }
-    if (!on) {
-      setN(0);
-      return undefined;
-    }
-    let i = 0;
-    let id = 0;
-    const step = () => {
-      i += 1;
-      setN(i);
-      if (i < text.length) id = setTimeout(step, keyDelay(text[i - 1]));
-      else doneRef.current?.();
-    };
-    id = setTimeout(step, KEY_MS);
-    return () => clearTimeout(id);
-  }, [on, instant, text]);
-  const typing = on && !instant && n < text.length;
-  return (
-    <p className={`${styles.aboutLine} ${className}`} aria-label={text}>
-      <span aria-hidden>
-        {text.slice(0, n)}
-        {typing && <span className={styles.caret} />}
-        <span className={styles.untyped}>{text.slice(n)}</span>
-      </span>
-    </p>
-  );
-}
-
-/** The big number: rolls up from 00 to 10 when About arrives, the same
- *  counter the timeline's year uses. */
-function TenCount({ on, instant }) {
-  const [n, setN] = useState(instant ? 10 : 0);
-  useEffect(() => {
-    if (instant) {
-      setN(10);
-      return undefined;
-    }
-    if (!on) {
-      setN(0);
-      return undefined;
-    }
-    let raf = 0;
-    const t0 = performance.now();
-    const tick = (now) => {
-      const k = Math.min(1, (now - t0) / 1100);
-      setN(Math.round(10 * (1 - (1 - k) ** 3)));
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [on, instant]);
-  return <span className={styles.ten}>{String(n).padStart(2, '0')}</span>;
-}
-
-// The statement under "10 years" (the export keeps the full sentence for
-// anything that quotes it).
-const STATEMENT = 'shaping brands, campaigns and interfaces.';
-
-/* ------------------------------------------------------------------ */
-/* About collage: prints land on the table as each line is typed        */
-/* ------------------------------------------------------------------ */
-
-// Pictures only, all on the right half (the words own the left). x / y / w
-// in % of the panel, r in degrees, `line` = which line brings it, `d` =
-// seconds after that line starts.
-const COLLAGE = [
-  { i: 0, x: 55, y: 12, w: 22, r: -5, line: 0, d: 0.2 },
-  { i: 2, x: 75, y: 15, w: 19, r: 6, line: 0, d: 0.6 },
-  { i: 1, x: 62, y: 35, w: 19, r: 3, line: 0, d: 1.0 },
-  { i: 5, x: 80, y: 45, w: 16, r: -4, line: 1, d: 0.2 },
-  { i: 3, x: 55, y: 60, w: 18, r: -6, line: 1, d: 0.55 },
-  { i: 4, x: 73, y: 67, w: 17, r: 7, line: 1, d: 0.9 },
+// About, Apple style: who, the promise, then the work fanned out like a
+// hand of cards. Everything starts as About slides in; nothing is typed.
+const ABOUT_HEAD = 'Ten years of making brands feel like themselves.';
+const ABOUT_SUB =
+  'Identity, campaigns, motion and interfaces, designed as one system, so a brand looks and sounds like itself everywhere it shows up.';
+const FAN = [
+  { src: '/assets/about/milestone-stationery.jpg', alt: 'Milestone Technologies stationery' },
+  { src: '/assets/about/fluid-brain.jpg', alt: 'Fluid AI brand artwork' },
+  { src: '/assets/about/lebron-nike.jpg', alt: 'LeBron James campaign artwork for Nike' },
+  { src: '/assets/about/uvu-brand.jpg', alt: 'Project UVU brand rollout' },
+  { src: '/assets/about/aloft-morrison.jpg', alt: 'Jim Morrison poster for Aloft hotels' },
 ];
 
-function Collage({ lines, instant }) {
+function AboutPanel({ on, instant }) {
+  const words = ABOUT_HEAD.split(' ');
+  const mid = (FAN.length - 1) / 2;
   return (
-    <div className={styles.collage} aria-hidden>
-      {COLLAGE.map((p) => {
-        const w = WORK[p.i];
-        const on = instant || lines[p.line];
-        return (
-          <figure
-            key={p.i}
-            className={`${styles.collagePrint} ${on ? styles.printOn : ''} ${instant ? styles.printInstant : ''}`}
-            style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, '--r': `${p.r}deg`, '--d': `${p.d}s` }}
-          >
-            <img src={w.src} alt="" draggable={false} />
-          </figure>
-        );
-      })}
+    <div className={`${styles.about} ${on || instant ? styles.aboutOn : ''} ${instant ? styles.aboutInstant : ''}`}>
+      <p className={styles.aboutName}>Kenneth Nathanael, designer in Hyderabad</p>
+      <h2 className={styles.aboutHead} aria-label={ABOUT_HEAD}>
+        {words.map((w, i) => (
+          <Fragment key={i}>
+            <span className={styles.headWord} style={{ '--i': i }} aria-hidden>
+              <span>{w}</span>
+            </span>{' '}
+          </Fragment>
+        ))}
+      </h2>
+      <p className={styles.aboutSub}>{ABOUT_SUB}</p>
+      <div className={styles.fan}>
+        {FAN.map((c, i) => {
+          const k = i - mid;
+          return (
+            <figure key={c.src} className={styles.card} style={{ '--k': k, '--ak': Math.abs(k), '--i': i, zIndex: 10 - Math.abs(k) }}>
+              <img src={c.src} alt={c.alt} draggable={false} />
+            </figure>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -743,10 +679,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       root.style.overflow = prev;
     };
   }, [loaded]);
-
-  const lineOneDone = useCallback(() => {
-    later(() => setLines([true, true]), 650);
-  }, []);
 
   const onLoaded = useCallback(() => {
     markSeen();
@@ -1096,16 +1028,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             </Panel>
 
             <Panel progress={progress} enter="hero>ab" enterAxis="y" exit="ab>tl" reduced={reduced} className={styles.aboutPanel} aria-label="About">
-              <Collage lines={lines} instant={aboutInstant} />
-              <div className={styles.aboutOne} style={tg.narrow ? undefined : { left: tg.gutter }}>
-                <p className={styles.aboutName}>Kenneth Nathanael, designer in Hyderabad</p>
-                <h2 className={styles.tenYears}>
-                  <TenCount on={lines[0]} instant={aboutInstant} />
-                  <span className={styles.years}>years</span>
-                </h2>
-                <TypedLine text={STATEMENT} on={lines[0]} instant={aboutInstant} onDone={lineOneDone} className={styles.aboutLead} />
-                <TypedLine text={ABOUT[1]} on={lines[1]} instant={aboutInstant} className={styles.aboutSupport} />
-              </div>
+              <AboutPanel on={lines[0]} instant={aboutInstant} />
             </Panel>
 
             <Panel progress={progress} enter="ab>tl" reduced={reduced} className={styles.timelinePanel} aria-label="Career timeline">
