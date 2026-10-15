@@ -1,12 +1,12 @@
 // Ten years in one frame, quietly. A hairline ruler spans the screen with a
-// small tick per year. The ball visits each role one at a time (the journey
-// steps it: one scroll, one role): the internships first, in blue, then the
-// work, in ink. Arriving at a role draws its span along the ruler in its
-// colour. Only the role the ball is on is written out: the company large
-// above the ball, Ken's title and the years below it; the words travel with
-// the ball and change with a short slide, so nothing can ever overlap. The
-// year rolls big in the top left. At the end the camera zooms in on Now, dead
-// centre, where the ball becomes the Apple logo.
+// small tick per year. The ball visits each role in order (the journey steps
+// it: one scroll, one role); the internships came first and are drawn in
+// blue, the work in ink. Arriving at a role draws its span along the ruler,
+// and adds it to the row of roles along the bottom, where everything passed
+// stays. The role the ball is on is written out large: the company above
+// the ball, Ken's title and the years below it. The year rolls big in the
+// top left. At the end the camera zooms in on Now, dead centre, where the
+// ball becomes the Apple logo.
 
 import { useLayoutEffect, useState } from 'react';
 import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useTransform } from 'framer-motion';
@@ -15,9 +15,10 @@ import styles from './Timeline.module.css';
 
 const START = 2015;
 const NOW_YEAR = 2026.75;
-const byStart = (a, b) => a.from - b.from;
-// The order the ball visits: internships, then work, each oldest first.
-const SEQ = [...ROLES.filter((r) => r.internship).sort(byStart), ...ROLES.filter((r) => !r.internship).sort(byStart)];
+// The order the ball visits: oldest first.
+const SEQ = [...ROLES].sort((a, b) => a.from - b.from);
+// A role's stretches on the ruler (ABAI ran twice).
+const spansOf = (r) => r.spans ?? [[r.from, r.to ?? NOW_YEAR]];
 const keyOf = (r) => `${r.company}-${r.from}`;
 
 // Company logos: drop a transparent SVG or PNG named after the company
@@ -42,6 +43,7 @@ const pickBg = () => {
 const YEARS = Array.from({ length: Math.floor(NOW_YEAR) - START + 1 }, (_, i) => START + i);
 const yearOf = (v) => Math.floor(v + 0.05);
 const years = (r) => {
+  if (r.spans) return r.spans.map(([a]) => yearOf(a)).join(', ');
   const a = yearOf(r.from);
   if (r.to === null) return `${a} to now`;
   const b = yearOf(r.to - 0.1);
@@ -207,14 +209,16 @@ export default function TimelineC({ progress, fade }) {
             (work first, so the internships sit on top where they overlap). */}
         {[...SEQ.map((r, i) => [r, i])]
           .sort(([a], [b]) => Number(a.internship ?? false) - Number(b.internship ?? false))
-          .map(([r, i]) => (
-            <span
-              key={keyOf(r)}
-              className={`${styles.span} ${r.internship ? styles.intern : ''} ${i <= active ? styles.spanOn : ''}`}
-              style={{ left: g.x(r.from), width: g.x(r.to ?? NOW_YEAR) - g.x(r.from) }}
-              aria-hidden
-            />
-          ))}
+          .flatMap(([r, i]) =>
+            spansOf(r).map(([from, to]) => (
+              <span
+                key={`${keyOf(r)}-${from}`}
+                className={`${styles.span} ${r.internship ? styles.intern : ''} ${i <= active ? styles.spanOn : ''}`}
+                style={{ left: g.x(from), width: g.x(to) - g.x(from) }}
+                aria-hidden
+              />
+            )),
+          )}
 
         {YEARS.map((y) => (
           <span key={y} className={`${styles.tick} ${y <= current ? styles.tickPast : ''} ${y === current ? styles.tickOn : ''}`} style={{ left: g.x(y) }}>
@@ -272,6 +276,20 @@ export default function TimelineC({ progress, fade }) {
           </AnimatePresence>
         </div>
       </motion.div>
+
+      {/* Every role passed stays here, in order: year, company. */}
+      <motion.ol className={styles.ledger} style={{ '--left': `${g.left}px`, '--width': `${g.right - g.left}px`, '--n': SEQ.length, opacity: words }} aria-label="Roles so far">
+        {SEQ.map((r, i) => (
+          <li
+            key={keyOf(r)}
+            className={`${styles.entry} ${r.internship ? styles.intern : ''} ${i <= active ? styles.entryOn : ''} ${i === active ? styles.entryNow : ''}`}
+            aria-hidden={i > active || undefined}
+          >
+            <span className={styles.entryYear}>{r.spans ? `(${years(r)})` : yearOf(r.from)}</span>
+            <span className={styles.entryCo}>{r.company}</span>
+          </li>
+        ))}
+      </motion.ol>
     </div>
   );
 }
