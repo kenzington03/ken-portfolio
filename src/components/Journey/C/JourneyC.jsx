@@ -230,6 +230,16 @@ const HERO_DARK = typeof window !== 'undefined' && new URLSearchParams(window.lo
 
 function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
   const [shot, setShot] = useState(!!instant);
+  // The letters rise a frame after mount, so there is always a start to
+  // animate from (even when there is no loader in front).
+  const [lettersUp, setLettersUp] = useState(!!instant);
+  useEffect(() => {
+    if (!(go || instant || reduced)) return undefined;
+    let id = requestAnimationFrame(() => {
+      id = requestAnimationFrame(() => setLettersUp(true));
+    });
+    return () => cancelAnimationFrame(id);
+  }, [go, instant, reduced]);
   const [flash, setFlash] = useState(0);
   const videoRef = useRef(null);
   const shotRef = useRef(!!instant);
@@ -306,28 +316,21 @@ function Hero({ go, reduced, instant, onOpenMac, cue, phone }) {
 
       <div className={styles.heroCopy}>
         <h1 className={styles.hello}>
-          <motion.span className={styles.hi} {...rise(0.05)}>
+          <motion.span
+            className={styles.hi}
+            {...(reduced ? {} : { initial: { opacity: 0, y: 18 }, animate: go || instant ? { opacity: 1, y: 0 } : undefined, transition: { duration: 0.9, ease: EASE, delay: 0.25 } })}
+          >
             Hi I&apos;m
           </motion.span>
-          {/* One designer's gesture, played once: the pen draws the outline,
-              the fill drops in, the kerning tightens, and the selection box
-              shows the file it lives in. Then the tools step back. */}
-          <span className={`${styles.kenWrap} ${go || instant || reduced ? styles.kenDraw : ''} ${shot ? styles.kenSet : ''}`}>
-            <span className={styles.ken}>
-              <span>K</span>
-              <span>e</span>
-              <span>n</span>
-            </span>
-            <span className={styles.selBox} aria-hidden>
-              <i />
-              <i />
-              <i />
-              <i />
-              <b>
-                <u />
-                Ken_final_v7.fig
-                <em>Kerning 0</em>
-              </b>
+          {/* The name rises letter by letter, thin and narrow; when the
+              shutter fires it snaps to full weight, as if the photo inflated it. */}
+          <span className={`${styles.kenWrap} ${lettersUp ? styles.kenIn : ''} ${shot ? styles.kenSet : ''}`}>
+            <span className={styles.ken} aria-label="Ken">
+              {['K', 'e', 'n'].map((c, i) => (
+                <span key={c} className={styles.kenLetter} style={{ '--i': i }} aria-hidden>
+                  <span>{c}</span>
+                </span>
+              ))}
             </span>
           </span>
         </h1>

@@ -321,10 +321,6 @@
   filter: brightness(0.8) contrast(1.12);
 }
 
-.heroDark .selBox u {
-  box-shadow: none;
-}
-
 /* The top links sit over both dark and light sections in this variant. */
 .journey[data-hero-dark] .bar {
   color: #fff;
@@ -389,137 +385,50 @@
   letter-spacing: -0.01em;
 }
 
-.kenMask {
-  display: block;
-  width: fit-content;
-  overflow: hidden;
-  padding-top: 0.04em;
-  margin-left: -0.02em;
-}
-
 /* Ken is the whole point: huge, and laid across the figure. */
 .kenWrap {
   position: relative;
   display: block;
   width: fit-content;
-  margin-left: -0.02em;
-  padding-top: 0.04em;
+  margin-left: -0.03em;
 }
 
+/* Bricolage's own axes do the work: the name starts thin and narrow and
+   snaps to heavy and full width on the shutter (with a little overshoot). */
 .ken {
   display: flex;
   font-size: clamp(150px, 27vw, 460px);
-  font-weight: 900;
-  font-variation-settings: 'wdth' 112;
-  line-height: 0.76;
-  /* Starts loose; the kerning tightens when the photo is taken. */
-  letter-spacing: 0.05em;
-  color: transparent;
-  -webkit-text-stroke: 1.5px #0d99ff;
-  /* The pen "draws" the outline left to right. */
-  clip-path: inset(-10% 100% -10% 0);
-}
-
-.kenDraw .ken {
-  clip-path: inset(-10% -5% -10% 0);
-  transition: clip-path 2600ms cubic-bezier(0.6, 0, 0.2, 1) 500ms;
+  font-weight: normal;
+  font-variation-settings: 'opsz' 96, 'wdth' 75, 'wght' 220;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  transition:
+    font-variation-settings 760ms cubic-bezier(0.25, 1.5, 0.35, 1),
+    letter-spacing 760ms cubic-bezier(0.25, 1.5, 0.35, 1);
 }
 
 .kenSet .ken {
-  color: var(--ink);
-  -webkit-text-stroke: 0 transparent;
-  letter-spacing: -0.04em;
-  transition: color 260ms ease, letter-spacing 700ms var(--ease) 80ms, -webkit-text-stroke 260ms ease;
+  font-variation-settings: 'opsz' 96, 'wdth' 100, 'wght' 800;
+  letter-spacing: -0.05em;
 }
 
-/* Selection box with its file chip: shows for a moment after the photo,
-   then steps back. Comes back when you hover the name. */
-.selBox {
-  position: absolute;
-  inset: 0.02em -0.035em -0.02em -0.01em;
-  border: 1.5px solid #0d99ff;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 400ms ease;
+/* Each letter rises from behind its own mask, one after another. */
+.kenLetter {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.08em 0.02em 0.04em;
+  margin: -0.08em -0.02em -0.04em;
 }
 
-.kenSet .selBox {
-  animation: selShow 3400ms ease 500ms both;
+.kenLetter > span {
+  display: inline-block;
+  transform: translate3d(0, 112%, 0);
+  transition: transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) calc(450ms + var(--i) * 120ms);
 }
 
-.kenSet:hover .selBox {
-  opacity: 1;
-}
-
-@keyframes selShow {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  12%,
-  78% {
-    opacity: 1;
-  }
-}
-
-.selBox i {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  background: #fff;
-  border: 1.5px solid #0d99ff;
-}
-
-.selBox i:nth-child(1) {
-  left: -5px;
-  top: -5px;
-}
-
-.selBox i:nth-child(2) {
-  right: -5px;
-  top: -5px;
-}
-
-.selBox i:nth-child(3) {
-  right: -5px;
-  bottom: -5px;
-}
-
-.selBox i:nth-child(4) {
-  left: -5px;
-  bottom: -5px;
-}
-
-.selBox b {
-  position: absolute;
-  right: -1.5px;
-  bottom: calc(100% + 6px);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 9px;
-  border-radius: 5px;
-  background: #0d99ff;
-  color: #fff;
-  font: 500 12px/1 var(--text);
-  letter-spacing: 0;
-  white-space: nowrap;
-}
-
-/* The sampled fill, as a swatch. */
-.selBox u {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: var(--ink);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
-}
-
-.selBox em {
-  padding-left: 8px;
-  border-left: 1px solid rgba(255, 255, 255, 0.45);
-  font-style: normal;
-  opacity: 0.9;
+.kenIn .kenLetter > span {
+  transform: none;
 }
 
 .heroMeta {
@@ -1044,12 +953,9 @@
     background: none;
   }
   .ken,
-  .kenDraw .ken,
+  .kenLetter > span,
   .figureIn {
     transition: none;
-  }
-  .kenSet .selBox {
-    animation: none;
   }
   .flash {
     display: none;
