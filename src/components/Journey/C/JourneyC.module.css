@@ -931,18 +931,6 @@
   background: transparent;
 }
 
-/* The iris: Now's ball, grown until the screen is night. */
-.iris {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: var(--night);
-  pointer-events: none;
-}
-
-/* The ball at Now (it takes over from the timeline's own, same spot, same
-   look): white, then it becomes the Apple logo, which darkens to the lid's
-   black glass as it settles. Positioned by transform from the panel's top-left. */
 .ball,
 .logo {
   position: absolute;
@@ -957,8 +945,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 0 18px rgba(255, 255, 255, 0.45);
+  background: var(--ink);
 }
 
 .logo {

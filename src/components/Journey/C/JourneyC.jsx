@@ -21,7 +21,7 @@ import { POSES } from '../../Intro3/timeline.js';
 import { playShutter, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
 import { WORK } from '../content.js';
-import TimelineC, { timelineCamera, timelineLayout, timelineOrigin } from './TimelineC.jsx';
+import TimelineC, { timelineCamera, timelineLayout, timelineOrigin, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { phoneLogoPoint } from './PhoneEnding.jsx';
 import styles from './JourneyC.module.css';
 
@@ -640,25 +640,19 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   }, []);
   const gridTransform = useTransform(tlProgress, (p) => timelineCamera(tg, p));
 
-  // "Now": the ball at Now swallows the screen (an iris into the dark), the
-  // line rises out of the dark, a white ball is born at the centre and
-  // becomes the Apple logo, which turns and settles on the lid as the MacBook
-  // slowly comes up around it.
+  // "Now": the ball at Now becomes the Apple logo itself, which grows big and
+  // rises to the centre while the page dims to night around it and the line
+  // rises in; then the logo swivels in 3D, shrinking, and flies down onto the
+  // MacBook's lid as the laptop comes up around it.
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
-  const iris = useTransform(nowT, (t) => {
-    const r = t <= 0 ? 0 : 7 + Math.hypot(window.innerWidth, window.innerHeight) * inOut(within(t, [0, 0.22]));
-    return `circle(${r.toFixed(1)}px at ${tg.vw / 2}px ${tg.rulerY}px)`;
-  });
-  // Once the screen is night, the paper and the iris step aside for the Mac's
-  // own room (the same black), so the laptop can come up behind the logo.
-  const setOpacity = useTransform(nowT, (t) => (t < 0.24 ? 1 : 0));
-  const tlFade = useTransform(nowT, (t) => within(t, [0.08, 0.22]));
-  const barAlpha = useTransform(nowT, (t) => 1 - within(t, [0, 0.15]));
-  const lineReveal = useTransform(nowT, (t) => within(t, [0.2, 0.42]));
+  const paperOpacity = useTransform(nowT, (t) => 1 - inOut(within(t, [0.14, 0.36])));
+  const tlFade = useTransform(nowT, (t) => within(t, [0, 0.14]));
+  const barAlpha = useTransform(nowT, (t) => 1 - within(t, [0, 0.12]));
+  const lineReveal = useTransform(nowT, (t) => within(t, [0.3, 0.48]));
   const lineOpacity = useTransform(nowT, (t) => (flatRef.current ? 1 : 1 - within(t, [0.9, 1])));
-  const morphT = useTransform(nowT, (t) => inOut(within(t, [0.3, 0.46])));
-  const turnT = useTransform(nowT, (t) => inOut(within(t, [0.44, 0.74])));
-  const settleT = useTransform(nowT, (t) => inOut(within(t, [0.44, 0.8])));
+  const morphT = useTransform(nowT, (t) => inOut(within(t, [0, 0.24])));
+  const turnT = useTransform(nowT, (t) => inOut(within(t, [0.42, 0.8])));
+  const settleT = useTransform(nowT, (t) => inOut(within(t, [0.44, 0.84])));
   // Where the logo ends: the 3D scene reports the lid's place and angle on
   // screen (logoRef). Until it has loaded, and on phones (no lid), a stand-in.
   const finalLogo = () => {
@@ -677,7 +671,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const logoTransform = useTransform([morphT, turnT, settleT], ([k, turn, settle]) => {
     const vh = window.innerHeight;
     const x0 = tg.vw / 2;
-    const y0 = tg.rulerY - vh * 0.06 * k; // born at Now, then up a little
+    // Born at Now on the ruler; grows big and rises to the centre, a little high.
+    const y0 = tg.rulerY + (vh * 0.42 - tg.rulerY) * k;
     const f = finalLogo();
     const [a, b, c, d] = f.m;
     // Final matrix as rotate(theta) x [[sx, sk], [0, sy]], so it can be eased.
@@ -686,28 +681,29 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const sx = Math.hypot(a, b);
     const sk = Math.cos(theta) * c + Math.sin(theta) * d;
     const sy = -Math.sin(theta) * c + Math.cos(theta) * d;
-    const s0 = (vh * 0.075) / LOGO_EL_H; // upright, at Now
-    const grow = 0.25 + 0.75 * k;
+    const big = (vh * (phone ? 0.2 : 0.26)) / LOGO_EL_H; // big and prominent
+    const grow = 0.06 + 0.94 * k;
     const th = theta * turn;
-    const ssx = (s0 + (sx - s0) * settle) * grow;
-    const ssy = (s0 + (sy - s0) * settle) * grow;
+    const ssx = (big + (sx - big) * settle) * grow;
+    const ssy = (big + (sy - big) * settle) * grow;
     const ssk = sk * settle * grow;
     const cos = Math.cos(th);
     const sin = Math.sin(th);
     const x = x0 + (f.x - x0) * settle;
     const y = y0 + (f.y - y0) * settle;
-    return `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`;
+    // The swivel: one full turn about the vertical axis on the way down.
+    const spin = 360 * turn;
+    return `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) perspective(900px) rotateY(${spin.toFixed(2)}deg) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`;
   });
-  const ballTransform = useTransform([nowT, morphT], ([t, k]) => {
-    const born = inOut(within(t, [0.14, 0.24]));
-    return `translate(${(tg.vw / 2).toFixed(2)}px, ${tg.rulerY.toFixed(2)}px) translate(-50%, -50%) scale(${(born * (1 - 0.5 * k)).toFixed(3)})`;
-  });
-  const ballOpacity = useTransform(morphT, (k) => 1 - within(k, [0.2, 0.7]));
-  // The logo starts white (as the ball) and darkens to the lid's black glass
-  // as the laptop appears around it (phones have no lid: it stays white).
-  const whiteOpacity = useTransform(nowT, (t) => (phone ? 1 : 1 - within(t, [0.66, 0.92])));
-  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.15, 0.55]) * (flatRef.current ? 1 : 1 - within(t, [0.94, 0.99])));
-  const rimOpacity = useTransform(nowT, (t) => (phone ? 1 : 1 - within(t, [0.7, 0.92])));
+  // The ball (Now's marker, same spot and size as the timeline's) swells as
+  // the logo grows out of it, and is gone by the time the logo is whole.
+  const ballTransform = useTransform(morphT, (k) => `translate(${(tg.vw / 2).toFixed(2)}px, ${tg.rulerY.toFixed(2)}px) translate(-50%, -50%) scale(${(1 + 2.5 * k).toFixed(3)})`);
+  const ballOpacity = useTransform([nowT, morphT], ([t, k]) => (t > 0 ? 1 - within(k, [0.1, 0.45]) : 0));
+  // Ink on paper, white as the page goes to night, then the lid's black
+  // glass as the laptop comes up (phones have no lid: it stays white).
+  const whiteOpacity = useTransform(nowT, (t) => within(t, [0.22, 0.28]) * (phone ? 1 : 1 - within(t, [0.68, 0.9])));
+  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.08, 0.4]) * (flatRef.current ? 1 : 1 - within(t, [0.94, 0.99])));
+  const rimOpacity = useTransform(nowT, (t) => within(t, [0.3, 0.4]) * (phone ? 1 : 1 - within(t, [0.72, 0.92])));
   const gridOpacity = useTransform(nowT, (t) => 1 - within(t, [0, 0.2]));
 
   useMotionValueEvent(progress, 'change', (v) => {
@@ -720,7 +716,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (within(v, SPAN.about) > 0.35) setLines((cur) => (cur[0] && cur[1] ? cur : [true, true]));
   });
   useMotionValueEvent(nowT, 'change', (t) => {
-    const d = t > 0.14;
+    const d = t > 0.26;
     setDark((cur) => (cur === d ? cur : d));
   });
 
@@ -754,17 +750,98 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     setLoaded(true);
   }, []);
 
-  // After Shut Down, the swipe that triggered it is still coasting: none of
-  // it may drag the page off the closing Mac (swallowed until a new swipe).
+  // Scrolling. Three jobs, one handler (order matters):
+  // 1. After Shut Down, the swipe that triggered it is still coasting: none
+  //    of it may drag the page off the closing Mac.
+  // 2. The timeline steps: one scroll (wheel, swipe, key, sideways swipe)
+  //    moves the ball one job, whatever its length or speed; the coasting
+  //    tail is swallowed. Past the last job, the page carries on.
+  // 3. Elsewhere, sideways swipes scroll the page like vertical ones.
+  const autoRef = useRef(false); // a glide the site is doing itself
   useEffect(() => {
     if (!active) return undefined;
     let last = 0;
     let prevMag = 0;
     let swallowUntil = 0;
+    let step = -1; // the job the timeline is held on (-1: free)
+    let lastY = window.scrollY;
+    let gliding = false;
+    let touchY = null;
+    let steppedAt = 0;
+
+    const deck = () => deckRef.current;
+    const yAt = (p) => {
+      const d = deck();
+      const travel = d.offsetHeight - window.innerHeight;
+      return d.offsetTop + travel * (SPAN.tl[0] + (SPAN.tl[1] - SPAN.tl[0]) * p);
+    };
+    const stops = () => timelineStops().map(yAt);
+    const glide = (y, ms, then) => {
+      gliding = true;
+      cancelRef.current?.();
+      cancelRef.current = tweenScroll(y, ms, () => {
+        gliding = false;
+        lastY = window.scrollY;
+        then?.();
+      });
+    };
+    const goTo = (i) => {
+      const s = stops();
+      if (i >= s.length) {
+        // Past the last job: on to Now, the zoom, and free scrolling again.
+        step = -1;
+        glide(yAt(1) + 2, 1100);
+      } else if (i < 0) {
+        step = -1;
+        glide(yAt(0) - window.innerHeight * 0.5, 900);
+      } else {
+        step = i;
+        glide(s[i], 760);
+      }
+    };
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (!deck() || gliding || autoRef.current || closingRef.current) {
+        lastY = y;
+        return;
+      }
+      const jump = Math.abs(y - lastY) >= window.innerHeight * 1.5;
+      if (step >= 0) {
+        // Held on a job. A jump lets go; anything else (a touch scroll the
+        // browser would not let us cancel) is eased back onto the stop.
+        if (jump) step = -1;
+        else if (Math.abs(y - stops()[step]) > 2) glide(stops()[step], 420);
+        lastY = window.scrollY;
+        return;
+      }
+      // Jumps (Home, End, links) pass straight through; only scrolling is caught.
+      if (!jump) {
+        const s = stops();
+        // Free scrolling ran into the timeline: hold it on the first (or,
+        // coming back up, the last) job, and drop the rest of the fling.
+        if (lastY < s[0] - 1 && y >= s[0]) {
+          step = 0;
+          window.scrollTo(0, s[0]);
+          swallowUntil = performance.now() + 1500;
+          touchY = null; // the swipe that arrived here is spent
+        } else if (lastY > s[s.length - 1] + 1 && y <= s[s.length - 1]) {
+          step = s.length - 1;
+          window.scrollTo(0, s[s.length - 1]);
+          swallowUntil = performance.now() + 1500;
+          touchY = null;
+        }
+      }
+      lastY = window.scrollY;
+    };
+
     const onWheel = (e) => {
       const t = e.timeStamp || performance.now();
-      const mag = Math.abs(e.deltaY);
-      const push = t - last > 160 || mag > prevMag * 1.3 + 2;
+      const sideways = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+      const delta = sideways ? e.deltaX : e.deltaY;
+      const mag = Math.abs(delta);
+      const gap = t - last;
+      const push = gap > 160 || mag > prevMag * 1.3 + 2;
       last = t;
       prevMag = mag;
       if (closingRef.current) {
@@ -772,24 +849,66 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         swallowUntil = t + 5000;
         return;
       }
+      if (autoRef.current) return;
       if (swallowUntil && !push && t < swallowUntil) {
         e.preventDefault();
         return;
       }
       swallowUntil = 0;
-      // Sideways swipes move the journey too (people swipe sideways the
-      // moment the timeline arrives): left or right scrolls on or back.
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 0.5) {
+      if (step >= 0) {
+        e.preventDefault();
+        // A step needs a new gesture: a pause, or a fresh push well after the
+        // last step (a swipe's own ramp-up must not count as several).
+        const fresh = gap > 160 || (push && t - steppedAt > 600);
+        if (fresh && mag > 1) {
+          steppedAt = t;
+          goTo(step + Math.sign(delta));
+          swallowUntil = t + 1500; // this swipe's tail moves nothing
+        }
+        return;
+      }
+      if (sideways && mag > 0.5) {
         e.preventDefault();
         window.scrollBy(0, e.deltaX * (e.deltaMode === 1 ? 16 : 1));
       }
     };
-    const onTouch = (e) => closingRef.current && e.preventDefault();
+
+    const onTouchStart = (e) => {
+      touchY = e.touches[0]?.clientY ?? null;
+    };
+    const onTouchMove = (e) => {
+      if (closingRef.current || step >= 0) e.preventDefault();
+    };
+    const onTouchEnd = (e) => {
+      if (step < 0 || touchY == null) return;
+      const dy = touchY - (e.changedTouches[0]?.clientY ?? touchY);
+      touchY = null;
+      if (Math.abs(dy) > 24) goTo(step + Math.sign(dy));
+    };
+    const onKey = (e) => {
+      if (step < 0 || e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = e.target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const fwd = ['ArrowDown', 'PageDown', ' ', 'ArrowRight'].includes(e.key);
+      const back = ['ArrowUp', 'PageUp', 'ArrowLeft'].includes(e.key);
+      if (!fwd && !back) return;
+      e.preventDefault();
+      goTo(step + (fwd ? 1 : -1));
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('wheel', onWheel, { passive: false });
-    window.addEventListener('touchmove', onTouch, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('keydown', onKey);
     return () => {
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('wheel', onWheel);
-      window.removeEventListener('touchmove', onTouch);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('keydown', onKey);
     };
   }, [active]);
 
@@ -819,7 +938,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       return;
     }
     cancelRef.current?.();
-    cancelRef.current = tweenScroll(runwayRef.current?.offsetTop ?? maxScroll(), 2800);
+    autoRef.current = true;
+    cancelRef.current = tweenScroll(runwayRef.current?.offsetTop ?? maxScroll(), 2800, () => {
+      autoRef.current = false;
+    });
   }, [use3D, onReachScreen, phone]);
 
   // The hero's Scroll button: a glide down to About.
@@ -828,7 +950,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (!deck) return;
     const travel = deck.offsetHeight - window.innerHeight;
     cancelRef.current?.();
-    cancelRef.current = tweenScroll(deck.offsetTop + travel * SPAN.about[0], 1300);
+    autoRef.current = true;
+    cancelRef.current = tweenScroll(deck.offsetTop + travel * SPAN.about[0], 1300, () => {
+      autoRef.current = false;
+    });
   }, []);
 
   // The laptop starts arriving, faintly, as the logo begins to turn.
@@ -836,7 +961,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const deck = deckRef.current;
     if (!deck) return 0;
     const travel = deck.offsetHeight - window.innerHeight;
-    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.44);
+    return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.45);
   }, []);
 
   const flat = !use3D && !phone;
@@ -874,7 +999,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       <div className={styles.page}>
         <div ref={deckRef} className={styles.deck} style={{ height: `${TOTAL + 100}vh` }}>
           <div className={styles.deckSticky}>
-            <motion.div className={styles.paperBg} style={{ opacity: setOpacity }} aria-hidden />
+            <motion.div className={styles.paperBg} style={{ opacity: paperOpacity }} aria-hidden />
             <motion.div className={`${styles.grid} ${lines[0] || aboutInstant ? styles.gridOn : ''}`} style={{ opacity: gridOpacity }} aria-hidden>
               <motion.div
                 className={styles.gridLines}
@@ -908,8 +1033,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
               <TimelineC progress={tlProgress} fade={tlFade} />
             </Panel>
 
-            {/* The cut to the dark: Now's ball swallows the screen. */}
-            <motion.div className={styles.iris} style={{ clipPath: iris, opacity: setOpacity }} aria-hidden />
 
             <motion.div className={styles.storyLineWrap} style={{ opacity: lineOpacity }}>
               <RiseWords text={phone ? 'The rest of the story lives on my phone.' : 'The rest of the story lives on my Mac.'} reveal={lineReveal} className={styles.bridgeLine} />

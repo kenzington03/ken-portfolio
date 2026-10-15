@@ -9,33 +9,56 @@
   overflow: hidden;
 }
 
-.title {
+.head {
   position: absolute;
-  top: 84px;
+  top: 80px;
   left: var(--gutter);
-  margin: 0;
-  font: 500 clamp(17px, 1.4vw, 21px) / 1.3 var(--text);
-  letter-spacing: -0.01em;
-  color: var(--muted);
+  right: var(--gutter);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-/* The year, very large and very faint, centred behind the chart. */
-.ghost {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--ruler-y) - 0.36em);
-  margin: 0;
-  transform: translate(-50%, -50%);
+/* The year: big, bold, full ink, rolling like an odometer. */
+.odometer {
+  display: flex;
   font-family: var(--display);
-  font-size: clamp(180px, 30vw, 520px);
+  font-size: clamp(84px, 12vw, 200px);
   font-weight: 800;
   font-variation-settings: 'opsz' 96, 'wdth' 85;
   line-height: 1;
-  letter-spacing: -0.05em;
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--ink) 4.5%, transparent);
-  pointer-events: none;
-  user-select: none;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink);
+}
+
+.wheel {
+  display: inline-block;
+  height: 0.84em;
+  overflow: hidden;
+}
+
+.wheelStrip {
+  display: flex;
+  flex-direction: column;
+  margin-top: -0.09em;
+  will-change: transform;
+}
+
+.wheelStrip span {
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+
+.title {
+  margin: 0.4em 0 0;
+  max-width: 12ch;
+  font: 500 clamp(17px, 1.4vw, 22px) / 1.3 var(--text);
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  text-align: right;
 }
 
 /* Everything that zooms. */
@@ -82,7 +105,7 @@
   top: 14px;
   transform: translateX(-50%);
   font: 500 12px/1 var(--text);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
   letter-spacing: 0.01em;
   color: color-mix(in srgb, var(--ink) 32%, transparent);
   white-space: nowrap;
@@ -195,7 +218,7 @@
   gap: 14px;
   margin: 0;
   font: 400 clamp(14px, 1vw, 16px) / 1.3 var(--text);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
   color: var(--muted);
 }
 
@@ -205,8 +228,14 @@
 }
 
 @media (max-width: 700px) {
+  .head {
+    top: 72px;
+  }
+  .odometer {
+    font-size: 24vw;
+  }
   .title {
-    top: 76px;
+    display: none;
   }
   .above {
     font-size: 30px;

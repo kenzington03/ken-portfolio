@@ -1,11 +1,11 @@
 // Ten years in one frame, quietly. A hairline ruler spans the screen with a
-// small tick per year and a dot where each job began. Scrolling inks the
-// line from 2015 to Now, a ball riding the tip; only the job the ball is on
-// is written out: the company large above the ball, Ken's title and the
-// years below it. The words travel with the ball and change with a short
-// slide as it passes each start, so nothing can ever overlap. A faint year
-// sits large behind it all. At the end the camera zooms in on Now, dead
-// centre, where the journey cuts to the dark.
+// small tick per year and a dot where each job began. The ball travels from
+// 2015 to Now one job at a time (the journey steps it: one scroll, one job);
+// only the job the ball is on is written out: the company large above the
+// ball, Ken's title and the years below it. The words travel with the ball
+// and change with a short slide, so nothing can ever overlap. The year rolls
+// big in the top left. At the end the camera zooms in on Now, dead centre,
+// where the ball becomes the Apple logo.
 
 import { useLayoutEffect, useState } from 'react';
 import { AnimatePresence, motion, useMotionValueEvent, useTransform } from 'framer-motion';
@@ -34,6 +34,52 @@ const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
 const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const yearAt = (p) => FIRST + (NOW_YEAR - FIRST) * inOut(within(p, 0, FILL_END));
+const smooth = (t) => t * t * (3 - 2 * t);
+const ROLL = 0.22;
+
+/** Progress at which the ball reaches year `yr` (inverse of yearAt). */
+function progressFor(yr) {
+  const target = clamp01((yr - FIRST) / (NOW_YEAR - FIRST));
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 30; i += 1) {
+    const mid = (lo + hi) / 2;
+    if (inOut(mid) < target) lo = mid;
+    else hi = mid;
+  }
+  return ((lo + hi) / 2) * FILL_END;
+}
+
+/** Where the ball stops, one per job: just past each start, and never while
+ *  the year is rolling over, so the wheel always reads the year it began. */
+export const timelineStops = () =>
+  CHRONO.map((r) => {
+    const yr = Math.max(FIRST, r.from + 0.03);
+    const f = yr - Math.floor(yr);
+    return progressFor(f < ROLL + 0.02 ? Math.floor(yr) + ROLL + 0.02 : yr);
+  });
+
+function Wheel({ year, place }) {
+  // The wheel turns over just after New Year (v - ROLL), not before it.
+  const y = useTransform(year, (yr) => {
+    const v = yr - ROLL;
+    const whole = Math.floor(v);
+    const f = v - whole;
+    const roll = f > 1 - ROLL ? smooth((f - (1 - ROLL)) / ROLL) : 0;
+    const digit = Math.floor(whole / place) % 10;
+    const carrying = place === 1 || whole % place === place - 1;
+    return `${(-(digit + (carrying ? roll : 0)) * 100) / 11}%`;
+  });
+  return (
+    <span className={styles.wheel}>
+      <motion.span className={styles.wheelStrip} style={{ y }}>
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, i) => (
+          <span key={i}>{d}</span>
+        ))}
+      </motion.span>
+    </span>
+  );
+}
 
 /** The chart's geometry for the current viewport. The grid behind the
  *  journey uses the same numbers: one cell per year, lines through the year
@@ -86,7 +132,7 @@ export default function TimelineC({ progress, fade }) {
   const tipScale = useTransform(zoom, (z) => 1 / (1 + (ZOOM - 1) * z));
   const words = useTransform(zoom, (z) => 1 - within(z, 0.1, 0.5));
   const chart = useTransform(fade, (f) => 1 - f);
-  const ghost = useTransform([zoom, fade], ([z, f]) => (1 - within(z, 0, 0.6)) * (1 - f));
+  const head = useTransform([zoom, fade], ([z, f]) => (1 - within(z, 0, 0.6)) * (1 - f));
 
   const [active, setActive] = useState(0);
   const [current, setCurrent] = useState(START);
@@ -100,11 +146,16 @@ export default function TimelineC({ progress, fade }) {
 
   return (
     <div className={styles.tl} style={{ '--ruler-y': `${g.rulerY}px` }}>
-      <h2 className={styles.title}>Ten years, six teams.</h2>
-      {/* The year, very large and very faint, behind everything. */}
-      <motion.p className={styles.ghost} style={{ opacity: ghost }} aria-hidden>
-        {current}
-      </motion.p>
+      {/* The year rolls big in the top left; the title answers it top right. */}
+      <motion.div className={styles.head} style={{ opacity: head }}>
+        <div className={styles.odometer} aria-hidden>
+          <Wheel year={year} place={1000} />
+          <Wheel year={year} place={100} />
+          <Wheel year={year} place={10} />
+          <Wheel year={year} place={1} />
+        </div>
+        <h2 className={styles.title}>Ten years, six teams.</h2>
+      </motion.div>
 
       <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: timelineOrigin(g), opacity: chart }}>
         <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }}>
