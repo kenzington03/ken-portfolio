@@ -559,8 +559,10 @@ function RiseWords({ text, reveal, className }) {
  * ('y': up from below, out over the top).
  */
 function Panel({ progress, enter, exit, enterAxis = 'x', exitAxis = 'x', reduced, className = '', children, ...rest }) {
-  const tin = (v) => (enter ? inOut(within(v, SPAN[enter])) : 1);
-  const tout = (v) => (exit ? inOut(within(v, SPAN[exit])) : 0);
+  // Gentle: the journey's glides already ease, and easing twice bunches the
+  // whole move into the middle of the glide.
+  const tin = (v) => (enter ? smooth01(within(v, SPAN[enter])) : 1);
+  const tout = (v) => (exit ? smooth01(within(v, SPAN[exit])) : 0);
   const x = useTransform(progress, (v) => `${(enterAxis === 'x' ? (1 - tin(v)) * 100 : 0) - (exitAxis === 'x' ? tout(v) * 100 : 0)}%`);
   const y = useTransform(progress, (v) => `${(enterAxis === 'y' ? (1 - tin(v)) * 100 : 0) - (exitAxis === 'y' ? tout(v) * 100 : 0)}%`);
   // Reduced motion: no travel, panels simply swap.
@@ -813,7 +815,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       if (!deckRef.current) return [];
       const list = [
         { id: 'hero', y: deckAt(0) },
-        { id: 'about', y: spanAt(SPAN.about, 0.4), ms: 1300 },
+        { id: 'about', y: spanAt(SPAN.about, 0.4), ms: 1600 },
         ...timelineStops().map((p, i) => ({ id: `role${i}`, y: spanAt(SPAN.tl, p) })),
         // From the last role: ease into Now (the zoom), then, slowly, the
         // ball becomes the logo as the line rises.
@@ -838,10 +840,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         gliding = false;
         lastY = window.scrollY;
       };
-      // Long, cinematic glides ease gently (sine), so what they carry (the
-      // ball becoming the logo, the page becoming the laptop) is spread over
-      // the whole glide instead of rushed through its middle.
-      const curve = ms >= 2000 ? sineInOut : undefined;
+      // Glides ease gently (sine), so what they carry (a section changing,
+      // the ball becoming the logo, the page becoming the laptop) is spread
+      // over the whole glide instead of rushed through its middle.
+      const curve = sineInOut;
       if (via) {
         // Two legs: it comes to rest at the waypoint, then sets off again
         // at once and slows into the stop (the ball starts turning into the
