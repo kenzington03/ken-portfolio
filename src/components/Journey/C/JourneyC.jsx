@@ -20,7 +20,7 @@ import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../I
 import { CHAPTER_STOPS, POSES } from '../../Intro3/timeline.js';
 import { playShutter, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
-import TimelineC, { timelineCamera, timelineLayout, timelineOrigin, timelineStops } from './TimelineC.jsx';
+import TimelineC, { TIMELINE_NOW, timelineCamera, timelineLayout, timelineOrigin, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import styles from './JourneyC.module.css';
 
@@ -521,7 +521,7 @@ const APPLE_PATH =
   'M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z';
 
 // Stop scrolling mid-journey for this long and a quiet "keep scrolling" cue appears.
-const IDLE_HINT_MS = 1100;
+const IDLE_HINT_MS = 900;
 
 export default function JourneyC({ mode = 'open', active = true, onReachScreen, onSkip, onClosed, phone = false }) {
   const closing = mode === 'close';
@@ -732,8 +732,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         { id: 'hero', y: deckAt(0) },
         { id: 'about', y: spanAt(SPAN.about, 0.4), ms: 1600 },
         ...timelineStops().map((p, i) => ({ id: `role${i}`, y: spanAt(SPAN.tl, p) })),
-        // From the last role: ease into Now (the zoom), then, slowly, the
-        // ball becomes the logo as the line rises.
+        // From the last role: on to Now, where every role is a card and the
+        // whole career reads at once. Then ease into the zoom and, slowly,
+        // the ball becomes the logo as the line rises.
+        { id: 'now', y: spanAt(SPAN.tl, TIMELINE_NOW), ms: 1600 },
         { id: 'logo', y: spanAt(SPAN.now, 0.31), ms: 3000, via: { y: spanAt(SPAN.tl, 1), ms: 1300 } },
         { id: 'mac', y: spanAt(SPAN.now, 0.88), ms: 3000 },
       ];

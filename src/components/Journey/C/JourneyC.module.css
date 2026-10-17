@@ -794,8 +794,7 @@
   transition-duration: 250ms;
 }
 
-.scrollCue i,
-.idleHint i {
+.scrollCue i {
   position: relative;
   width: 1px;
   height: 34px;
@@ -803,8 +802,7 @@
   overflow: hidden;
 }
 
-.scrollCue i::after,
-.idleHint i::after {
+.scrollCue i::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -812,20 +810,26 @@
   animation: cue 1.6s cubic-bezier(0.7, 0, 0.3, 1) infinite;
 }
 
-/* The same cue mid-journey, after a second of stillness. Leaves fast, arrives slow. */
+/* The same cue mid-journey, after a second of stillness: an ink pill with a
+   nudging arrow, big enough to be noticed. Leaves fast, arrives slow. */
 .idleHint {
   position: fixed;
   left: 50%;
-  bottom: clamp(18px, 3.4vh, 34px);
+  bottom: clamp(20px, 4vh, 40px);
   z-index: 30;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  font: 500 12px/1 var(--text);
-  letter-spacing: 0.04em;
-  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px 11px 20px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 500 14px/1 var(--text);
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--ink) 55%, transparent);
   opacity: 0;
-  transform: translate(-50%, 8px);
+  transform: translate(-50%, 10px);
   transition: opacity 200ms ease, transform 200ms ease;
   pointer-events: none;
 }
@@ -833,18 +837,55 @@
 .idleHintOn {
   opacity: 1;
   transform: translate(-50%, 0);
-  transition: opacity 700ms ease, transform 900ms var(--ease);
+  transition: opacity 600ms ease, transform 800ms var(--ease);
 }
 
-/* In the Mac room the room's own progress rail is the line: the label sits
-   just above it, under the laptop. */
+/* The arrow: a short stem and chevron that nudge down, then rest. */
+.idleHint i {
+  position: relative;
+  width: 10px;
+  height: 14px;
+  animation: nudge 1.4s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+
+.idleHint i::before {
+  content: '';
+  position: absolute;
+  left: 4.25px;
+  top: 0;
+  width: 1.5px;
+  height: 12px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.idleHint i::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  bottom: 2px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  45% {
+    transform: translateY(3px);
+  }
+}
+
+/* In the Mac room it inverts: a white pill, just above the room's rail. */
 .journey[data-dark] .idleHint {
-  --muted: #9a9aa0;
-  bottom: 42px;
-}
-
-.journey[data-dark] .idleHint i {
-  display: none;
+  --ink: #f2f2f0;
+  --paper: #0b0b0d;
+  bottom: 44px;
 }
 
 @keyframes cue {
@@ -967,9 +1008,11 @@
   .storyLineWrap .bridgeLine {
     font-size: clamp(26px, 8vw, 40px);
   }
-  .scrollCue,
-  .idleHint {
+  .scrollCue {
     bottom: 14px;
+  }
+  .idleHint {
+    bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
   }
 }
 
@@ -983,7 +1026,7 @@
     display: none;
   }
   .scrollCue i::after,
-  .idleHint i::after {
+  .idleHint i {
     animation: none;
   }
 }

@@ -1,15 +1,14 @@
-// Ten years in one frame, quietly. A hairline ruler spans the screen with a
-// small tick per year. The ball visits each role in order (the journey steps
-// it: one scroll, one role); the internships came first and are drawn in
-// blue, the work in ink. Arriving at a role draws its span along the ruler,
-// and adds it to the row of roles along the bottom, where everything passed
-// stays. The role the ball is on is written out large: the company above
-// the ball, Ken's title and the years below it. The year rolls big in the
-// top left. At the end the camera zooms in on Now, dead centre, where the
-// ball becomes the Apple logo.
+// Ten years in one frame, read like a resume. A hairline ruler spans the
+// screen with a small tick per year. The ball visits each role in order (the
+// journey steps it: one scroll, one role); the internships came first and
+// are drawn in blue, the work in ink. The role the ball is on is written out
+// large under the ball. When the ball moves on, that role shrinks into a
+// small card in the row above the ruler and stays there, so by Now the whole
+// career is on screen. The year rolls big in the top left. At the end the
+// camera zooms in on Now, dead centre, where the ball becomes the Apple logo.
 
-import { useLayoutEffect, useState } from 'react';
-import { AnimatePresence, motion, useMotionTemplate, useMotionValueEvent, useTransform } from 'framer-motion';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { AnimatePresence, animate, motion, useMotionTemplate, useMotionValueEvent, useTransform } from 'framer-motion';
 import { ROLES } from '../../../data/about.js';
 import styles from './Timeline.module.css';
 
@@ -17,8 +16,12 @@ const START = 2015;
 const NOW_YEAR = 2026.75;
 // The order the ball visits: oldest first.
 const SEQ = [...ROLES].sort((a, b) => a.from - b.from);
-// A role's stretches on the ruler (ABAI ran twice).
-const spansOf = (r) => r.spans ?? [[r.from, r.to ?? NOW_YEAR]];
+// A role's mark on the ruler. ABAI ran twice but reads as one milestone, so
+// only its first stint is drawn; its years still name both.
+const spanOf = (r) => (r.spans ? r.spans[0] : [r.from, r.to ?? NOW_YEAR]);
+// The line under the company: the role, or for an internship with no title
+// of its own, the organisation's full name.
+const titleOf = (r) => (r.role === 'Internship' ? r.full ?? r.company : r.role);
 const keyOf = (r) => `${r.company}-${r.from}`;
 
 // Company logos: drop a transparent SVG or PNG named after the company
@@ -89,6 +92,8 @@ const roleAt = (p) => {
 
 /** Where the ball rests, one stop per role, as timeline progress. */
 export const timelineStops = () => [...STOPS];
+/** Where it rests on Now, before the zoom: the whole career in cards. */
+export const TIMELINE_NOW = FILL_END;
 
 function Wheel({ year, place }) {
   // The wheel turns over just after New Year (v - ROLL), not before it.
@@ -129,6 +134,10 @@ export function timelineLayout() {
   return { vw, vh, narrow, gutter, yearW, left, right, x, rulerY, labelW };
 }
 
+/** Where the written-out role starts for the year the ball is on: under
+ *  the ball, kept on screen. */
+const labelLeft = (g, v) => Math.min(Math.max(g.x(v) - 18, g.left - 18), g.right - g.labelW + 18);
+
 /** Where the camera scales from: Now, on the ruler. */
 export const timelineOrigin = (g) => `${g.x(NOW_YEAR)}px ${g.rulerY}px`;
 
@@ -157,7 +166,7 @@ export default function TimelineC({ progress, fade }) {
   const camera = useTransform(progress, (p) => timelineCamera(g, p));
   const tipX = useTransform(year, (v) => g.x(v));
   // The words follow the ball, kept on screen.
-  const labelX = useTransform(year, (v) => Math.min(Math.max(g.x(v) - 18, g.left - 18), g.right - g.labelW + 18));
+  const labelX = useTransform(year, (v) => labelLeft(g, v));
   // The ball keeps its size while the camera zooms (it becomes the iris).
   const tipScale = useTransform(zoom, (z) => 1 / (1 + (ZOOM - 1) * z));
   const words = useTransform(zoom, (z) => 1 - within(z, 0.1, 0.5));
@@ -165,10 +174,14 @@ export default function TimelineC({ progress, fade }) {
   const head = useTransform([zoom, fade], ([z, f]) => (1 - within(z, 0, 0.6)) * (1 - f));
 
   const [active, setActive] = useState(0);
+  // Past the last role, on the way to Now: every role is a card.
+  const [done, setDone] = useState(false);
   const [current, setCurrent] = useState(START);
   useMotionValueEvent(progress, 'change', (p) => {
     const n = roleAt(p);
     setActive((c) => (c === n ? c : n));
+    const d = p > STOPS[STOPS.length - 1] + 0.012;
+    setDone((c) => (c === d ? c : d));
     const y = yearOf(yearAt(p));
     setCurrent((c) => (c === y ? c : y));
   });
@@ -209,16 +222,17 @@ export default function TimelineC({ progress, fade }) {
             (work first, so the internships sit on top where they overlap). */}
         {[...SEQ.map((r, i) => [r, i])]
           .sort(([a], [b]) => Number(a.internship ?? false) - Number(b.internship ?? false))
-          .flatMap(([r, i]) =>
-            spansOf(r).map(([from, to]) => (
+          .map(([r, i]) => {
+            const [from, to] = spanOf(r);
+            return (
               <span
-                key={`${keyOf(r)}-${from}`}
+                key={keyOf(r)}
                 className={`${styles.span} ${r.internship ? styles.intern : ''} ${i <= active ? styles.spanOn : ''}`}
                 style={{ left: g.x(from), width: g.x(to) - g.x(from) }}
                 aria-hidden
               />
-            )),
-          )}
+            );
+          })}
 
         {YEARS.map((y) => (
           <span key={y} className={`${styles.tick} ${y <= current ? styles.tickPast : ''} ${y === current ? styles.tickOn : ''}`} style={{ left: g.x(y) }}>
@@ -237,34 +251,23 @@ export default function TimelineC({ progress, fade }) {
         <motion.span className={`${styles.tip} ${role.internship ? styles.intern : ''}`} style={{ left: tipX, scale: tipScale }} aria-hidden />
       </motion.div>
 
-      {/* The job the ball is on: company above the line, title and years below. */}
+      {/* The job the ball is on, written out large under the ball. */}
       <motion.div className={styles.now} style={{ x: labelX, width: g.labelW, opacity: words }} aria-live="polite">
-        <div className={styles.above}>
-          <AnimatePresence initial={false}>
-            <motion.h3
-              key={keyOf(role)}
-              className={`${styles.company} ${logo ? styles.hasLogo : ''}`}
-              initial={{ y: '60%', opacity: 0, filter: 'blur(6px)' }}
-              animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
-              exit={{ y: '-40%', opacity: 0, filter: 'blur(6px)' }}
-              transition={{ duration: 0.55, ease: EASE }}
-            >
-              {logo ? <img className={styles.logo} src={logo} alt={role.company} /> : role.company}
-            </motion.h3>
-          </AnimatePresence>
-        </div>
-        <div className={styles.below}>
-          <AnimatePresence initial={false}>
+        <AnimatePresence initial={false}>
+          {!done && (
             <motion.div
               key={keyOf(role)}
               className={styles.detail}
-              initial={{ y: -12, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 8, opacity: 0 }}
-              transition={{ duration: 0.45, ease: EASE, delay: 0.06 }}
+              initial={{ y: 18, opacity: 0, filter: 'blur(6px)' }}
+              animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, transition: { duration: 0.25 } }}
+              transition={{ duration: 0.55, ease: EASE }}
             >
-              <p className={styles.jobTitle}>{logo ? `${role.role}, ${role.company}` : role.role}</p>
-              {role.full && <p className={styles.full}>{role.full}</p>}
+              <h3 className={`${styles.company} ${logo ? styles.hasLogo : ''}`}>
+                {logo ? <img className={styles.logo} src={logo} alt={role.company} /> : role.company}
+              </h3>
+              <p className={styles.jobTitle}>{logo ? `${titleOf(role)}, ${role.company}` : titleOf(role)}</p>
+              {role.full && role.full !== titleOf(role) && <p className={styles.full}>{role.full}</p>}
               <p className={styles.when}>
                 {years(role)}
                 {role.internship && <span className={styles.tag}>Internship</span>}
@@ -273,23 +276,52 @@ export default function TimelineC({ progress, fade }) {
                 </span>
               </p>
             </motion.div>
-          </AnimatePresence>
-        </div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
-      {/* Every role passed stays here, in order: year, company. */}
-      <motion.ol className={styles.ledger} style={{ '--left': `${g.left}px`, '--width': `${g.right - g.left}px`, '--n': SEQ.length, opacity: words }} aria-label="Roles so far">
+      {/* Every role passed, kept as a card above the ruler, in order. */}
+      <motion.ol
+        className={styles.row}
+        style={{ '--left': `${g.left}px`, '--width': `${g.right - g.left}px`, '--n': SEQ.length, opacity: words }}
+        aria-label="Career so far"
+      >
         {SEQ.map((r, i) => (
-          <li
-            key={keyOf(r)}
-            className={`${styles.entry} ${r.internship ? styles.intern : ''} ${i <= active ? styles.entryOn : ''} ${i === active ? styles.entryNow : ''}`}
-            aria-hidden={i > active || undefined}
-          >
-            <span className={styles.entryYear}>{r.spans ? `(${years(r)})` : yearOf(r.from)}</span>
-            <span className={styles.entryCo}>{r.company}</span>
+          <li key={keyOf(r)} className={styles.slot}>
+            {(i < active || done) && <Card role={r} from={{ x: labelLeft(g, restYear(r)) + 18, y: g.rulerY + 40 }} narrow={g.narrow} />}
           </li>
         ))}
       </motion.ol>
+    </div>
+  );
+}
+
+/** A role left behind: it starts where the big version stood, under the
+ *  ruler, and shrinks up into its place in the row. */
+function Card({ role: r, from, narrow }) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const box = el.getBoundingClientRect();
+    const controls = animate(
+      el,
+      { x: [from.x - box.left, 0], y: [from.y - box.top, 0], scale: [narrow ? 1.5 : 2, 1], opacity: [0, 1] },
+      { duration: 0.85, ease: EASE, opacity: { duration: 0.35, ease: 'easeOut' } },
+    );
+    return () => controls.stop();
+    // Once, when the role is left behind.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const logo = logoFor(r);
+  return (
+    <div ref={ref} className={`${styles.card} ${r.internship ? styles.intern : ''}`}>
+      <span className={styles.cardYear}>{years(r)}</span>
+      <span className={styles.cardCo}>
+        {logo && <img className={styles.cardLogo} src={logo} alt="" />}
+        <span className={logo ? styles.cardName : undefined}>{r.company}</span>
+      </span>
+      <span className={styles.cardRole}>{r.role}</span>
     </div>
   );
 }
