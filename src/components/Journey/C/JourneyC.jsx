@@ -20,7 +20,7 @@ import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../I
 import { CHAPTER_STOPS, POSES } from '../../Intro3/timeline.js';
 import { playShutter, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
-import TimelineC, { TIMELINE_NOW, timelineCamera, timelineLayout, timelineOrigin, timelineStops } from './TimelineC.jsx';
+import TimelineC, { TIMELINE_NOW, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import styles from './JourneyC.module.css';
 
@@ -562,7 +562,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     window.addEventListener('resize', on);
     return () => window.removeEventListener('resize', on);
   }, []);
-  const gridTransform = useTransform(tlProgress, (p) => timelineCamera(tg, p));
+  const gridSize = useTransform(tlProgress, (p) => timelineGrid(tg, p).size);
+  const gridPosition = useTransform(tlProgress, (p) => timelineGrid(tg, p).position);
 
   // "Now", in two beats (the journey rests between them).
   //  1. The ball at Now becomes the Apple logo and grows a little, and "The
@@ -731,11 +732,17 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const list = [
         { id: 'hero', y: deckAt(0) },
         { id: 'about', y: spanAt(SPAN.about, 0.4), ms: 1600 },
-        ...timelineStops().map((p, i) => ({ id: `role${i}`, y: spanAt(SPAN.tl, p) })),
-        // From the last role: on to Now, where every role is a card and the
-        // whole career reads at once. Then ease into the zoom and, slowly,
-        // the ball becomes the logo as the line rises.
-        { id: 'now', y: spanAt(SPAN.tl, TIMELINE_NOW), ms: 1600 },
+        // The timeline arrives whole, rests a beat, then the camera closes in
+        // on the ball: one scroll, two legs.
+        ...timelineStops().map((p, i) => ({
+          id: `role${i}`,
+          y: spanAt(SPAN.tl, p),
+          ...(i === 0 ? { ms: 1500, via: { y: spanAt(SPAN.tl, 0), ms: 1500, rest: 380 } } : {}),
+        })),
+        // From the last role: on to Now as the camera pulls back over the
+        // whole journey. Then it closes in on Now and, slowly, the ball
+        // becomes the logo as the line rises.
+        { id: 'now', y: spanAt(SPAN.tl, TIMELINE_NOW), ms: 2000 },
         { id: 'logo', y: spanAt(SPAN.now, 0.31), ms: 3000, via: { y: spanAt(SPAN.tl, 1), ms: 1300 } },
         { id: 'mac', y: spanAt(SPAN.now, 0.88), ms: 3000 },
       ];
@@ -765,9 +772,17 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         // Two legs: it comes to rest at the waypoint, then sets off again
         // at once and slows into the stop (the ball starts turning into the
         // logo as soon as the zoom lands, and settles as the logo).
+        // With a rest, it pauses there and sets off again gently instead.
         cancelRef.current = tweenScroll(via.y, via.ms, () => {
           if (!gliding) return;
-          cancelRef.current = tweenScroll(y, ms, land, sineOut);
+          if (!via.rest) {
+            cancelRef.current = tweenScroll(y, ms, land, sineOut);
+            return;
+          }
+          const t = setTimeout(() => {
+            if (gliding) cancelRef.current = tweenScroll(y, ms, land, curve);
+          }, via.rest);
+          cancelRef.current = () => clearTimeout(t);
         });
         return;
       }
@@ -1016,12 +1031,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             <motion.div className={`${styles.grid} ${lines[0] || aboutInstant ? styles.gridOn : ''}`} style={{ opacity: gridOpacity }} aria-hidden>
               <motion.div
                 className={styles.gridLines}
-                style={{
-                  transform: gridTransform,
-                  transformOrigin: timelineOrigin(tg),
-                  backgroundSize: `${tg.yearW}px ${tg.yearW}px`,
-                  backgroundPosition: `${tg.left % tg.yearW}px ${tg.rulerY % tg.yearW}px`,
-                }}
+                style={{ backgroundSize: gridSize, backgroundPosition: gridPosition }}
               />
             </motion.div>
 

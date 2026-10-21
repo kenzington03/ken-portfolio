@@ -1,14 +1,19 @@
-// Ten years in one frame, read like a resume. A hairline ruler spans the
-// screen with a small tick per year. The ball visits each role in order (the
-// journey steps it: one scroll, one role); the internships came first and
-// are drawn in blue, the work in ink. The role the ball is on is written out
-// large under the ball. When the ball moves on, that role shrinks into a
-// small card in the row above the ruler and stays there, so by Now the whole
-// career is on screen. The year rolls big in the top left. At the end the
-// camera zooms in on Now, dead centre, where the ball becomes the Apple logo.
+// Ten years as one camera move. The section opens on the whole timeline: a
+// hairline ruler with a tick per year and a dot where each role began. Then
+// the camera closes in on the ball, dead centre, and follows it (the journey
+// steps it: one scroll, one role); the world pans past underneath. The role
+// the ball is on is written out large above it. When the ball leaves, that
+// role is left behind where it happened: it drops under its own dot as a
+// faint note, part of the background. After the last role the camera pulls
+// back to the whole journey, every role noted along the line, then closes in
+// on Now, where the ball becomes the Apple logo. The internships came first
+// and are drawn in blue, the work in ink. The year rolls big in the top left.
+//
+// Everything is drawn in screen space from one camera (scale s, offset tx),
+// so lines stay hairlines and type stays its size at any zoom.
 
-import { useLayoutEffect, useRef, useState } from 'react';
-import { AnimatePresence, animate, motion, useMotionTemplate, useMotionValueEvent, useTransform } from 'framer-motion';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { motion, useMotionValueEvent, useTransform } from 'framer-motion';
 import { ROLES } from '../../../data/about.js';
 import styles from './Timeline.module.css';
 
@@ -34,15 +39,6 @@ const logoFor = (r) => {
   return hit ? hit[1] : null;
 };
 
-// Behind the chart, the plain grid. ?tlbg=glow inks the grid darker around
-// the ball instead, for comparing.
-const pickBg = () => {
-  try {
-    return new URLSearchParams(window.location.search).get('tlbg') === 'glow' ? 'glow' : 'grid';
-  } catch {
-    return 'grid';
-  }
-};
 const YEARS = Array.from({ length: Math.floor(NOW_YEAR) - START + 1 }, (_, i) => START + i);
 const yearOf = (v) => Math.floor(v + 0.05);
 const years = (r) => {
@@ -53,16 +49,11 @@ const years = (r) => {
   return a === b ? `${a}` : `${a} to ${b}`;
 };
 
-// The fill runs over most of the scroll, the zoom over the rest.
-const FILL_END = 0.8;
-const ZOOM = 2.4;
-const EASE = [0.16, 1, 0.3, 1];
-
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
-const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const smooth = (t) => t * t * (3 - 2 * t);
 const ROLL = 0.22;
+const EASE = [0.16, 1, 0.3, 1];
 
 /** The year the ball rests on for a role: just past its start, and never
  *  while the year is rolling over, so the wheel reads the year it began. */
@@ -71,29 +62,47 @@ const restYear = (r) => {
   const f = yr - Math.floor(yr);
   return f < ROLL + 0.02 ? Math.floor(yr) + ROLL + 0.02 : yr;
 };
-// One even step of scroll per role; after the last, on to Now.
-const STOPS = SEQ.map((_, i) => (i / SEQ.length) * FILL_END);
-const PATH = [...SEQ.map(restYear), NOW_YEAR];
-const KNOTS = [...STOPS, FILL_END];
+
+// The beats, as timeline progress:
+//   0 .. IN     the whole timeline, then the camera closes in on the ball
+//   IN .. LAST  one even step per role, the camera on the ball
+//   LAST .. OUT on to Now while the camera pulls back to the whole journey
+//   OUT .. 1    the camera closes in on Now (the logo takes it from there)
+// Inside a beat everything is linear: the glides that drive it do the easing.
+const IN = 0.12;
+const STEP = 0.09;
+const STOPS = SEQ.map((_, i) => IN + i * STEP);
+const LAST = STOPS[STOPS.length - 1];
+const OUT = LAST + 0.12;
+const PATH = SEQ.map(restYear);
 const yearAt = (p) => {
-  if (p <= 0) return PATH[0];
-  for (let i = 0; i < KNOTS.length - 1; i += 1) {
-    if (p <= KNOTS[i + 1]) return PATH[i] + (PATH[i + 1] - PATH[i]) * within(p, KNOTS[i], KNOTS[i + 1]);
-  }
-  return NOW_YEAR;
+  if (p <= IN) return PATH[0];
+  if (p >= OUT) return NOW_YEAR;
+  if (p >= LAST) return PATH[PATH.length - 1] + (NOW_YEAR - PATH[PATH.length - 1]) * within(p, LAST, OUT);
+  const i = Math.min(Math.floor((p - IN) / STEP), PATH.length - 2);
+  return PATH[i] + (PATH[i + 1] - PATH[i]) * within(p, STOPS[i], STOPS[i + 1]);
 };
-const roleAt = (p) => {
-  let n = 0;
-  STOPS.forEach((s, i) => {
-    if (p >= s - 0.002) n = i;
-  });
-  return n;
+// How far the camera is in: 0 shows the whole line, 1 is on the ball.
+const zoomAt = (p) => {
+  if (p <= IN) return within(p, 0, IN);
+  if (p <= LAST) return 1;
+  if (p <= OUT) return 1 - within(p, LAST, OUT);
+  return within(p, OUT, 1);
 };
+// A role is written out while the ball is on it, and left behind as soon as
+// the ball sets off again.
+const NEAR = 0.016;
+const stateOf = (i, p) => {
+  if (p > STOPS[i] + NEAR) return 'past';
+  if (p >= STOPS[i] - NEAR) return 'on';
+  return 'ahead';
+};
+const statesAt = (p) => SEQ.map((_, i) => stateOf(i, p));
 
 /** Where the ball rests, one stop per role, as timeline progress. */
 export const timelineStops = () => [...STOPS];
-/** Where it rests on Now, before the zoom: the whole career in cards. */
-export const TIMELINE_NOW = FILL_END;
+/** The whole journey, seen from afar with the ball on Now. */
+export const TIMELINE_NOW = OUT;
 
 function Wheel({ year, place }) {
   // The wheel turns over just after New Year (v - ROLL), not before it.
@@ -117,9 +126,9 @@ function Wheel({ year, place }) {
   );
 }
 
-/** The chart's geometry for the current viewport. The grid behind the
- *  journey uses the same numbers: one cell per year, lines through the year
- *  ticks and the ruler. */
+/** The chart's geometry for the current viewport: the whole line, as seen
+ *  from afar (camera scale 1). The grid behind the journey uses the same
+ *  numbers: one cell per year, lines through the year ticks and the ruler. */
 export function timelineLayout() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -129,29 +138,51 @@ export function timelineLayout() {
   const right = vw - left;
   const yearW = (right - left) / (NOW_YEAR - START);
   const x = (yr) => left + (yr - START) * yearW;
-  const rulerY = Math.round(vh * 0.56);
-  const labelW = narrow ? Math.min(300, vw - 48) : Math.min(520, vw * 0.36);
-  return { vw, vh, narrow, gutter, yearW, left, right, x, rulerY, labelW };
+  const rulerY = Math.round(vh * (narrow ? 0.46 : 0.5));
+  // How close the camera comes: a year is about a fifth of the screen
+  // (a third on phones).
+  const zoom = Math.max(2, (vw * (narrow ? 0.32 : 0.2)) / yearW);
+  return { vw, vh, narrow, gutter, yearW, left, right, x, rulerY, zoom };
 }
 
-/** Where the written-out role starts for the year the ball is on: under
- *  the ball, kept on screen. */
-const labelLeft = (g, v) => Math.min(Math.max(g.x(v) - 18, g.left - 18), g.right - g.labelW + 18);
-
-/** Where the camera scales from: Now, on the ruler. */
-export const timelineOrigin = (g) => `${g.x(NOW_YEAR)}px ${g.rulerY}px`;
-
-/** The camera at timeline progress `p`: still while the line fills, then a
- *  zoom into Now that slides it to the centre of the screen. */
+/** The camera at timeline progress `p`: scale `s` about the ruler, and the
+ *  horizontal offset `tx` that puts the ball where it belongs on screen
+ *  (in place from afar, dead centre up close). */
 export function timelineCamera(g, p) {
-  const z = inOut(within(p, FILL_END, 1));
-  const tx = (g.vw / 2 - g.x(NOW_YEAR)) * z;
-  return `translate3d(${tx.toFixed(2)}px, 0, 0) scale(${(1 + (ZOOM - 1) * z).toFixed(4)})`;
+  const z = zoomAt(p);
+  const s = 1 + (g.zoom - 1) * z;
+  const bx = g.x(yearAt(p));
+  return { s, tx: bx + (g.vw / 2 - bx) * z - bx * s };
+}
+
+/** The grid behind, moved by the same camera: cell size and offsets. */
+export function timelineGrid(g, p) {
+  const { s, tx } = timelineCamera(g, p);
+  const cell = g.yearW * s;
+  const mod = (v) => ((v % cell) + cell) % cell;
+  return { size: `${cell.toFixed(2)}px ${cell.toFixed(2)}px`, position: `${mod(g.left * s + tx).toFixed(2)}px ${mod(g.rulerY).toFixed(2)}px` };
+}
+
+/** Lanes for the notes under the line, seen from afar (the closest they ever
+ *  get): each note takes the first lane where it clears the one before. A
+ *  note that would run off the right edge hangs to the left of its dot. */
+function laneOut(g) {
+  const lanes = [];
+  return SEQ.map((r) => {
+    const x = g.x(r.from);
+    const w = Math.min(g.narrow ? 129 : 179, Math.max(r.company.length * (g.narrow ? 7 : 7.4), years(r).length * 6.6) + 9) + 14;
+    const flip = x + w > g.vw - 12;
+    const [a, b] = flip ? [x - w, x] : [x, x + w];
+    let lane = lanes.findIndex((taken) => taken.every(([c, d]) => b < c || a > d));
+    if (lane === -1) lane = lanes.push([]) - 1;
+    lanes[lane].push([a, b]);
+    return { lane, flip };
+  });
 }
 
 /**
- * `progress` 0..1 runs the fill, then the zoom into Now; `fade` 0..1 clears
- * the chart as the journey cuts to the dark.
+ * `progress` 0..1 runs the camera and the ball; `fade` 0..1 clears the chart
+ * as the journey cuts to the dark.
  */
 export default function TimelineC({ progress, fade }) {
   const [g, setG] = useState(timelineLayout);
@@ -160,38 +191,47 @@ export default function TimelineC({ progress, fade }) {
     window.addEventListener('resize', on);
     return () => window.removeEventListener('resize', on);
   }, []);
+  const lanes = useMemo(() => laneOut(g), [g]);
+
+  // The camera, written straight to CSS variables every frame: everything
+  // places itself from its own spot on the line (--a) with calc().
+  const rootRef = useRef(null);
+  const aim = (p) => {
+    const el = rootRef.current;
+    if (!el) return;
+    const { s, tx } = timelineCamera(g, p);
+    el.style.setProperty('--s', s.toFixed(5));
+    el.style.setProperty('--tx', `${tx.toFixed(2)}px`);
+  };
+  useLayoutEffect(() => aim(progress.get()));
+  useMotionValueEvent(progress, 'change', aim);
 
   const year = useTransform(progress, yearAt);
-  const zoom = useTransform(progress, (p) => inOut(within(p, FILL_END, 1)));
-  const camera = useTransform(progress, (p) => timelineCamera(g, p));
-  const tipX = useTransform(year, (v) => g.x(v));
-  // The words follow the ball, kept on screen.
-  const labelX = useTransform(year, (v) => labelLeft(g, v));
-  // The ball keeps its size while the camera zooms (it becomes the iris).
-  const tipScale = useTransform(zoom, (z) => 1 / (1 + (ZOOM - 1) * z));
-  const words = useTransform(zoom, (z) => 1 - within(z, 0.1, 0.5));
+  const ballX = useTransform(progress, (p) => {
+    const { s, tx } = timelineCamera(g, p);
+    return g.x(yearAt(p)) * s + tx;
+  });
+  // The year, the title and the notes make way as the camera closes in on Now.
+  const head = useTransform([progress, fade], ([p, f]) => (1 - within(p, OUT, OUT + (1 - OUT) * 0.6)) * (1 - f));
+  const notes = useTransform([progress, fade], ([p, f]) => (1 - within(p, OUT, OUT + (1 - OUT) * 0.5)) * (1 - f));
   const chart = useTransform(fade, (f) => 1 - f);
-  const head = useTransform([zoom, fade], ([z, f]) => (1 - within(z, 0, 0.6)) * (1 - f));
 
-  const [active, setActive] = useState(0);
-  // Past the last role, on the way to Now: every role is a card.
-  const [done, setDone] = useState(false);
+  const [states, setStates] = useState(() => statesAt(progress.get()));
   const [current, setCurrent] = useState(START);
   useMotionValueEvent(progress, 'change', (p) => {
-    const n = roleAt(p);
-    setActive((c) => (c === n ? c : n));
-    const d = p > STOPS[STOPS.length - 1] + 0.012;
-    setDone((c) => (c === d ? c : d));
+    const next = statesAt(p);
+    setStates((cur) => (next.every((s, i) => s === cur[i]) ? cur : next));
     const y = yearOf(yearAt(p));
     setCurrent((c) => (c === y ? c : y));
   });
-  const role = SEQ[active];
-  const [bg] = useState(pickBg);
-  const glowMask = useMotionTemplate`radial-gradient(${g.yearW * 3}px ${g.yearW * 3}px at ${tipX}px ${g.rulerY}px, #000 0%, transparent 100%)`;
-  const logo = logoFor(role);
+  // The ball takes the colour of the role it is on, or last left.
+  const onIndex = states.indexOf('on');
+  const ballRole = SEQ[onIndex !== -1 ? onIndex : Math.max(0, states.lastIndexOf('past'))];
+
+  const at = (yr) => g.x(yr).toFixed(2);
 
   return (
-    <div className={styles.tl} style={{ '--ruler-y': `${g.rulerY}px` }}>
+    <div ref={rootRef} className={styles.tl} style={{ '--ruler-y': `${g.rulerY}px` }}>
       {/* The year rolls big in the top left; the title answers it top right. */}
       <motion.div className={styles.head} style={{ opacity: head }}>
         <div className={styles.odometer} aria-hidden>
@@ -203,20 +243,8 @@ export default function TimelineC({ progress, fade }) {
         <h2 className={styles.title}>My career, 2015 to now.</h2>
       </motion.div>
 
-      <motion.div className={styles.camera} style={{ transform: camera, transformOrigin: timelineOrigin(g), opacity: chart }}>
-        {bg === 'glow' && (
-          <motion.span
-            className={styles.glow}
-            style={{
-              backgroundSize: `${g.yearW}px ${g.yearW}px`,
-              backgroundPosition: `${g.left % g.yearW}px ${g.rulerY % g.yearW}px`,
-              WebkitMaskImage: glowMask,
-              maskImage: glowMask,
-            }}
-            aria-hidden
-          />
-        )}
-        <div className={styles.ruler} style={{ left: g.left, width: g.right - g.left }} />
+      <motion.div className={styles.chart} style={{ opacity: chart }}>
+        <span className={styles.ruler} style={{ '--a': at(START), '--w': g.right - g.left }} aria-hidden />
 
         {/* Each role's span, drawn in its colour once the ball reaches it
             (work first, so the internships sit on top where they overlap). */}
@@ -225,103 +253,73 @@ export default function TimelineC({ progress, fade }) {
           .map(([r, i]) => {
             const [from, to] = spanOf(r);
             return (
-              <span
-                key={keyOf(r)}
-                className={`${styles.span} ${r.internship ? styles.intern : ''} ${i <= active ? styles.spanOn : ''}`}
-                style={{ left: g.x(from), width: g.x(to) - g.x(from) }}
-                aria-hidden
-              />
+              <span key={keyOf(r)} className={styles.span} style={{ '--a': at(from), '--w': (g.x(to) - g.x(from)).toFixed(2) }} aria-hidden>
+                <i className={`${r.internship ? styles.intern : ''} ${states[i] !== 'ahead' ? styles.spanOn : ''}`} />
+              </span>
             );
           })}
 
         {YEARS.map((y) => (
-          <span key={y} className={`${styles.tick} ${y <= current ? styles.tickPast : ''} ${y === current ? styles.tickOn : ''}`} style={{ left: g.x(y) }}>
+          <span key={y} className={`${styles.tick} ${y <= current ? styles.tickPast : ''} ${y === current ? styles.tickOn : ''}`} style={{ '--a': at(y) }}>
             {(!g.narrow || y % 2 === 1) && <b>{y}</b>}
           </span>
         ))}
-        <span className={`${styles.tick} ${styles.tickNow}`} style={{ left: g.x(NOW_YEAR) }}>
+        <span className={`${styles.tick} ${styles.tickNow}`} style={{ '--a': at(NOW_YEAR) }}>
           <b>Now</b>
         </span>
 
         {/* Where each role began: a small dot that fills once reached. */}
         {SEQ.map((r, i) => (
-          <span key={keyOf(r)} className={`${styles.start} ${r.internship ? styles.intern : ''} ${i <= active ? styles.startOn : ''}`} style={{ left: g.x(r.from) }} aria-hidden />
+          <span key={keyOf(r)} className={`${styles.start} ${r.internship ? styles.intern : ''} ${states[i] !== 'ahead' ? styles.startOn : ''}`} style={{ '--a': at(r.from) }} aria-hidden />
         ))}
 
-        <motion.span className={`${styles.tip} ${role.internship ? styles.intern : ''}`} style={{ left: tipX, scale: tipScale }} aria-hidden />
+        <motion.span className={`${styles.tip} ${ballRole.internship ? styles.intern : ''}`} style={{ x: ballX }} aria-hidden />
       </motion.div>
 
-      {/* The job the ball is on, written out large under the ball. */}
-      <motion.div className={styles.now} style={{ x: labelX, width: g.labelW, opacity: words }} aria-live="polite">
-        <AnimatePresence initial={false}>
-          {!done && (
-            <motion.div
-              key={keyOf(role)}
-              className={styles.detail}
-              initial={{ y: 18, opacity: 0, filter: 'blur(6px)' }}
-              animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, transition: { duration: 0.25 } }}
-              transition={{ duration: 0.55, ease: EASE }}
-            >
-              <h3 className={`${styles.company} ${logo ? styles.hasLogo : ''}`}>
-                {logo ? <img className={styles.logo} src={logo} alt={role.company} /> : role.company}
-              </h3>
-              <p className={styles.jobTitle}>{logo ? `${titleOf(role)}, ${role.company}` : titleOf(role)}</p>
-              {role.full && role.full !== titleOf(role) && <p className={styles.full}>{role.full}</p>}
-              <p className={styles.when}>
-                {years(role)}
-                {role.internship && <span className={styles.tag}>Internship</span>}
-                <span className={styles.count}>
-                  {String(active + 1).padStart(2, '0')} of {String(SEQ.length).padStart(2, '0')}
-                </span>
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Every role passed, kept as a card above the ruler, in order. */}
-      <motion.ol
-        className={styles.row}
-        style={{ '--left': `${g.left}px`, '--width': `${g.right - g.left}px`, '--n': SEQ.length, opacity: words }}
-        aria-label="Career so far"
-      >
+      {/* Each role, at its own dot: written out large above the ball while
+          the ball is on it, then left behind under the line as a faint note. */}
+      <motion.ol className={styles.roles} style={{ opacity: notes }} aria-label="Career">
         {SEQ.map((r, i) => (
-          <li key={keyOf(r)} className={styles.slot}>
-            {(i < active || done) && <Card role={r} from={{ x: labelLeft(g, restYear(r)) + 18, y: g.rulerY + 40 }} narrow={g.narrow} />}
-          </li>
+          <Role key={keyOf(r)} role={r} index={i} state={states[i]} lane={lanes[i].lane} flip={lanes[i].flip} at={at(r.from)} narrow={g.narrow} />
         ))}
       </motion.ol>
     </div>
   );
 }
 
-/** A role left behind: it starts where the big version stood, under the
- *  ruler, and shrinks up into its place in the row. */
-function Card({ role: r, from, narrow }) {
-  const ref = useRef(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    const box = el.getBoundingClientRect();
-    const controls = animate(
-      el,
-      { x: [from.x - box.left, 0], y: [from.y - box.top, 0], scale: [narrow ? 1.5 : 2, 1], opacity: [0, 1] },
-      { duration: 0.85, ease: EASE, opacity: { duration: 0.35, ease: 'easeOut' } },
-    );
-    return () => controls.stop();
-    // Once, when the role is left behind.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+function Role({ role: r, index, state, lane, flip, at, narrow }) {
   const logo = logoFor(r);
+  const title = titleOf(r);
+  const laneY = (narrow ? 44 : 50) + lane * (narrow ? 40 : 56);
+  // The big version rests above the ball, the note under the line in its
+  // lane; on leaving, the one shrinks down into the other's place.
+  const big = {
+    on: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', transition: { duration: 0.6, ease: EASE, delay: 0.05 } },
+    past: { opacity: 0, y: laneY + 60, scale: 0.3, filter: 'blur(4px)', transition: { duration: 0.6, ease: EASE } },
+    ahead: { opacity: 0, y: 24, scale: 0.96, filter: 'blur(6px)', transition: { duration: 0.35, ease: 'easeOut' } },
+  };
+  const note = {
+    past: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.9, ease: EASE, delay: 0.06 } },
+    on: { opacity: 0, y: -(laneY + 80), scale: 2.6, transition: { duration: 0.3, ease: 'easeOut' } },
+    ahead: { opacity: 0, y: 0, scale: 1, transition: { duration: 0.2 } },
+  };
   return (
-    <div ref={ref} className={`${styles.card} ${r.internship ? styles.intern : ''}`}>
-      <span className={styles.cardYear}>{years(r)}</span>
-      <span className={styles.cardCo}>
-        {logo && <img className={styles.cardLogo} src={logo} alt="" />}
-        <span className={logo ? styles.cardName : undefined}>{r.company}</span>
-      </span>
-      <span className={styles.cardRole}>{r.role}</span>
-    </div>
+    <li className={styles.role} style={{ '--a': at }} aria-current={state === 'on' ? 'step' : undefined} aria-hidden={state === 'ahead' || undefined}>
+      <motion.div className={styles.big} variants={big} initial={false} animate={state}>
+        <h3 className={`${styles.company} ${logo ? styles.hasLogo : ''}`}>{logo ? <img className={styles.logo} src={logo} alt={r.company} /> : r.company}</h3>
+        <p className={styles.jobTitle}>{logo ? `${title}, ${r.company}` : title}</p>
+        <p className={styles.when}>
+          {years(r)}
+          {r.internship && <span className={styles.tag}>Internship</span>}
+          <span className={styles.count}>
+            {String(index + 1).padStart(2, '0')} of {String(SEQ.length).padStart(2, '0')}
+          </span>
+        </p>
+      </motion.div>
+      <motion.div className={`${styles.note} ${r.internship ? styles.intern : ''} ${flip ? styles.flip : ''}`} style={{ '--lane': `${laneY}px` }} variants={note} initial={false} animate={state}>
+        <span className={styles.noteCo}>{r.company}</span>
+        <span className={styles.noteYear}>{years(r)}</span>
+      </motion.div>
+    </li>
   );
 }
