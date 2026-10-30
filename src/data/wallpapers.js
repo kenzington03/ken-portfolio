@@ -1,5 +1,5 @@
 // v3: Ken's own wallpapers (Oct 2026); earlier picks reset once.
-export const WALLPAPER_STORAGE_KEY = 'kenneth-os-wallpaper-v4';
+export const WALLPAPER_STORAGE_KEY = 'kenneth-os-wallpaper-v5';
 export const DESKTOP_BG_STORAGE_KEY = 'kenneth-os-desktop-bg-index';
 
 /** Image files in public/assets/backgrounds/, Apple's own macOS 26 "Tahoe"
@@ -41,8 +41,9 @@ export function getWallpaperById(id) {
   return WALLPAPER_OPTIONS.find((w) => w.id === id) ?? WALLPAPER_OPTIONS[0];
 }
 
-/** Studio Light: Ken's own, warm and quiet, so the work carries the colour. */
-const DEFAULT_WALLPAPER_ID = 'studio';
+/** A real Mac's wallpaper (Ken, Oct 30 2026): Tahoe dark, which also
+ * continues the dark room the Mac arrives from. */
+const DEFAULT_WALLPAPER_ID = 'tahoe-dark';
 
 export function loadStoredWallpaper() {
   try {

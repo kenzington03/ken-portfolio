@@ -52,122 +52,36 @@
   pointer-events: none;
 }
 
-/* His ball, dribbling on the paper: a fall that speeds up, a squash on the
-   floor, a rise that slows; its shadow tightens as it lands. */
-.dribble {
+/* His name in outline, filling with ink from the bottom (--fill 0..1). */
+.fillName {
   position: relative;
-  width: 64px;
-  height: 150px;
+  font: 900 clamp(110px, 16vw, 240px) / 0.82 var(--display);
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: 0.01em;
 }
 
-.dribbleBall {
-  position: absolute;
-  left: 0;
-  bottom: 4px;
-  width: 64px;
-  height: 64px;
-  transform-origin: 50% 100%;
-  animation: dribble 680ms infinite;
-}
-
-.dribbleBall img {
+.fillOutline {
   display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  animation: dribbleSpin 2720ms linear infinite;
+  color: transparent;
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--ink) 30%, transparent);
 }
 
-/* The light stays put while the leather turns. */
-.dribbleBall::after {
-  content: '';
+.fillInk {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 34% 28%, rgb(255 236 214 / 0.3), transparent 34%),
-    radial-gradient(circle at 36% 30%, transparent 0, rgb(34 10 0 / 0.3) 68%, rgb(22 6 0 / 0.6) 100%);
+  color: var(--accent);
+  filter: drop-shadow(0.025em 0.025em 0 var(--pop-2, #16234a));
+  clip-path: inset(calc((1 - var(--fill, 0)) * 100%) -10% -10% -10%);
+  transition: clip-path 120ms linear;
 }
 
-.dribbleShadow {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 70px;
-  height: 10px;
-  margin-left: -35px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(20 12 6 / 0.4), transparent);
-  animation: dribbleShadow 680ms infinite;
-}
-
-@keyframes dribble {
-  0% {
-    transform: translateY(-82px);
-    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
-  }
-  46% {
-    transform: translateY(0) scale(1.08, 0.88);
-    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
-  }
-  54% {
-    transform: translateY(-4px) scale(0.97, 1.04);
-    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
-  }
-  100% {
-    transform: translateY(-82px);
-  }
-}
-
-@keyframes dribbleSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes dribbleShadow {
-  0%,
-  100% {
-    transform: scale(0.45);
-    opacity: 0.35;
-  }
-  46% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* The shot clock: big, tabular, in the poster's ink. */
+/* The count: small, tabular, under the name. */
 .clock {
   margin: 0;
-  font: 900 clamp(56px, 7vw, 96px) / 0.85 var(--display);
-  font-variation-settings: 'opsz' 72;
+  font: 600 14px/1 var(--text);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: var(--accent);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dribbleBall,
-  .dribbleBall img,
-  .dribbleShadow {
-    animation: none;
-  }
-}
-
-.loaderBar {
-  position: relative;
-  width: clamp(120px, 14vw, 180px);
-  height: 1px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--ink) 14%, transparent);
-}
-
-.loaderBar span {
-  position: absolute;
-  inset: 0;
-  background: var(--ink);
-  transform-origin: left center;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 
 /* A skip's dip: the page's own colour (or the night, into the Mac), over
@@ -791,12 +705,11 @@
 /* "scroll down", under the descriptor on the left, its arrow pointing down. */
 .noteScroll {
   position: absolute;
-  /* Left of the resting ball (at 80% of the width) with clear air between
-     them, and clear of him on the other side. */
-  right: calc(20vw + 96px);
+  /* Just right of the resting ball, with clear air (left is set by Cast). */
+  left: 70%;
   bottom: clamp(36px, 9vh, 96px);
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 2px;
   transform: rotate(-3deg);
   opacity: 0;
@@ -805,7 +718,7 @@
 
 .noteScroll svg {
   height: 2.2em;
-  margin-right: 1.6em;
+  margin-left: 1.6em;
 }
 
 .castNarrow .noteScroll {

@@ -44,8 +44,8 @@ const FLOW_POSES = { hero: OVERHEAD, front: POSES.front };
 // transparent background. `aspect` is the file's width / height.
 const HERO_ART = { src: '/assets/hero/art/ken.webp', aspect: 832 / 2138 };
 
-// The loader: his ball, dribbling on the paper, over a shot clock that
-// counts the real loading up to 100.
+// The loader: his name printed in outline, filling with ink from the bottom
+// as the real loading comes in, the count beside it.
 const MIN_LOAD_MS = 1700; // with the closing beat the loader lasts about 3.5 s on a fast line
 const MAX_LOAD_MS = 9000;
 // Returning visitors have the assets cached: they go straight in.
@@ -151,7 +151,7 @@ function Loader({ reduced, onDone, withModel }) {
       if (cap - disp < 0.004) disp = cap;
       setShown(disp);
       if (!closing && disp >= 0.995) {
-        // Full time: the ball takes one last bounce and the paper is the hero's.
+        // Full: a beat on the inked name, then the paper is the hero's.
         closing = true;
         setTimeout(() => setOut(true), reduced ? 120 : 520);
         setTimeout(onDone, reduced ? 200 : 1080);
@@ -166,20 +166,14 @@ function Loader({ reduced, onDone, withModel }) {
   const pct = Math.round(shown * 100);
   return (
     <div className={`${styles.loader} ${out ? styles.loaderOut : ''}`} role="status" aria-label={`Loading, ${pct} percent`}>
-      {/* The ball, dribbling: it falls, squashes on the floor, springs up. */}
-      <div className={styles.dribble} aria-hidden>
-        <span className={styles.dribbleBall}>
-          <img src="/assets/hero/art/ball-real.webp" alt="" draggable={false} />
-        </span>
-        <span className={styles.dribbleShadow} />
+      {/* His name in outline, the ink rising in it with the loading. */}
+      <div className={styles.fillName} style={{ '--fill': shown.toFixed(4) }} aria-hidden>
+        <span className={styles.fillOutline}>KEN</span>
+        <span className={styles.fillInk}>KEN</span>
       </div>
-      {/* The shot clock: the real progress, counted up. */}
       <p className={styles.clock} aria-hidden>
-        {String(pct).padStart(3, '0')}
+        {pct}%
       </p>
-      <span className={styles.loaderBar} aria-hidden>
-        <span style={{ transform: `scaleX(${shown.toFixed(4)})` }} />
-      </span>
     </div>
   );
 }
@@ -275,18 +269,16 @@ const PUSH = 0.07;
 // height), and how much bigger he is than in the hero.
 const ME_FOCUS = 0.36;
 const ME_SCALE = 1.7;
-// The ball. In the hero it rolls out from behind his legs along his floor
-// and comes to rest bottom right. With the first scroll it glides, in one
-// straight line, to the middle of the screen (the height of the career's
-// line), and holds there: Me comes in around it, then the career's line
-// slides in under it. BALL is its size in units of his height in the hero;
+// The ball. In the hero it rolls out from behind his legs and comes to rest
+// just past his right shoe. Into Me it glides along the bottom of the screen
+// to the middle; into the career it rises, straight up, onto the career's
+// line (the middle of the screen), and holds there as the line slides in. BALL is its size in units of his height in the hero;
 // BALL_SCREEN its size in the middle, as a share of the viewport's height.
 // ROLL_K: how much it turns for the ground covered (a quarter of a true
 // roll, so it rolls without whirling).
 const BALL = 0.115;
 const BALL_IN = { delay: 2500, ms: 1900 };
 const BALL_REST_Y = 0.977; // its base on his floor, in units of his height
-const BALL_HERO_X = 0.8; // where it rests, as a share of the screen's width (the scroll note sits left of it)
 const BALL_SCREEN = 0.062;
 const ROLL_K = 0.25;
 // A ball rolling to a stop slows evenly (friction): its travel eases out
@@ -456,12 +448,14 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
       // it; at the end of the career it opens into the Apple logo there.
       const ball = ballRef.current;
       const b3 = ball3dRef.current;
+      let noteX = null; // "scroll down" sits just right of the resting ball
       if (ball) {
         const h0 = camAt(0, 0);
         const heroD = H * BALL * h0.S;
         const midD = Math.round(vh * BALL_SCREEN);
         const startX = h0.left + (w * h0.S) / 2; // behind his legs
-        const heroX = vw * BALL_HERO_X;
+        const heroX = h0.left + w * h0.S * 0.9 + heroD / 2; // just past his right shoe
+        noteX = heroX + heroD / 2 + 36;
         const floorY = h0.top + BALL_REST_Y * H * h0.S - heroD / 2; // its centre on his floor
         const cx = vw / 2;
         const cy = tg.rulerY;
@@ -473,21 +467,23 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
         let fade = 1;
         let floor = 1;
         let seen = t0 != null && enter > 0;
+        // Me's floor: the bottom of the screen.
+        const meY = vh * 0.9 - midD / 2;
         if (a > 0) {
-          // The glide: one straight line, bottom right to the middle.
+          // Into Me: along the bottom of the screen to the middle.
           x = heroX + (cx - heroX) * a;
-          y = floorY + (cy - floorY) * a;
+          y = floorY + (meY - floorY) * a;
           size = heroD + (midD - heroD) * a;
-          floor = 1 - smooth01(within(a, [0, 0.4]));
-          rz -= (Math.hypot(x - heroX, y - floorY) * ROLL_K) / (size / 2);
+          rz -= (Math.abs(x - heroX) * ROLL_K) / (size / 2);
         }
         if (a >= 1) {
+          // Into the career: straight up from the bottom onto the line,
+          // easing down to the knob's size; it turns as the world passes.
+          const k = smooth01(b);
           x = cx;
-          y = cy;
-          // Onto the career it eases down to the knob's size.
-          size = midD + (TIP_R * 2 - midD) * smooth01(b);
-          floor = 0;
-          // Held: it turns as the world passes under it.
+          y = meY + (cy - meY) * k;
+          size = midD + (TIP_R * 2 - midD) * k;
+          floor = 1 - smooth01(within(b, [0, 0.3]));
           rz -= (b * vw * ROLL_K) / (size / 2);
         }
         if (v >= SPAN.tl[0]) {
@@ -512,6 +508,7 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
 
       // "scroll down": once the ball has come to rest, gone with the first scroll.
       const note = noteRef.current;
+      if (note && noteX != null && wide) put(note, 'nx', 'left', `${noteX.toFixed(0)}px`);
       if (note) {
         const noteOn = a === 0 && (reduced || instant || since > BALL_IN.delay + BALL_IN.ms * 0.7);
         put(note, 'nop2', 'opacity', noteOn ? '1' : (1 - clamp01(a / 0.12)).toFixed(3));
@@ -1293,6 +1290,24 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       else goTo(i, ms);
     };
 
+    // The career is scrubbed, not stepped: from Me to Now the page scrolls
+    // like a page, so the timeline follows the scroll exactly, both ways.
+    // `freeAt` says whether a scroll at y (going dir) is the page's own.
+    const zoneOf = () => {
+      const s = stops();
+      const a = s.find((x) => x.id === 'about');
+      const n = s.find((x) => x.id === 'now');
+      return a && n ? [a.y, n.y] : null;
+    };
+    const freeAt = (y, dir) => {
+      const z = zoneOf();
+      if (!z) return false;
+      if (y > z[0] + 1 && y < z[1] - 1) return true;
+      if (dir > 0 && Math.abs(y - z[0]) <= 2) return true;
+      if (dir < 0 && Math.abs(y - z[1]) <= 2) return true;
+      return false;
+    };
+
     const onScroll = () => {
       const y = window.scrollY;
       if (!deckRef.current || gliding || closingRef.current) {
@@ -1306,7 +1321,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         if (gliding || closingRef.current) return;
         const s = stops();
         const now = window.scrollY;
-        if (!inRange(s, now)) {
+        if (!inRange(s, now) || freeAt(now, 0)) {
           step = -1;
           return;
         }
@@ -1363,6 +1378,13 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         e.preventDefault();
         return;
       }
+      // In the career, the page scrolls itself (see freeAt).
+      if (!sideways && freeAt(window.scrollY, Math.sign(delta))) {
+        step = -1;
+        autoRef.current = false;
+        clearTimeout(autoTimer);
+        return;
+      }
       if (inRange(stops(), window.scrollY)) {
         e.preventDefault();
         if (!gestureSpent && gestureSure && gestureSum >= 30) {
@@ -1383,13 +1405,15 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       touchY = e.touches[0]?.clientY ?? null;
     };
     const onTouchMove = (e) => {
+      const dir = touchY == null ? 0 : Math.sign(touchY - (e.touches[0]?.clientY ?? touchY));
+      if (!gliding && freeAt(window.scrollY, dir)) return; // the career: the page's own scroll
       if (closingRef.current || gliding || (touchY != null && engaged())) e.preventDefault();
     };
     const onTouchEnd = (e) => {
       if (touchY == null || closingRef.current) return;
       const dy = touchY - (e.changedTouches[0]?.clientY ?? touchY);
       touchY = null;
-      if (Math.abs(dy) <= 24 || !engaged()) return;
+      if (Math.abs(dy) <= 24 || !engaged() || freeAt(window.scrollY, Math.sign(dy))) return;
       if (!gliding) userGo(Math.sign(dy));
       else if (autoGlide && dy < 0) userGo(-1);
     };
