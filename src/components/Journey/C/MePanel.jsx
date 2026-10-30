@@ -1,38 +1,63 @@
-// Q2: selected work. Proof right after the hero: three pieces from the
-// Portfolio, in full colour, standing on the line the ball holds, with what
-// each one is under the line. The rest is a click away (the Mac's Portfolio).
+// Q2: who Ken is, in one paragraph with its receipts. The words write
+// themselves as the section arrives (driven by the journey's scroll, so it
+// plays back exactly when scrolling up), and each claim's proof, a small
+// rounded thumbnail of the work, pops in right beside its words.
 //
-// Everything moves with the journey's one scroll value (no clocks), so it
-// plays back exactly when scrolling up; the layers come in at their own
-// depths as the section arrives.
+// Thumbnails are the phone-sized covers for now; Ken is sending the right
+// images (his B2B brand work and the campaigns) to drop in here.
 
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef } from 'react';
 import { useMotionValueEvent } from 'framer-motion';
-import { getProjectBySlug } from '../../../data/projects.js';
 import styles from './MePanel.module.css';
 
-export const ME_HEAD = 'Selected work';
-export const ME_SUB = 'Three I would show you first. The full archive opens on my Mac.';
+// The paragraph: strings are words, objects are thumbnails (`img`, what it
+// shows). `hello` is the first line, `aside` the quiet last one.
+export const STORY = [
+  { kind: 'hello', parts: ["Hey, I'm Ken."] },
+  {
+    kind: 'line',
+    parts: [
+      "For ten years I've built brands",
+      { img: '/assets/phone/work/fluid-ai.webp', alt: 'Fluid AI brand work' },
+      'for B2B tech, pharma, crypto and finance, where trust has to land at first glance.',
+    ],
+  },
+  {
+    kind: 'line',
+    parts: ['I make campaigns', { img: '/assets/phone/work/social-media.webp', alt: 'Campaign and social work' }, 'people actually stop for.'],
+  },
+  {
+    kind: 'line',
+    parts: [
+      "And when no one's asking, I redesign what I love: the Nike app, rebuilt around LeBron James",
+      { img: '/assets/phone/work/lebron-nike.webp', alt: 'The LeBron James concept' },
+    ],
+  },
+  { kind: 'aside', parts: ['Away from the screen: basketball, and a long game of chess.'] },
+];
 
-// The three, in order. Covers are the phone-sized crops (800 x 500).
-export const PICKS = ['fluid-ai', 'marriott', 'lebron-nike']
-  .map((slug) => getProjectBySlug(slug))
-  .filter(Boolean)
-  .map((p) => ({ slug: p.slug, name: p.name, what: `${p.category} · ${p.year}`, cover: `/assets/phone/work/${p.slug}.webp` }));
+// Every word and thumbnail in order, so each gets its turn as the scroll
+// writes the paragraph.
+const flatten = () => {
+  let n = 0;
+  return STORY.map((line) => ({
+    ...line,
+    tokens: line.parts.flatMap((p) => (typeof p === 'string' ? p.split(' ').map((w) => ({ word: w, i: n++ })) : [{ ...p, i: n++ }])),
+  }));
+};
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
-// Lands with a touch of give, like a print laid down.
-const backOut = (t) => 1 + 2.2 * (t - 1) ** 3 + 1.2 * (t - 1) ** 2;
 
 /**
- * `progress` is the journey's scroll; `span` [a, b] is where the section
- * plays; `arrive` [a, b] the whole crossing from the hero, for the depth.
- * `instant` shows it settled. `onSeeWork` opens the Portfolio.
+ * `progress` is the journey's scroll; `span` [a, b] is where the paragraph
+ * writes itself; `arrive` [a, b] the whole crossing from the hero, for the
+ * depth. `instant` shows it written. `onSeeWork` opens the Portfolio.
  */
 export default function MePanel({ progress, span, arrive, instant, wide, onSeeWork }) {
   const rootRef = useRef(null);
-  const cardRefs = useRef([]);
+  const lines = useMemo(flatten, []);
+  const total = lines.reduce((n, l) => n + l.tokens.length, 0);
 
   const write = (v) => {
     const root = rootRef.current;
@@ -40,52 +65,36 @@ export default function MePanel({ progress, span, arrive, instant, wide, onSeeWo
     const t = instant ? 1 : within(v, span[0], span[1]);
     const e = instant ? 1 : within(v, arrive[0], arrive[1]);
     root.style.setProperty('--e', (1 - e).toFixed(4));
-    root.style.setProperty('--head', within(t, 0, 0.32).toFixed(4));
-    PICKS.forEach((_, i) => {
-      const el = cardRefs.current[i];
-      if (!el) return;
-      const land = within(t, 0.1 + i * 0.1, 0.5 + i * 0.1);
-      el.style.setProperty('--land', backOut(land).toFixed(4));
-      el.style.setProperty('--seen', Math.min(1, land * 3).toFixed(3));
-      el.style.setProperty('--cap', within(t, 0.45 + i * 0.1, 0.7 + i * 0.1).toFixed(4));
-    });
+    // How many words are written (with a soft edge of three words).
+    root.style.setProperty('--w', (t * (total + 3)).toFixed(3));
   };
   useMotionValueEvent(progress, 'change', write);
   useEffect(() => write(progress.get()));
 
   return (
-    <section ref={rootRef} className={`${styles.me} ${wide ? styles.wide : ''}`} aria-labelledby="me-head">
-      <header className={styles.top}>
-        <h2 id="me-head" className={styles.head}>
-          {ME_HEAD}
-        </h2>
-        <p className={styles.sub}>{ME_SUB}</p>
-      </header>
-
-      <ol className={styles.prints}>
-        {PICKS.map((it, i) => (
-          <li
-            key={it.slug}
-            ref={(el) => {
-              cardRefs.current[i] = el;
-            }}
-            className={styles.item}
-          >
-            <button type="button" className={styles.card} onClick={onSeeWork} aria-label={`${it.name}, ${it.what}. Open the Portfolio`}>
-              <img src={it.cover} alt="" draggable={false} loading="lazy" />
-            </button>
-            <p className={styles.caption}>
-              <span className={styles.num}>{String(i + 1).padStart(2, '0')}</span>
-              <b>{it.name}</b>
-              <span>{it.what}</span>
-            </p>
-          </li>
-        ))}
-      </ol>
-
-      {/* The line the ball holds; the way to everything else at its end. */}
-      <div className={styles.bar} aria-hidden>
-        <span className={styles.barRule} />
+    <section ref={rootRef} className={`${styles.me} ${wide ? styles.wide : ''}`} aria-label="About Ken">
+      <div className={styles.story}>
+        {lines.map((line, li) => {
+          const Tag = line.kind === 'hello' ? 'h2' : 'p';
+          return (
+            <Tag key={li} className={styles[line.kind]}>
+              {line.tokens.map((tk, k) => (
+                <Fragment key={k}>
+                  {k > 0 && ' '}
+                  {tk.word != null ? (
+                    <span className={styles.word} style={{ '--i': tk.i }}>
+                      {tk.word}
+                    </span>
+                  ) : (
+                    <button type="button" className={styles.thumb} style={{ '--i': tk.i }} onClick={onSeeWork} aria-label={`${tk.alt}. Open the Portfolio`}>
+                      <img src={tk.img} alt="" draggable={false} />
+                    </button>
+                  )}
+                </Fragment>
+              ))}
+            </Tag>
+          );
+        })}
       </div>
       <button type="button" className={styles.all} onClick={onSeeWork}>
         See all the work

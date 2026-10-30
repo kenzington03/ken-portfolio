@@ -70,7 +70,9 @@ export const projects = [
     logo: '/assets/projects/04-lebron-nike/cover.jpg',
     cover: '/assets/projects/hero%20images/hero-lebron-nike.jpg',
     tags: ['concept', 'ui-ux', 'branding'],
-    description: '[ placeholder ]',
+    // Ken's own words on it (Oct 2026): a practice piece, not client work.
+    description:
+      'A personal project, not client work and not affiliated with Nike. I redesigned the Nike app and website the way I think they could feel, built around LeBron James: his story across the top, the product in the middle of the screen where your eye lands. Made for practice, and to push how far a product page can go.',
     dateModified: '2023-04-22',
   },
   {

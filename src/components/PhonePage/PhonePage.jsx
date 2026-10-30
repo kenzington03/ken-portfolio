@@ -175,6 +175,7 @@ function ProjectPage({ slug, back }) {
       </header>
       <p className={styles.kicker}>{p.category}</p>
       <h1 className={styles.h2}>{p.name}</h1>
+      {p.description && p.description !== '[ placeholder ]' && <p className={styles.sub}>{p.description}</p>}
       <div className={styles.gallery}>
         <MobileProjectGallery project={p} />
       </div>
