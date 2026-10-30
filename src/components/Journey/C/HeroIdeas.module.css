@@ -1,0 +1,551 @@
+/* PREVIEW ONLY: styles for the five hero ideas. Design-tool blue for tool
+   chrome (selection, guides, cursor), so it reads as "the tool", not brand. */
+
+/* ---------- 1. Artboard ---------- */
+.artWrap {
+  position: relative;
+  display: inline-block;
+  transform: translateX(26px);
+  transition: transform 520ms cubic-bezier(0.32, 0.72, 0, 1) 1500ms;
+}
+
+.artWrap.on {
+  transform: none;
+}
+
+.selBox {
+  position: absolute;
+  inset: -0.02em -0.03em -0.02em -0.01em;
+  border: 1.5px solid #0d99ff;
+  opacity: 0;
+  transition: opacity 200ms linear 700ms;
+  pointer-events: none;
+}
+
+.on .selBox {
+  opacity: 1;
+}
+
+.selBox i {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  border: 1.5px solid #0d99ff;
+}
+
+.selBox i:nth-child(1) {
+  left: -5px;
+  top: -5px;
+}
+
+.selBox i:nth-child(2) {
+  right: -5px;
+  top: -5px;
+}
+
+.selBox i:nth-child(3) {
+  right: -5px;
+  bottom: -5px;
+}
+
+.selBox i:nth-child(4) {
+  left: -5px;
+  bottom: -5px;
+}
+
+.selBox b {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #0d99ff;
+  color: #fff;
+  font: 500 11px/1 'Satoshi', sans-serif;
+  letter-spacing: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* Smart guides flash while the layer snaps into place. */
+.guideH,
+.guideV {
+  position: absolute;
+  background: #ff3ea5;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.guideH {
+  left: -100vw;
+  right: -100vw;
+  bottom: 0.02em;
+  height: 1px;
+}
+
+.guideV {
+  top: -100vh;
+  bottom: -100vh;
+  left: 0.01em;
+  width: 1px;
+}
+
+.on .guideH,
+.on .guideV {
+  animation: guide 900ms linear 1500ms;
+}
+
+@keyframes guide {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 1;
+  }
+}
+
+.cursor {
+  position: absolute;
+  left: 70%;
+  top: 8%;
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  opacity: 0;
+  transform: translate(180px, -120px);
+  transition: transform 900ms cubic-bezier(0.32, 0.72, 0, 1) 250ms, opacity 200ms linear 250ms;
+  pointer-events: none;
+}
+
+.on .cursor {
+  opacity: 1;
+  transform: none;
+}
+
+.cursor em {
+  margin-top: 14px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: #0d99ff;
+  color: #fff;
+  font: 500 11px/1 'Satoshi', sans-serif;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.layers {
+  position: absolute;
+  top: 88px;
+  left: clamp(20px, 3.6vw, 56px);
+  z-index: 3;
+  width: 200px;
+  padding: 12px 8px 10px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(17, 17, 19, 0.06), 0 18px 40px -18px rgba(17, 17, 19, 0.4);
+  font: 500 13px/1 'Satoshi', sans-serif;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 400ms ease 500ms, transform 500ms cubic-bezier(0.32, 0.72, 0, 1) 500ms;
+}
+
+.layers.on {
+  opacity: 1;
+  transform: none;
+}
+
+.layers p {
+  margin: 0 8px 8px;
+  font-size: 11px;
+  color: #8a8a90;
+}
+
+.layers ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.layers li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: #2a2a2e;
+}
+
+.layers li span {
+  width: 14px;
+  color: #8a8a90;
+  text-align: center;
+}
+
+.layerSel {
+  background: #e5f4ff;
+  color: #0d6fd1 !important;
+}
+
+/* ---------- 2. Kerning ---------- */
+.kernWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.kernText {
+  display: flex !important;
+  align-items: flex-end;
+}
+
+.kernText span {
+  display: block;
+  transition: margin 800ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The pair markers a type tool shows between letters. */
+.kernText i {
+  align-self: stretch;
+  width: 1.5px;
+  margin: 0.08em 0 0.02em;
+  background: #0d99ff;
+  transition: opacity 300ms linear;
+}
+
+.kern0 .kernText span:nth-of-type(1) {
+  margin-right: 0.34em;
+}
+
+.kern0 .kernText span:nth-of-type(2) {
+  margin-right: -0.1em;
+}
+
+.kern1 .kernText span:nth-of-type(1) {
+  margin-right: -0.09em;
+}
+
+.kern1 .kernText span:nth-of-type(2) {
+  margin-right: 0.12em;
+}
+
+.kern2 .kernText i {
+  opacity: 0;
+}
+
+.kernChip {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 26px -12px rgba(17, 17, 19, 0.4);
+  font: 500 12px/1 'Satoshi', sans-serif;
+  letter-spacing: 0;
+  color: #5b5b61;
+  white-space: nowrap;
+}
+
+.kernChip b {
+  min-width: 34px;
+  font-variant-numeric: tabular-nums;
+  color: #111113;
+}
+
+.kernChip u {
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #e2f6e8;
+  color: #17803d;
+  text-decoration: none;
+}
+
+/* ---------- 3. Version history ---------- */
+.verWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.fileChip {
+  position: absolute;
+  left: 9.5em;
+  bottom: calc(100% + 8px);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 26px -12px rgba(17, 17, 19, 0.4);
+  font: 500 12px/1 ui-monospace, 'SF Mono', Menlo, monospace;
+  letter-spacing: 0;
+  color: #2a2a2e;
+  white-space: nowrap;
+}
+
+.fileChip b {
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #e2f6e8;
+  color: #17803d;
+  font-family: 'Satoshi', sans-serif;
+}
+
+.verText {
+  transform: none !important;
+  animation: verPop 180ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes verPop {
+  from {
+    opacity: 0.4;
+    scale: 0.985;
+  }
+}
+
+.v1 {
+  font-family: 'Times New Roman', Times, serif !important;
+  font-style: italic;
+  font-weight: 400 !important;
+  color: #7a3cff;
+  letter-spacing: 0 !important;
+}
+
+.v2 {
+  transform: scaleX(1.32) !important;
+  transform-origin: left;
+  color: transparent;
+  background: linear-gradient(90deg, #ff2d95, #ffb300, #00d4ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.v3 {
+  font-family: 'Comic Sans MS', 'Marker Felt', 'Chalkboard SE', cursive !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  color: #111113;
+  text-shadow: 6px 6px 0 #ffd400;
+}
+
+.v4 {
+  font-variation-settings: 'wdth' 50 !important;
+  letter-spacing: 0.32em !important;
+  text-transform: uppercase;
+  color: #111113;
+}
+
+/* ---------- 4. Bezier ---------- */
+.bezWrap {
+  display: block;
+  width: clamp(353px, 60vw, 1012px);
+}
+
+.bezSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.bezText {
+  font-family: 'Anybody', 'Cabinet Grotesk', sans-serif;
+  font-size: 255px;
+  font-weight: 900;
+  font-variation-settings: 'wdth' 112;
+  letter-spacing: -0.04em;
+  fill: #111113;
+  fill-opacity: 0;
+  stroke: #0d99ff;
+  stroke-width: 1.6;
+  stroke-dasharray: 2600;
+  stroke-dashoffset: 2600;
+}
+
+.on .bezText {
+  animation: bezDraw 2200ms cubic-bezier(0.5, 0, 0.2, 1) 200ms forwards, bezFill 700ms ease 2300ms forwards;
+}
+
+@keyframes bezDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes bezFill {
+  to {
+    fill-opacity: 1;
+    stroke: #111113;
+  }
+}
+
+.bezPoints path {
+  fill: none;
+  stroke: #0d99ff;
+  stroke-width: 1;
+  opacity: 0;
+}
+
+.bezPoints rect {
+  fill: #fff;
+  stroke: #0d99ff;
+  stroke-width: 1.4;
+  opacity: 0;
+}
+
+.on .bezPoints rect {
+  animation: bezPoint 2400ms linear calc(200ms + var(--i) * 220ms) forwards;
+}
+
+.on .bezPoints path {
+  animation: bezPoint 2400ms linear 200ms forwards;
+}
+
+@keyframes bezPoint {
+  0% {
+    opacity: 0;
+  }
+  6%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- 5. Colour pick ---------- */
+.pickText {
+  transform: none !important;
+  background: linear-gradient(#bfe9d4, #bfe9d4) left 88% / 0% 0.11em no-repeat;
+  transition: background-size 700ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.picked {
+  background-size: 100% 0.11em;
+}
+
+.dropper {
+  position: absolute;
+  left: 80vw;
+  top: 3vh;
+  z-index: 5;
+  pointer-events: none;
+  transition: transform 1000ms cubic-bezier(0.32, 0.72, 0, 1), opacity 300ms linear;
+}
+
+.drop0 {
+  opacity: 0;
+  transform: translate(-30vw, -18vh);
+}
+
+.dropper i {
+  display: block;
+  width: 46px;
+  height: 46px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #bfe9d4;
+  box-shadow: 0 0 0 1px rgba(17, 17, 19, 0.5), 0 10px 24px -8px rgba(17, 17, 19, 0.5);
+}
+
+.dropper span {
+  position: absolute;
+  left: 56px;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 26px -12px rgba(17, 17, 19, 0.4);
+  font: 500 12px/1 ui-monospace, 'SF Mono', Menlo, monospace;
+  letter-spacing: 0;
+  color: #2a2a2e;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 250ms linear;
+}
+
+.drop2 span {
+  opacity: 1;
+}
+
+.dropper b {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: #bfe9d4;
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 19, 0.2);
+}
+
+/* ---------- Picker ---------- */
+.picker {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px 5px 14px;
+  border-radius: 999px;
+  background: rgba(22, 22, 26, 0.86);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.16), 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.6);
+  font: 500 12px/1 -apple-system, BlinkMacSystemFont, 'Satoshi', sans-serif;
+  transform: translateX(-50%);
+}
+
+.picker span {
+  margin-right: 6px;
+}
+
+.picker a {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 999px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.picker a:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pickerOn {
+  background: #fff;
+  color: #111113 !important;
+}
+
+.picker em {
+  margin-left: 8px;
+  font-style: normal;
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artWrap,
+  .cursor,
+  .kernText span,
+  .dropper {
+    transition: none;
+  }
+  .on .bezText {
+    animation: none;
+    fill-opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}

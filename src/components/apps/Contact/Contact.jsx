@@ -5,7 +5,7 @@ export default function Contact() {
     <div className={styles.contact}>
       <div className={styles.heroAvatar} aria-hidden />
       <h1 className={styles.name}>Kenneth Nathanael</h1>
-      <p className={styles.subtitle}>Design Lead · Milestone Technologies</p>
+      <p className={styles.subtitle}>Designer · India</p>
 
       <div className={styles.actions}>
         <a className={styles.actionBtn} href="tel:+917204662258" aria-label="Call">
@@ -86,11 +86,11 @@ export default function Contact() {
         </a>
         <div className={styles.infoRowStatic}>
           <span className={styles.infoLabel}>location</span>
-          <span className={styles.infoValuePlain}>Hyderabad, India</span>
+          <span className={styles.infoValuePlain}>India</span>
         </div>
       </div>
 
-      <p className={styles.cta}>Open to Design Lead and Creative Director opportunities.</p>
+      <p className={styles.cta}>Open to full-time roles and freelance projects.</p>
     </div>
   );
 }

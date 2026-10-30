@@ -8,6 +8,15 @@
         "value": "typingbounce",
         "createdAt": "2026-09-23T11:32:24.852Z",
         "reason": "Standard chat-app typing indicator (iMessage/Claude sheet) — the bounce IS the recognized 'typing...' convention, not decorative UI easing misuse."
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/components/Journey/C/JourneyC.module.css"
+        ],
+        "createdAt": "2026-10-29T23:38:29.519Z",
+        "reason": "Claude: the clipped radial-gradient is the halftone dot screen for the optional 'halftone' name style Ken asked for (a print technique, solid ink dots), not decorative gradient text"
       }
     ]
   }

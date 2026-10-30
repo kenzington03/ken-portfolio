@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import { getWallpaperById } from '../../data/wallpapers.js';
+import { PosterWall } from './WallArt.jsx';
 import styles from './Wallpaper.module.css';
 
 export default function Wallpaper() {
@@ -22,6 +23,8 @@ export default function Wallpaper() {
 
     return undefined;
   }, [config.type, config.src]);
+
+  if (config.type === 'poster') return <PosterWall />;
 
   if (config.type === 'image' && config.src && imageOk) {
     return (

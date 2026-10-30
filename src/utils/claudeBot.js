@@ -178,18 +178,18 @@ function tryCoinOrDice(text) {
 // Plain answers about Ken. No character voice: the visitor is here to learn
 // about him quickly. Facts only; anything not known is not invented.
 const ABOUT = {
-  who: "Kenneth Nathanael (Ken) is a designer based in Hyderabad with about 10 years of experience across brand identity, motion, UI/UX and video. He is currently Design Lead at Milestone Technologies.",
-  role: "At Milestone Technologies Ken leads brand campaigns, presentations, social, events and day-to-day design operations for a global IT services company.",
-  career: "About 10 years: DreamWorks Dedicated Unit (2015), Cowboy Studios (2016 to 2018), MiGrocer (2018 to 2020), WebAnatomy (2020), Tandem Digital (2020 to 2023) and Milestone Technologies (Dec 2023 to now).",
-  bestWork: "Start with the Work folder on this desktop: Fluid AI (rebrand), Milestone campaigns including Momentum 2026, Marriott and Aloft, and the LeBron x Nike concept.",
-  brands: "Brand work includes Fluid AI, Truearte, Step-Set-Go and Sampoorna, plus campaigns for Milestone Technologies and hospitality work for Marriott and Aloft.",
+  who: "Kenneth Nathanael (Ken) is a designer based in India with about 10 years of experience across brand identity, motion, UI/UX and video. Right now he leads brand and campaign design at a global IT services company.",
+  role: "In his current role Ken leads brand campaigns, presentations, social, events and day-to-day design operations for a global IT services company.",
+  career: "About 10 years: DreamWorks Dedicated Unit (2015), Cowboy Studios (2016 to 2018), MiGrocer (2018 to 2020), WebAnatomy (2020), Tandem Digital (2020 to 2023) and his current role at a global IT services company (Dec 2023 to now).",
+  bestWork: "Start with the Work folder on this desktop: Fluid AI (rebrand), enterprise campaigns including Momentum 2026, Marriott and Aloft, and the LeBron James concept (a personal project).",
+  brands: "Brand work includes Fluid AI, Truearte, Step-Set-Go and Sampoorna, plus enterprise campaigns and hospitality work for Marriott and Aloft.",
   motion: "Yes. Motion graphics and video are a core part of his work: event films, campaign visuals and social motion. Open the Motion folder to see it.",
   tools: "Adobe CC (Illustrator, Photoshop, After Effects, Premiere), Figma, Canva and PowerPoint, plus AI tools such as Midjourney, Firefly, Runway and ElevenLabs.",
   strengths: "Brand identity, motion graphics, UI/UX, video production, campaigns and print. He leads the idea and stays hands-on through delivery.",
   process: "He starts with the idea and the audience, sketches directions fast, then refines details: type, motion timing and layout. Colleagues often mention speed and follow-through.",
-  hire: "Yes. Ken is open to Design Lead and Creative Director roles, especially where he can build and lead a team.",
+  hire: "Yes. Ken is open to senior design roles and freelance projects, especially where he can build and lead a team.",
   freelance: "He takes select freelance projects. Email him with the scope and timeline.",
-  location: "Hyderabad, India, for about 8 years. Originally from Bangalore.",
+  location: "India.",
   contact: "Email kennethnathanael@gmail.com or LinkedIn: linkedin.com/in/kenneth-n-576134103. Email is fastest.",
   resume: "Open Resume on the desktop, or the About app, for the full history.",
   social: "Behance: behance.net/nathanaelkenneth. Instagram: @nathanaelkenneth.",
@@ -211,7 +211,7 @@ export const CLAUDE_TOPICS = [
     questions: [
       { q: 'Who is Ken?', a: ABOUT.who },
       { q: 'Where has he worked?', a: ABOUT.career },
-      { q: 'What does he do at Milestone?', a: ABOUT.role },
+      { q: 'What does he do now?', a: ABOUT.role },
     ],
   },
   {

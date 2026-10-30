@@ -2,12 +2,13 @@ import { assetExists } from '../utils/publicAssets.js';
 import { SIDEBAR_TAG_MAP } from './tags.js';
 import { filterProjects } from '../utils/projectFilters.js';
 
+// The first three are Ken's three (src/data/services.js), as everywhere else.
 export const FINDER_CATEGORIES = [
   { id: 'all', label: 'All Projects' },
-  { id: 'brand-identity', label: 'Brand & Identity' },
+  { id: 'brand-identity', label: 'Brand' },
   { id: 'campaigns', label: 'Campaigns' },
-  { id: 'ui-ux', label: 'UI/UX' },
   { id: 'motion', label: 'Motion' },
+  { id: 'ui-ux', label: 'UI/UX' },
   { id: 'print-packaging', label: 'Print & Packaging' },
   { id: 'concept', label: 'Concept Work' },
 ];
@@ -59,7 +60,9 @@ export const projects = [
   {
     id: 4,
     slug: 'lebron-nike',
-    name: 'LeBron x Nike',
+    // A personal concept, not client work: Ken has not worked for Nike, so
+    // the name must not say Nike (the slug and folder are file names only).
+    name: 'LeBron James',
     category: 'Concept Design',
     client: 'Personal Project',
     year: '2023',

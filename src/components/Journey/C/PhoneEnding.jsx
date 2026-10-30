@@ -8,6 +8,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import { CHAPTERS } from '../../Intro3/timeline.js';
 import { CHAPTER_CAPTIONS } from '../content.js';
+import useClock from '../../../hooks/useClock.js';
 import styles from './PhoneEnding.module.css';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
@@ -74,18 +75,13 @@ function Chapter({ q, index }) {
   );
 }
 
-function clock() {
-  const d = new Date();
-  return {
-    time: d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M/i, ''),
-    date: d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
-  };
-}
+const lockTime = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M/i, '');
+const lockDate = (d) => d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
 export default function PhoneEnding({ onReach, innerRef }) {
   const ref = useRef(null);
   const done = useRef(false);
-  const [now] = useState(clock);
+  const now = { time: useClock(lockTime), date: useClock(lockDate) };
   const [g, setG] = useState(phoneGeometry);
   const { scrollYProgress: q } = useScroll({ target: ref, offset: ['start start', 'end end'] });
 

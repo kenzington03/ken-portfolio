@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 
 const NUDGE_DURATION_MS = 90_000;
 const PULSE_DURATION_MS = 30_000;
-const TOUR_SEEN_KEY = 'kenos:seen:onboarding-tour-v1';
 
 /** Hello screen shows on every page load / visit, unless the scroll intro
  * (MacBook → lock screen) replaces it. */
@@ -13,16 +12,9 @@ export function useJourneyState({ skipHello = false } = {}) {
   const [portfolioOpened, setPortfolioOpened] = useState(false);
   const [portfolioPulseActive, setPortfolioPulseActive] = useState(true);
   const [nudgeExpired, setNudgeExpired] = useState(false);
-  /* Blocks the Portfolio auto-open until the first-time onboarding tour
-     finishes (or skips). Returning visitors who've already seen it start
-     unblocked, so the usual open-on-load behavior is unchanged for them. */
-  const [tourBlocking, setTourBlocking] = useState(() => {
-    try {
-      return window.localStorage.getItem(TOUR_SEEN_KEY) !== '1';
-    } catch {
-      return false;
-    }
-  });
+  /* Used to hold the Portfolio auto-open until the onboarding tour was done.
+     The tour is gone (the wallpaper notes show the way), so nothing blocks. */
+  const [tourBlocking, setTourBlocking] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setPortfolioPulseActive(false), PULSE_DURATION_MS);

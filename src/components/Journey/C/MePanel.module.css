@@ -1,0 +1,206 @@
+/* Q2, selected work. Laid out round the line the ball holds (the middle of
+   the screen, where the career's line comes in): Ken close up on the left,
+   the work standing on the line on the right, what each piece is under it.
+   Values written from scroll by MePanel:
+     --e     how far the section still has to travel in (1 .. 0), for depth
+     --head  the heading coming up (0 .. 1)
+     --land, --seen, --cap   per piece: landing, showing, its caption */
+
+.me {
+  --display: 'Big Shoulders', 'Cabinet Grotesk', system-ui, sans-serif;
+  --text: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --gut: max(var(--gutter, 24px), 4vw);
+  --left: 56%;
+  --line: 50%;
+  position: absolute;
+  inset: 0;
+  color: var(--ink, #121214);
+  font-family: var(--text);
+}
+
+/* ---------- The heading: the far layer, it travels in less ---------- */
+.top {
+  position: absolute;
+  top: 12%;
+  left: var(--left);
+  right: var(--gut);
+  transform: translate3d(calc(var(--e, 0) * -30vw), calc((1 - var(--head, 1)) * 14px), 0);
+  opacity: var(--head, 1);
+}
+
+.head {
+  margin: 0;
+  font: 900 clamp(40px, 4.4vw, 78px) / 0.9 var(--display);
+  font-variation-settings: 'opsz' 72;
+  text-transform: uppercase;
+  color: var(--accent);
+  filter: drop-shadow(0.03em 0.03em 0 var(--pop-2, #16234a));
+}
+
+.sub {
+  margin: clamp(10px, 1.4vh, 16px) 0 0;
+  max-width: 42ch;
+  font-size: clamp(15px, 1.15vw, 18px);
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--ink, #121214) 72%, transparent);
+}
+
+/* ---------- The work, standing on the line ---------- */
+.prints {
+  position: absolute;
+  left: var(--left);
+  right: var(--gut);
+  bottom: calc(100% - var(--line) + 22px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(16px, 2vw, 34px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  --land: 1;
+  --seen: 1;
+  --cap: 1;
+  position: relative;
+  min-width: 0;
+  opacity: var(--seen);
+  transform: translate3d(0, calc((1 - var(--land)) * 60px), 0);
+}
+
+.card {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ddd;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.05), 0 22px 34px -22px rgb(20 14 8 / 0.55);
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 420ms ease;
+}
+
+.card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* What it is, under the line: the near layer, a touch ahead. */
+.caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 46px);
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  clip-path: inset(-20% calc((1 - var(--cap)) * 100%) -20% 0);
+  translate: calc(var(--e, 0) * 6vw) 0;
+}
+
+.num {
+  font: 600 11px/1 var(--text);
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--ink, #121214) 50%, transparent);
+}
+
+.caption b {
+  font: 800 clamp(20px, 1.6vw, 28px) / 1 var(--display);
+  font-variation-settings: 'opsz' 72;
+  text-transform: uppercase;
+}
+
+.caption span:last-child {
+  font-size: 13px;
+  color: color-mix(in srgb, var(--ink, #121214) 62%, transparent);
+}
+
+/* ---------- The line, and the way to the rest ---------- */
+.bar {
+  position: absolute;
+  left: 40%;
+  right: var(--gut);
+  top: var(--line);
+  height: 1px;
+}
+
+.barRule {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ink, #121214) 22%, transparent);
+}
+
+.all {
+  position: absolute;
+  right: var(--gut);
+  bottom: 9%;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--ink, #121214);
+  font: 600 16px/1 var(--text);
+  cursor: pointer;
+  opacity: var(--head, 1);
+}
+
+.all svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:focus-visible,
+.all:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translate3d(0, -6px, 0);
+    box-shadow: 0 1px 0 rgb(0 0 0 / 0.05), 0 30px 40px -24px rgb(20 14 8 / 0.6);
+  }
+  .card:hover img {
+    transform: scale(1.07);
+  }
+  .all:hover svg {
+    transform: translateX(4px);
+  }
+}
+
+/* ---------- Narrow screens: the same, centred, smaller ---------- */
+.me:not(.wide) {
+  --left: 6%;
+}
+
+.me:not(.wide) .prints {
+  gap: 12px;
+}
+
+.me:not(.wide) .bar {
+  left: 6%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card img {
+    transition: none;
+  }
+}

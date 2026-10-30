@@ -1,4 +1,5 @@
-export const WALLPAPER_STORAGE_KEY = 'kenneth-os-wallpaper';
+// v3: Ken's own wallpapers (Oct 2026); earlier picks reset once.
+export const WALLPAPER_STORAGE_KEY = 'kenneth-os-wallpaper-v4';
 export const DESKTOP_BG_STORAGE_KEY = 'kenneth-os-desktop-bg-index';
 
 /** Image files in public/assets/backgrounds/, Apple's own macOS 26 "Tahoe"
@@ -14,6 +15,11 @@ export const DESKTOP_BACKGROUNDS = [
 ];
 
 export const WALLPAPER_OPTIONS = [
+  // Ken's own (pick in System Preferences):
+  //   Studio Light: warm paper with soft light falling across it.
+  //   Poster: his name from the hero, printed huge in the poster's inks.
+  { id: 'studio', label: 'Studio Light', type: 'css', cssClass: 'studio' },
+  { id: 'poster', label: 'Poster', type: 'poster', cssClass: 'poster' },
   ...DESKTOP_BACKGROUNDS.map((bg) => ({
     id: bg.id,
     label: bg.label,
@@ -35,9 +41,8 @@ export function getWallpaperById(id) {
   return WALLPAPER_OPTIONS.find((w) => w.id === id) ?? WALLPAPER_OPTIONS[0];
 }
 
-/** Tahoe's dark Liquid Glass render, matches the dark dock/menu-bar
- * chrome better than the light or photo variants as an out-of-box default. */
-const DEFAULT_WALLPAPER_ID = 'tahoe-dark';
+/** Studio Light: Ken's own, warm and quiet, so the work carries the colour. */
+const DEFAULT_WALLPAPER_ID = 'studio';
 
 export function loadStoredWallpaper() {
   try {

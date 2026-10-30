@@ -104,3 +104,25 @@
   text-shadow: 0 1px 4px #000;
   color: #fff;
 }
+
+.thumb_studio {
+  background:
+    radial-gradient(60% 60% at 80% 20%, rgb(255 214 170 / 0.8), transparent 70%),
+    linear-gradient(160deg, #f4ede2, #ead9c6);
+}
+
+.thumb_poster {
+  position: relative;
+  overflow: hidden;
+  background: #ededea;
+}
+
+.thumb_poster::after {
+  content: 'KEN';
+  position: absolute;
+  left: -2px;
+  bottom: -8px;
+  font: 900 40px/0.8 'Big Shoulders', sans-serif;
+  color: #e8462c;
+  text-shadow: 1px 1px 0 #16234a;
+}

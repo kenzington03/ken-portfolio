@@ -30,9 +30,9 @@
   font-family: var(--display);
   font-size: clamp(84px, min(12vw, 19vh), 200px);
   font-weight: 800;
-  font-variation-settings: 'opsz' 96, 'wdth' 85;
+  font-variation-settings: 'opsz' 72;
   line-height: 1;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums lining-nums;
   color: var(--ink);
 }
@@ -56,6 +56,8 @@
   display: block;
   height: 1em;
   line-height: 1;
+  /* Big Shoulders has no tabular figures: each digit sits centred in its slot. */
+  text-align: center;
 }
 
 .title {
@@ -130,6 +132,7 @@
 
 .tick::before {
   content: '';
+  opacity: var(--marks, 1);
   position: absolute;
   left: 0;
   top: -4px;
@@ -170,6 +173,7 @@
 /* Where each job began. */
 .start {
   top: var(--ruler-y);
+  opacity: var(--marks, 1);
   width: 7px;
   height: 7px;
   margin: -3.5px 0 0 -3.5px;
@@ -193,25 +197,8 @@
   box-shadow: none;
 }
 
-/* The ball. Its x comes from TimelineC. */
-.tip {
-  position: absolute;
-  left: 0;
-  top: var(--ruler-y);
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
-  border-radius: 50%;
-  background: var(--ink);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--ink) 8%, transparent);
-  transition: background-color 400ms ease, box-shadow 400ms ease;
-}
-
-.tip.intern {
-  background: var(--accent);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent);
-}
-
+/* The dot on the line (the hero's ball, become plain). Its x comes from
+   TimelineC; its size matches TIP_R there. */
 /* ---------- The roles ---------- */
 
 .roles {
@@ -239,17 +226,38 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transform-origin: 50% 100%;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.bigHead {
+  margin: 0;
+  font: inherit;
+}
+
+/* Each line of the big version sits in its own mask and rises out of it. */
+.line {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 0.08em 0.06em 0.12em;
+  margin: -0.08em -0.06em -0.12em;
+}
+
+.line,
+.line > * {
+  will-change: transform, opacity;
 }
 
 .company {
+  display: block;
   margin: 0 0 12px;
   font-family: var(--display);
   font-size: clamp(38px, 4.2vw, 68px);
   font-weight: 600;
-  font-variation-settings: 'opsz' 96, 'wdth' 92;
+  font-variation-settings: 'opsz' 72;
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.005em;
   color: var(--ink);
   text-wrap: balance;
 }
@@ -270,6 +278,7 @@
 }
 
 .jobTitle {
+  display: block;
   margin: 0 0 6px;
   font: 500 clamp(17px, 1.3vw, 21px) / 1.3 var(--text);
   letter-spacing: -0.01em;
@@ -287,6 +296,14 @@
   color: var(--muted);
 }
 
+.clients {
+  display: block;
+  margin-top: 8px;
+  font: 500 clamp(13px, 0.95vw, 15px) / 1.3 var(--text);
+  letter-spacing: 0.005em;
+  color: var(--ink);
+}
+
 .tag {
   padding: 2px 8px 3px;
   border-radius: 999px;
@@ -301,66 +318,21 @@
   color: color-mix(in srgb, var(--ink) 35%, transparent);
 }
 
-/* Left behind: a faint note under its own dot, hung from a hairline, part
-   of the background now. */
-.note {
+/* Where a role ended: a hairline from the line down to its note, drawn as
+   the label lands (TimelineC sets its place, length and draw). */
+.leader {
   position: absolute;
   left: 0;
-  top: calc(var(--ruler-y) + var(--lane));
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: max-content;
-  max-width: 170px;
-  padding-left: 9px;
-  transform-origin: 0 0;
-}
-
-.note::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 2px;
-  height: calc(var(--lane) - 6px + 100%);
+  top: var(--ruler-y);
   width: 1px;
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  height: 0;
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  transform-origin: top;
+  transform: scaleY(0);
 }
 
-/* Near the right edge: hung to the left of the dot, read from the right. */
-.note.flip {
-  left: auto;
-  right: 0;
-  align-items: flex-end;
-  text-align: right;
-  padding: 0 9px 0 0;
-  transform-origin: 100% 0;
-}
-
-.note.flip::before {
-  left: auto;
-  right: 0;
-}
-
-.note.intern::before {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
-.noteCo {
-  font: 500 14px / 1.2 var(--text);
-  letter-spacing: -0.005em;
-  color: color-mix(in srgb, var(--ink) 50%, transparent);
-  text-wrap: balance;
-}
-
-.noteYear {
-  white-space: nowrap;
-  font: 400 11.5px / 1.2 var(--text);
-  font-variant-numeric: tabular-nums lining-nums;
-  color: color-mix(in srgb, var(--ink) 34%, transparent);
-}
-
-.note.intern .noteYear {
-  color: color-mix(in srgb, var(--accent) 60%, transparent);
+.leader.intern {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 @media (max-width: 700px) {
@@ -391,18 +363,6 @@
   }
   .tick b {
     font-size: 11px;
-  }
-  .note {
-    max-width: 120px;
-  }
-  .noteCo {
-    font-size: 12.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .noteYear {
-    font-size: 10.5px;
   }
 }
 

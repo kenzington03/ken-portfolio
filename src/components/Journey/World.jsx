@@ -35,18 +35,25 @@ function Lights({ progressRef }) {
 /**
  * Reports where the laptop's top edge is on screen (CSS px from the top of
  * the viewport) so DOM text can keep an even gap above it while the camera
- * moves. The lid's hinge runs along the laptop's back edge, which is its
- * visual top from overhead and from the front, so that point is projected.
+ * moves. The whole laptop's box is projected and its highest corner taken,
+ * so it holds from any side (the hinge is the top from the front, the
+ * bottom from behind).
  */
 function TopAnchor({ anchorRef }) {
   const { scene, camera, size } = useThree();
-  const v = useMemo(() => new THREE.Vector3(), []);
-  const hinge = useRef(null);
+  const tmp = useMemo(() => ({ box: new THREE.Box3(), v: new THREE.Vector3() }), []);
+  const body = useRef(null);
   useFrame(() => {
-    if (!hinge.current) hinge.current = scene.getObjectByName('LidPivot') ?? null;
-    if (!hinge.current) return;
-    hinge.current.getWorldPosition(v).project(camera);
-    anchorRef.current = (1 - (v.y * 0.5 + 0.5)) * size.height;
+    if (!body.current) body.current = scene.getObjectByName('LidPivot')?.parent ?? null;
+    if (!body.current) return;
+    const { box, v } = tmp;
+    box.setFromObject(body.current);
+    let top = Infinity;
+    for (let i = 0; i < 8; i += 1) {
+      v.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(camera);
+      top = Math.min(top, (1 - (v.y * 0.5 + 0.5)) * size.height);
+    }
+    anchorRef.current = top;
   });
   return null;
 }
@@ -88,7 +95,9 @@ export default function World({ progressRef, screenOnRef, swayRef, onReady, live
   return (
     <Canvas
       camera={{ fov: 30, near: 0.05, far: 80, position: [0, 3, 12] }}
-      dpr={[1, 1.75]}
+      // 1.5x is indistinguishable on a moving, softly lit laptop and costs a
+      // quarter less to draw than 1.75x (it matters on integrated graphics).
+      dpr={[1, 1.5]}
       frameloop={active && live ? 'always' : 'demand'}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       onCreated={({ gl, scene }) => {

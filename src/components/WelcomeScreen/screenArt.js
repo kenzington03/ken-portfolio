@@ -46,7 +46,7 @@ function drawCover(ctx, img, x, y, w, h) {
 }
 
 /** Paint the welcome screen onto a canvas at `pixelRatio` × stage size. */
-export const WELCOME_SUBTITLE = 'Kenneth Nathanael  ·  Design Lead';
+export const WELCOME_SUBTITLE = 'Kenneth Nathanael  ·  Designer';
 export const TITLE_Y = STAGE_H / 2 - 18;
 export const SUBTITLE_Y = STAGE_H / 2 + 58;
 

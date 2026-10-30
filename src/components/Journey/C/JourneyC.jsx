@@ -1,72 +1,51 @@
 // Journey C: Ken's own flow, from his notes (v4). One light set, then the dark:
 //   Loader: the lens iris opens with real load progress.
 //   A pinned deck driven by scroll, on paper over a design-canvas grid:
-//       Hero: Ken walks in, the shutter fires, he stands for the photo
+//       Hero: a printed poster, Ken drawn in front of his name in blue ink
 //       → About: "10 years" rolls up, the statement types, the prints land
 //       → Career timeline: the ruler fills and pans in, each role (company,
-//         title, years) arrives; the camera zooms in on Now
-//       → the cut to the dark: Now's ball swallows the screen; the line rises;
-//         a white ball becomes the Apple logo and settles on the lid as the
-//         MacBook comes up
+//         title, years) arrives; it plays on by itself once started
+//       → the camera pulls back until the whole career is the Apple logo;
+//         the line rises; the logo settles on the lid as the page dissolves
+//         into the dark and the MacBook comes up
 //   → Build / Move / Ship: the Mac swings from overhead to the front
 //   → lid opens → welcome → macOS.
 // Same contract as the other intros.
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
-import ContactCard from '../../Intro/ContactCard.jsx';
+import BriefSheet from '../../Brief/BriefSheet.jsx';
 import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../Intro/shared.jsx';
-import { CHAPTER_STOPS, POSES } from '../../Intro3/timeline.js';
+import { CHAPTER_STOPS, POSES, tintChapters } from '../../Intro3/timeline.js';
+import { SERVICES } from '../../../data/services.js';
 import { playShutter, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
-import TimelineC, { TIMELINE_NOW, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
+import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
+import MePanel from './MePanel.jsx';
+import Ball3D from './Ball3D.jsx';
+import useClock from '../../../hooks/useClock.js';
+import { PALETTES, paletteStyle, readPalette, savePalette } from './palette.js';
 import styles from './JourneyC.module.css';
 
 const EASE = [0.16, 1, 0.3, 1];
 // Same file the 3D rig loads (kept as a literal so this chunk stays free of three.js).
 const MODEL_SRC = '/models/macbook-rigged.glb';
 
-// Overhead, a touch toward the viewer (straight down would flip the rig).
-const OVERHEAD = { yaw: 0, pitch: 0.95, radius: 13.5, target: new THREE.Vector3(0, 0, 0.15) };
+// Overhead from behind the hinge, so the lid's Apple logo reads upright (from
+// the front it is upside down, as on a real closed MacBook). A touch toward
+// the camera (straight down would flip the rig). Into Build the camera swings
+// half way round the laptop to its front.
+const OVERHEAD = { yaw: Math.PI, pitch: 0.95, radius: 13.5, target: new THREE.Vector3(0, 0, -0.15) };
 const FLOW_POSES = { hero: OVERHEAD, front: POSES.front };
 
-// HERO FOOTAGE. Swap `src` for Ken's own clip (same folder) and tune the two
-// times: where playback starts and the frame the camera "takes".
-// The current file is a Pexels stand-in (see public/assets/hero/walkin/CREDITS.txt).
-const HERO_VIDEO = {
-  src: '/assets/hero/walkin/stock-walkin.mp4',
-  startAt: 1.0, // he steps in from the right edge
-  captureAt: 4.3, // facing the camera
-  rate: 1,
-};
+// HERO ART: Ken, drawn from his own photos (flat shapes, print grain), on a
+// transparent background. `aspect` is the file's width / height.
+const HERO_ART = { src: '/assets/hero/art/ken.webp', aspect: 832 / 2138 };
 
-// Things to read while it loads: a little about Ken, a little design humour.
-// They come in a shuffled order, so a second visit reads differently.
-const LOADING = [
-  '31 pani puris in one minute. Personal best.',
-  'Hobbies: basketball, music, chess.',
-  'Still trying to bring back Pokémon Go from 2016.',
-  'Kerning the loading text. Please hold.',
-  'Making the logo bigger, as requested.',
-  'No Comic Sans was harmed in this website.',
-  'One does not simply skip the loading screen.',
-  'Cmd+Z is my love language.',
-  'Exporting final_final_v3.psd',
-  'May the fonts be with you.',
-  'Hold my chai.',
-  'It is not a bug. It is a feature.',
-];
-const shuffled = (list) => {
-  const a = [...list];
-  for (let i = a.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-};
-const LINE_MS = 1500;
+// The loader: his ball, dribbling on the paper, over a shot clock that
+// counts the real loading up to 100.
 const MIN_LOAD_MS = 1700; // with the closing beat the loader lasts about 3.5 s on a fast line
 const MAX_LOAD_MS = 9000;
 // Returning visitors have the assets cached: they go straight in.
@@ -76,6 +55,22 @@ const seenBefore = () => {
     return localStorage.getItem(SEEN_KEY) === '1';
   } catch {
     return false;
+  }
+};
+// Someone who has been all the way into the Mac before.
+const DONE_KEY = 'ken:journey-done';
+const journeyDone = () => {
+  try {
+    return localStorage.getItem(DONE_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+const markJourneyDone = () => {
+  try {
+    localStorage.setItem(DONE_KEY, '1');
+  } catch {
+    /* private mode: they will just play it through again */
   }
 };
 const markSeen = () => {
@@ -88,16 +83,16 @@ const markSeen = () => {
 
 
 /* ------------------------------------------------------------------ */
-/* Loading: real progress (fonts, hero clip, MacBook model)            */
+/* Loading: real progress (fonts, hero art, MacBook model)             */
 /* ------------------------------------------------------------------ */
 
-function useAssetProgress(enabled) {
+function useAssetProgress(enabled, withModel) {
   const [p, setP] = useState(0);
   useEffect(() => {
     if (!enabled) return undefined;
     let live = true;
-    const parts = { fonts: 0, video: 0, model: 0 };
-    const push = () => live && setP(parts.fonts * 0.15 + parts.video * 0.35 + parts.model * 0.5);
+    const parts = { fonts: 0, art: 0, model: 0 };
+    const push = () => live && setP(parts.fonts * 0.15 + parts.art * 0.25 + parts.model * 0.6);
     const stream = async (url, key) => {
       try {
         const res = await fetch(url);
@@ -125,29 +120,27 @@ function useAssetProgress(enabled) {
       parts.fonts = 1;
       push();
     });
-    stream(HERO_VIDEO.src, 'video');
-    stream(MODEL_SRC, 'model');
+    stream(HERO_ART.src, 'art');
+    // Phones (and machines without WebGL 2) never show the 3D Mac: no model.
+    if (withModel) stream(MODEL_SRC, 'model');
+    else parts.model = 1;
     return () => {
       live = false;
     };
-  }, [enabled]);
+  }, [enabled, withModel]);
   return p;
 }
 
-function Loader({ reduced, onDone }) {
-  const real = useAssetProgress(true);
+function Loader({ reduced, onDone, withModel }) {
+  const real = useAssetProgress(true, withModel);
   const [shown, setShown] = useState(0);
-  const [lines] = useState(() => shuffled(LOADING));
-  const [line, setLine] = useState(0);
   const [out, setOut] = useState(false);
   const realRef = useRef(0);
   realRef.current = real;
-  const lineRef = useRef(0);
 
   useEffect(() => {
     const t0 = performance.now();
     let raf = 0;
-    let lastLineAt = t0;
     let closing = false;
     let disp = 0;
     const step = (now) => {
@@ -157,19 +150,13 @@ function Loader({ reduced, onDone }) {
       disp += (cap - disp) * 0.07;
       if (cap - disp < 0.004) disp = cap;
       setShown(disp);
-      const ready = disp >= 0.995;
-      if (!closing && now - lastLineAt > LINE_MS) {
-        lastLineAt = now;
-        if (ready) {
-          closing = true;
-          setTimeout(() => setOut(true), reduced ? 120 : 260);
-          setTimeout(onDone, reduced ? 200 : 820);
-        } else {
-          lineRef.current = (lineRef.current + 1) % LOADING.length;
-          setLine(lineRef.current);
-        }
+      if (!closing && disp >= 0.995) {
+        // Full time: the ball takes one last bounce and the paper is the hero's.
+        closing = true;
+        setTimeout(() => setOut(true), reduced ? 120 : 520);
+        setTimeout(onDone, reduced ? 200 : 1080);
       }
-      if (!closing || disp < 1) raf = requestAnimationFrame(step);
+      if (!closing) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
@@ -177,24 +164,19 @@ function Loader({ reduced, onDone }) {
   }, []);
 
   const pct = Math.round(shown * 100);
-  const text = lines[line];
   return (
     <div className={`${styles.loader} ${out ? styles.loaderOut : ''}`} role="status" aria-label={`Loading, ${pct} percent`}>
-      <div className={styles.loaderLine} aria-live="off">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.p
-            key={text}
-            className={styles.loaderText}
-            initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
-            transition={{ duration: 0.45, ease: EASE }}
-          >
-            {text}
-          </motion.p>
-        </AnimatePresence>
+      {/* The ball, dribbling: it falls, squashes on the floor, springs up. */}
+      <div className={styles.dribble} aria-hidden>
+        <span className={styles.dribbleBall}>
+          <img src="/assets/hero/art/ball-real.webp" alt="" draggable={false} />
+        </span>
+        <span className={styles.dribbleShadow} />
       </div>
-      {/* Real progress (fonts, the hero clip, the MacBook): one hairline. */}
+      {/* The shot clock: the real progress, counted up. */}
+      <p className={styles.clock} aria-hidden>
+        {String(pct).padStart(3, '0')}
+      </p>
       <span className={styles.loaderBar} aria-hidden>
         <span style={{ transform: `scaleX(${shown.toFixed(4)})` }} />
       </span>
@@ -206,174 +188,382 @@ function Loader({ reduced, onDone }) {
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
 
-// PREVIEW: ?theme=dark shows the hero on a dark set, for comparison.
-const HERO_DARK = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('theme') === 'dark';
+// Ken's own time, where he is, kept live.
+const localTime = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 
-// The camera's readout: a running timecode while he walks in (25 fps).
-const timecode = (sec) => {
-  const f = Math.floor((sec % 1) * 25);
-  const s = Math.floor(sec);
-  const p2 = (n) => String(n).padStart(2, '0');
-  return `00:00:${p2(s)}:${p2(f)}`;
-};
-const localTime = () => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+// The name: "Hi, I'm" bounces in, then Ken, then the rest of it slides out
+// from behind the N. The display face prints KENNETH 3.23 em wide.
+const NAME_EM = 3.2325;
+const NAME_W = 0.85; // of the viewport's width
+const HI = "Hi, I'm".split('');
+const NAME_HEAD = ['K', 'E', 'N'];
+const NAME_TAIL = ['N', 'E', 'T', 'H'];
+const DESCRIPTOR = 'Designer. Building brands for 10+ years.';
 
-function Hero({ go, reduced, instant, onOpenMac, onScrollOn, phone }) {
-  const tcRef = useRef(null);
-  const [shot, setShot] = useState(!!instant);
-  // The letters rise a frame after mount, so there is always a start to
-  // animate from (even when there is no loader in front).
-  const [lettersUp, setLettersUp] = useState(!!instant);
+// The poster's sheet: paper, grain and the clock. The name, Ken and his ball
+// are drawn by the cast (below), so the name can sit between his body and
+// the laptop he holds out.
+function Hero() {
+  const time = useClock(localTime);
+  return (
+    <div className={styles.hero}>
+      <p className={styles.place}>
+        <span>India</span>
+        <span>{time}</span>
+      </p>
+      <h1 className={styles.srOnly}>
+        Hi, I&apos;m Kenneth Nathanael. {DESCRIPTOR}
+      </h1>
+      <span className={styles.grain} aria-hidden />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* The cast: Ken, his name and his ball, over the sections             */
+/* ------------------------------------------------------------------ */
+
+// One continuous camera move with Ken as its anchor:
+//   Hero     he stands in the middle, behind his name, his head over it. He
+//            arrives whole, then the camera pushes in a little; a touch of
+//            depth follows the pointer.
+//   → About  the camera keeps closing in as he crosses to the left and About
+//            comes in from the right; he stays beside it, framed from the
+//            chest up.
+//   → Career he leaves with About.
+// Nothing on him moves: the camera does. Each moment is a point on the
+// drawing (in units of its height H) held at a point on screen, at a scale.
+const isWide = () => window.innerWidth >= 1000 && window.innerWidth / window.innerHeight >= 1.2;
+
+function castLayout(phone) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const wide = !phone && isWide();
+  const nameSize = Math.min((vw * NAME_W) / NAME_EM, vh * (wide ? 0.34 : 0.2));
+  if (!wide) {
+    // Phones: the name on top, the line under it, then him, standing clear.
+    const nameTop = Math.max(128, vh * 0.16);
+    const feet = vh - Math.max(96, vh * 0.12);
+    // (room for the camera's push, which grows him upwards)
+    const H = Math.min(vh * 0.6, (feet - (nameTop + nameSize * 0.74 + 64)) / (1 + PUSH));
+    return { vw, vh, wide, H, nameSize, nameTop, neck: false, hero: { x: vw / 2, y: feet }, rest: { x: vw * 0.8, y: vh - 40 } };
+  }
+  const H = Math.min(vh * 0.8, vh - 110);
+  const feet = vh - Math.max(24, Math.min(48, vh * 0.05));
+  // The name sits across his chest, centred on the line the ball holds (the
+  // middle of the screen), so the ball lands in the middle of the name; his
+  // face and shoulders stay clear above it.
+  const nameTop = Math.round(vh * 0.5 - nameSize * 0.37);
+  return {
+    vw,
+    vh,
+    wide,
+    H,
+    nameSize,
+    nameTop,
+    neck: false, // the name holds the ball's line as the camera pushes in
+    hero: { x: vw / 2, y: feet },
+    about: { x: vw * 0.2, y: vh * 0.5 },
+    // Where the ball waits beside About, on the floor.
+    rest: { x: vw * 0.4, y: vh - 22 },
+  };
+}
+
+const PUSH = 0.07;
+// Section 2 (Me): the camera close on him, framed from the waist up. The
+// point of him held at the frame's anchor (his chest, in units of his
+// height), and how much bigger he is than in the hero.
+const ME_FOCUS = 0.36;
+const ME_SCALE = 1.7;
+// The ball. In the hero it rolls out from behind his legs along his floor
+// and comes to rest bottom right. With the first scroll it glides, in one
+// straight line, to the middle of the screen (the height of the career's
+// line), and holds there: Me comes in around it, then the career's line
+// slides in under it. BALL is its size in units of his height in the hero;
+// BALL_SCREEN its size in the middle, as a share of the viewport's height.
+// ROLL_K: how much it turns for the ground covered (a quarter of a true
+// roll, so it rolls without whirling).
+const BALL = 0.115;
+const BALL_IN = { delay: 2500, ms: 1900 };
+const BALL_REST_Y = 0.977; // its base on his floor, in units of his height
+const BALL_HERO_X = 0.74; // where it rests, as a share of the screen's width
+const BALL_SCREEN = 0.062;
+const ROLL_K = 0.25;
+// A ball rolling to a stop slows evenly (friction): its travel eases out
+// as a square.
+const outQuad = (t) => 1 - (1 - t) ** 2;
+
+
+function Ball({ ballRef, ball3dRef }) {
+  return (
+    <div ref={ballRef} className={styles.ball} aria-hidden>
+      <span className={styles.ballShadow} />
+      <span className={styles.ballBody}>
+        <Ball3D apiRef={ball3dRef} className={styles.ballCanvas} fallbackClassName={styles.ballSpin} />
+      </span>
+    </div>
+  );
+}
+
+// The way on: written on the page, its arrow pointing down.
+function ScrollNote({ noteRef, onClick }) {
+  return (
+    <button ref={noteRef} type="button" className={`${styles.note} ${styles.noteScroll}`} onClick={onClick}>
+      <span>scroll down</span>
+      <svg viewBox="0 0 40 70" aria-hidden>
+        <path pathLength="1" d="M20 4C17 22 23 40 20 62" />
+        <path pathLength="1" d="M9 50l11 13 11-14" />
+      </svg>
+    </button>
+  );
+}
+
+function NameWord({ className }) {
+  return (
+    <span className={className}>
+      {NAME_HEAD.map((c, i) => (
+        <span key={`h${i}`} className={styles.nameLetter} style={{ '--i': i }}>
+          <span>{c}</span>
+        </span>
+      ))}
+      {NAME_TAIL.map((c, i) => (
+        <span key={`t${i}`} className={styles.nameTail} style={{ '--i': i }}>
+          <span>{c}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, nameStyle = 'riso' }) {
+  const figRef = useRef(null);
+  const nameRef = useRef(null);
+  const ballRef = useRef(null);
+  const ball3dRef = useRef(null);
+  const noteRef = useRef(null);
+  const [L, setL] = useState(() => castLayout(phone));
   useEffect(() => {
-    if (!(go || instant || reduced)) return undefined;
+    const on = () => setL(castLayout(phone));
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, [phone]);
+
+  // The name lands (two frames after it may, so there is a start to animate from).
+  const on = !!(go || instant || reduced);
+  const [up, setUp] = useState(!!(instant || reduced));
+  useEffect(() => {
+    if (!on || up) return undefined;
     let id = requestAnimationFrame(() => {
-      id = requestAnimationFrame(() => setLettersUp(true));
+      id = requestAnimationFrame(() => setUp(true));
     });
     return () => cancelAnimationFrame(id);
-  }, [go, instant, reduced]);
-  const [flash, setFlash] = useState(0);
-  const videoRef = useRef(null);
-  const shotRef = useRef(!!instant);
+  }, [on, up]);
 
-  const capture = useCallback(() => {
-    if (shotRef.current) return;
-    shotRef.current = true;
-    const v = videoRef.current;
-    if (v) {
-      v.pause();
-      // Land exactly on the chosen frame so the still is always the same.
-      if (Math.abs(v.currentTime - HERO_VIDEO.captureAt) > 0.08) v.currentTime = HERO_VIDEO.captureAt;
-    }
-    playShutter();
-    if (!reduced) setFlash((n) => n + 1);
-    setShot(true);
+  // The pointer, for a little depth on the hero (fine pointers only).
+  const pointer = useRef({ x: 0, y: 0, sx: 0, sy: 0 });
+  useEffect(() => {
+    if (reduced || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return undefined;
+    const move = (e) => {
+      pointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    window.addEventListener('pointermove', move, { passive: true });
+    return () => window.removeEventListener('pointermove', move);
   }, [reduced]);
 
+  const startRef = useRef(null);
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return undefined;
-    const still = () => {
-      v.currentTime = HERO_VIDEO.captureAt;
-    };
-    if (instant || reduced) {
-      if (v.readyState >= 1) still();
-      else v.addEventListener('loadedmetadata', still, { once: true });
-      if (reduced && go) capture();
-      return () => v.removeEventListener('loadedmetadata', still);
-    }
-    if (!go) return undefined;
-    let raf = 0;
-    const watch = () => {
-      if (v.currentTime >= HERO_VIDEO.captureAt) capture();
-      else raf = requestAnimationFrame(watch);
-    };
-    const start = () => {
-      v.currentTime = HERO_VIDEO.startAt;
-      v.playbackRate = HERO_VIDEO.rate;
-      v.play().then(() => {
-        raf = requestAnimationFrame(watch);
-      }, capture);
-    };
-    if (v.readyState >= 1) start();
-    else v.addEventListener('loadedmetadata', start, { once: true });
-    // Never leave the hero waiting on a clip that will not play.
-    const bail = setTimeout(capture, 6000);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(bail);
-      v.removeEventListener('loadedmetadata', start);
-    };
-  }, [go, instant, reduced, capture]);
+    if (go && startRef.current == null) startRef.current = performance.now();
+  }, [go]);
 
-  const rise = (d) =>
-    reduced
-      ? {}
-      : { initial: { opacity: 0, y: 26 }, animate: shot ? { opacity: 1, y: 0 } : undefined, transition: { duration: 0.9, ease: EASE, delay: d } };
-
-  // The timecode runs with the footage until the shot is taken.
   useEffect(() => {
-    if (shot || !go) return undefined;
     let raf = 0;
-    const tick = () => {
-      const v = videoRef.current;
-      if (tcRef.current && v) tcRef.current.textContent = timecode(Math.max(0, v.currentTime - HERO_VIDEO.startAt));
-      raf = requestAnimationFrame(tick);
+    // Only what changed is written: a custom property set on the deck makes
+    // the browser restyle everything under it, so it must not happen every
+    // frame for nothing (least of all under the timeline and the Mac).
+    const last = {};
+    const put = (el, key, prop, value) => {
+      if (!el || last[key] === value) return;
+      last[key] = value;
+      if (prop.startsWith('--')) el.style.setProperty(prop, value);
+      else el.style[prop] = value;
     };
-    raf = requestAnimationFrame(tick);
+    const frame = (now) => {
+      raf = requestAnimationFrame(frame);
+      const fig = figRef.current;
+      if (!fig) return;
+      const { H, vw, vh, wide } = L;
+      const v = progress.get();
+      const a = smooth01(within(v, SPAN['hero>ab']));
+      const b = smooth01(within(v, SPAN['ab>tl']));
+      const t0 = startRef.current;
+      const since = t0 == null ? -1 : now - t0;
+      // Arrives whole, then the camera pushes in.
+      const shown = reduced ? (t0 == null ? 0 : 1) : clamp01(since / 800);
+      const push = reduced ? 1 : 1 + PUSH * smooth01(clamp01((since - 700) / 2200));
+
+      const p = pointer.current;
+      p.sx += (p.x - p.sx) * 0.06;
+      p.sy += (p.y - p.sy) * 0.06;
+      const depth = 1 - a;
+      const root = rootRef.current;
+      if (root) {
+        put(root, 'px', '--px', (p.sx * depth).toFixed(3));
+        put(root, 'py', '--py', (p.sy * depth).toFixed(3));
+      }
+
+      // The name rides out with the hero's page, a touch of depth against him.
+      const name = nameRef.current;
+      const nameGone = a >= 1;
+      put(name, 'nop', 'opacity', nameGone || t0 == null ? '0' : '1');
+      if (!nameGone) {
+        const nx = (wide ? -a * vw : 0) - p.sx * 14 * depth;
+        const ny = (wide ? 0 : -a * vh) - p.sy * 8 * depth;
+        const ns = 1 + (push - 1) * 0.3;
+        put(name, 'ntf', 'transform', `translate3d(${nx.toFixed(1)}px, ${ny.toFixed(1)}px, 0) translateX(-50%) scale(${ns.toFixed(4)})`);
+      }
+
+      // The camera on him. The hero holds his feet in place (the push grows
+      // him upwards); About holds his chest, closer.
+      const w = H * HERO_ART.aspect;
+      const camAt = (aa, bb) => {
+        let px = 0.5;
+        let py = 1;
+        let S = push;
+        let qx = L.hero.x;
+        let qy = L.hero.y;
+        if (wide) {
+          // Into Me the camera pushes in on him: he grows, framed from the
+          // waist up, his face in the upper third, on the left.
+          py = 1 + (ME_FOCUS - 1) * aa;
+          S = push + (ME_SCALE - push) * aa;
+          qx += (L.about.x - qx) * aa;
+          // Out with Me, to the left, as the pan carries on.
+          qx -= bb * vw;
+          qy += (L.about.y - qy) * aa;
+        } else {
+          qy -= aa * vh; // leaves with the hero, upwards
+        }
+        qx += p.sx * 12 * depth;
+        qy += p.sy * 8 * depth + (1 - shown) * 24;
+        return { left: qx - px * w * S, top: qy - py * H * S, S };
+      };
+      const cam = camAt(a, b);
+
+      // The ball: it rolls out from behind his legs to the bottom right;
+      // the first scroll glides it in a straight line to the middle (the
+      // career line's height), where it holds while the world moves round
+      // it; at the end of the career it opens into the Apple logo there.
+      const ball = ballRef.current;
+      const b3 = ball3dRef.current;
+      if (ball) {
+        const h0 = camAt(0, 0);
+        const heroD = H * BALL * h0.S;
+        const midD = Math.round(vh * BALL_SCREEN);
+        const startX = h0.left + (w * h0.S) / 2; // behind his legs
+        const heroX = vw * BALL_HERO_X;
+        const floorY = h0.top + BALL_REST_Y * H * h0.S - heroD / 2; // its centre on his floor
+        const cx = vw / 2;
+        const cy = tg.rulerY;
+        const enter = reduced || instant ? 1 : outQuad(clamp01((since - BALL_IN.delay) / BALL_IN.ms));
+        let size = heroD;
+        let x = startX + (heroX - startX) * enter;
+        let y = floorY;
+        let rz = (-(x - startX) / (heroD / 2)) * 0.6;
+        let fade = 1;
+        let floor = 1;
+        let seen = t0 != null && enter > 0;
+        if (a > 0) {
+          // The glide: one straight line, bottom right to the middle.
+          x = heroX + (cx - heroX) * a;
+          y = floorY + (cy - floorY) * a;
+          size = heroD + (midD - heroD) * a;
+          floor = 1 - smooth01(within(a, [0, 0.4]));
+          rz -= (Math.hypot(x - heroX, y - floorY) * ROLL_K) / (size / 2);
+        }
+        if (a >= 1) {
+          x = cx;
+          y = cy;
+          // Onto the career it eases down to the knob's size.
+          size = midD + (TIP_R * 2 - midD) * smooth01(b);
+          floor = 0;
+          // Held: it turns as the world passes under it.
+          rz -= (b * vw * ROLL_K) / (size / 2);
+        }
+        if (v >= SPAN.tl[0]) {
+          const rr = v >= SPAN.now[0] ? within(within(v, SPAN.now), REWIND) ** 1.6 : 0;
+          const pp = v >= SPAN.now[0] ? TIMELINE_NOW : within(v, SPAN.tl) * TIMELINE_NOW;
+          rz -= (((timelineSpinAt(tg, pp) - timelineSpinAt(tg, 0)) * Math.PI) / 180) * ROLL_K + rr * 3;
+          const open = within(within(v, SPAN.now), OPEN);
+          size = TIP_R * 2 * (1 + 0.16 * smooth01(open));
+          fade = 1 - smooth01(within(open, [0.05, 0.75]));
+          seen = !reduced && open < 1;
+        }
+        put(ball, 'bop', 'opacity', seen ? fade.toFixed(3) : '0');
+        if (seen) {
+          const r = size / 2;
+          put(ball, 'btf', 'transform', `translate3d(${(x - r).toFixed(1)}px, ${(y - r).toFixed(1)}px, 0)`);
+          put(ball, 'bw', 'width', `${size.toFixed(1)}px`);
+          put(ball, 'bh', 'height', `${size.toFixed(1)}px`);
+          put(ball, 'bfloor', '--floor', floor.toFixed(3));
+          b3?.set(size, rz, 0);
+        }
+      }
+
+      // "scroll down": once the ball has come to rest, gone with the first scroll.
+      const note = noteRef.current;
+      if (note) {
+        const noteOn = a === 0 && (reduced || instant || since > BALL_IN.delay + BALL_IN.ms * 0.7);
+        put(note, 'nop2', 'opacity', noteOn ? '1' : (1 - clamp01(a / 0.12)).toFixed(3));
+        put(note, 'nev', 'pointerEvents', a < 0.05 ? 'auto' : 'none');
+        if (noteOn && !note.classList.contains(styles.noteOn)) note.classList.add(styles.noteOn);
+        if (a > 0.3 && note.classList.contains(styles.noteOn)) note.classList.remove(styles.noteOn);
+      }
+
+      // Gone with About: nothing to draw until the page comes back up.
+      if (b >= 1 || (!wide && a >= 1)) {
+        put(fig, 'op', 'opacity', '0');
+        return;
+      }
+      const tf = `translate3d(${cam.left.toFixed(1)}px, ${cam.top.toFixed(1)}px, 0) scale(${cam.S.toFixed(4)})`;
+      put(fig, 'op', 'opacity', shown.toFixed(3));
+      put(fig, 'tf', 'transform', tf);
+    };
+    raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [go, shot]);
+  }, [L, progress, reduced, instant, rootRef, tg]);
 
+  const figStyle = { width: L.H * HERO_ART.aspect, height: L.H };
   return (
-    <div className={`${styles.hero} ${HERO_DARK ? styles.heroDark : ''}`}>
-      <div className={`${styles.set} ${shot ? styles.setShot : ''}`} aria-hidden>
-        {/* The camera pushes in to chest height while he walks in from the right. */}
-        <div className={`${styles.figure} ${go || instant || reduced ? styles.figureIn : ''}`}>
-          <video ref={videoRef} className={styles.clip} src={HERO_VIDEO.src} muted playsInline preload="auto" />
-        </div>
-        <span className={styles.viewfinder}>
-          <i />
-          <i />
-          <i />
-          <i />
+    <div className={`${styles.cast} ${up ? styles.castUp : ''} ${L.wide ? '' : styles.castNarrow}`}>
+      {/* Under him in the stack: it rolls out from behind his legs. */}
+      <Ball ballRef={ballRef} ball3dRef={ball3dRef} />
+      <div ref={figRef} className={styles.castFig} style={figStyle} aria-hidden>
+        {/* His shadow, cast from his own shoes: tight where each sole meets
+            the floor, soft where it falls away to the right. */}
+        <img className={styles.castGround} src="/assets/hero/art/ken-ground.webp" alt="" draggable={false} />
+        <img className={styles.castArt} src={HERO_ART.src} alt="" draggable={false} fetchPriority="high" />
+      </div>
+
+      {/* The name, in front of him: he stands behind it. */}
+      <div ref={nameRef} className={`${styles.name} ${styles[`name_${nameStyle}`] || ''}`} aria-hidden style={{ top: L.nameTop, '--name-size': `${L.nameSize.toFixed(1)}px` }}>
+        <span className={styles.hi}>
+          {HI.map((c, i) => (
+            <span key={i} style={{ '--i': i }}>
+              {c === ' ' ? '\u00a0' : c}
+            </span>
+          ))}
+        </span>
+        {/* Printed twice: a solid pass (with the orange one a hair off), then
+            the speckled ink over it, so he never shows through the letters. */}
+        <NameWord className={styles.nameFill} />
+        <NameWord className={styles.nameWord} />
+        <span className={styles.descriptor}>
+          <b>Designer.</b> Building brands for 10+ years.
         </span>
       </div>
 
-      {/* The camera's readout: REC and a running timecode while he walks
-          in; once the shot is taken, where and when it was taken. */}
-      <motion.p className={`${styles.hud} ${shot ? styles.hudShot : ''}`} initial={reduced ? false : { opacity: 0 }} animate={go || instant ? { opacity: 1 } : undefined} transition={{ duration: 0.6, delay: 0.2 }} aria-hidden>
-        {shot ? (
-          <>
-            <span>Hyderabad</span>
-            <span>{localTime()}</span>
-          </>
-        ) : (
-          <>
-            <i className={styles.rec} />
-            <span>REC</span>
-            <span ref={tcRef}>00:00:00:00</span>
-          </>
-        )}
-      </motion.p>
-
-      <div className={styles.heroCopy}>
-        <h1 className={styles.hello}>
-          <motion.span
-            className={styles.hi}
-            {...(reduced ? {} : { initial: { opacity: 0, y: 18 }, animate: go || instant ? { opacity: 1, y: 0 } : undefined, transition: { duration: 0.9, ease: EASE, delay: 0.25 } })}
-          >
-            Hi, I&apos;m
-          </motion.span>
-          {/* The name rises letter by letter, thin and narrow; when the
-              shutter fires it snaps to full weight, as if the photo inflated it. */}
-          <span className={`${styles.kenWrap} ${lettersUp ? styles.kenIn : ''} ${shot ? styles.kenSet : ''}`}>
-            <span className={styles.ken} aria-label="Ken">
-              {['K', 'e', 'n'].map((c, i) => (
-                <span key={c} className={styles.kenLetter} style={{ '--i': i }} aria-hidden>
-                  <span>{c}</span>
-                </span>
-              ))}
-            </span>
-          </span>
-        </h1>
-      </div>
-
-      <div className={styles.heroFoot}>
-        <motion.div className={styles.heroMeta} {...rise(0.45)}>
-          <p className={styles.role}>Designer</p>
-          <p className={styles.tagline}>Trial and error, but mostly error.</p>
-        </motion.div>
-        <motion.div className={styles.heroActions} {...rise(0.6)}>
-          <button type="button" className={styles.btn} onClick={onOpenMac}>
-            {phone ? 'Open my iPhone' : 'Open my Mac'}
-          </button>
-          <button type="button" className={styles.btnGhost} onClick={onScrollOn}>
-            Scroll
-            <i aria-hidden />
-          </button>
-        </motion.div>
-      </div>
-
-      {flash > 0 && <div key={flash} className={styles.flash} aria-hidden />}
+      <ScrollNote noteRef={noteRef} onClick={onScrollOn} />
     </div>
   );
 }
@@ -382,15 +572,14 @@ function Hero({ go, reduced, instant, onOpenMac, onScrollOn, phone }) {
 /* The deck: one pinned viewport in the dark, driven by scroll         */
 /* ------------------------------------------------------------------ */
 
-// Scroll budget per beat, in viewport heights. The hero is not in here: it
-// sits above the deck and leaves by gesture (the hand over the lens).
+// Scroll budget per beat, in viewport heights.
 const BEATS = [
-  ['hero', 25],
-  ['hero>ab', 60], // About rises from below as the hero lifts away
+  ['hero', 6], // short: the first scroll sets Ken walking at once
+  ['hero>ab', 60], // the camera closes in on Ken as he crosses left and About comes in (phones: About rises as the hero lifts)
   ['about', 40], // "10 years" rolls up and both lines type themselves (on time)
-  ['ab>tl', 60], // About leaves left, the timeline arrives from the right
-  ['tl', 130], // the ball travels 2015 to Now in one frame, then the camera zooms in on Now
-  ['now', 110], // the iris into the dark; the line rises; the ball becomes the logo and settles as the Mac comes up
+  ['ab>tl', 60], // About leaves left with Ken, the timeline arrives from the right
+  ['tl', 100], // the ball travels 2015 to Now, then the camera pulls back to the whole journey
+  ['now', 110], // the career shrinks into the Apple logo; the line rises; the logo settles as the Mac comes up
 ];
 const TOTAL = BEATS.reduce((n, [, len]) => n + len, 0);
 const SPAN = (() => {
@@ -410,64 +599,20 @@ const sineOut = (t) => Math.sin((Math.PI * t) / 2);
 const smooth01 = (t) => t * t * (3 - 2 * t);
 const within = (v, [a, b]) => clamp01((v - a) / (b - a));
 
-/* ------------------------------------------------------------------ */
-/* About: "10 years", the statement typed under it, the work on the table */
-/* ------------------------------------------------------------------ */
-
-// Typing runs on time, not scroll, so a pause never leaves a word half-typed.
-// About, Apple style: who, the promise, then the work fanned out like a
-// hand of cards. Everything starts as About slides in; nothing is typed.
-const ABOUT_HEAD = 'Ten years of making brands feel like themselves.';
-const ABOUT_SUB =
-  'Identity, campaigns, motion and interfaces, designed as one system, so a brand looks and sounds like itself everywhere it shows up.';
-const FAN = [
-  { src: '/assets/about/milestone-stationery.jpg', alt: 'Milestone Technologies stationery' },
-  { src: '/assets/about/fluid-brain.jpg', alt: 'Fluid AI brand artwork' },
-  { src: '/assets/about/lebron-nike.jpg', alt: 'LeBron James campaign artwork for Nike' },
-  { src: '/assets/about/uvu-brand.jpg', alt: 'Project UVU brand rollout' },
-  { src: '/assets/about/aloft-morrison.jpg', alt: 'Jim Morrison poster for Aloft hotels' },
-];
-
-function AboutPanel({ on, instant }) {
-  const words = ABOUT_HEAD.split(' ');
-  const mid = (FAN.length - 1) / 2;
-  return (
-    <div className={`${styles.about} ${on || instant ? styles.aboutOn : ''} ${instant ? styles.aboutInstant : ''}`}>
-      <p className={styles.aboutName}>Kenneth Nathanael, designer in Hyderabad</p>
-      <h2 className={styles.aboutHead} aria-label={ABOUT_HEAD}>
-        {words.map((w, i) => (
-          <Fragment key={i}>
-            <span className={styles.headWord} style={{ '--i': i }} aria-hidden>
-              <span>{w}</span>
-            </span>{' '}
-          </Fragment>
-        ))}
-      </h2>
-      <p className={styles.aboutSub}>{ABOUT_SUB}</p>
-      <div className={styles.fan}>
-        {FAN.map((c, i) => {
-          const k = i - mid;
-          return (
-            <figure key={c.src} className={styles.card} style={{ '--k': k, '--ak': Math.abs(k), '--i': i, zIndex: 10 - Math.abs(k) }}>
-              <img src={c.src} alt={c.alt} draggable={false} />
-            </figure>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 /** Words that rise out of a blur one after another as `reveal` goes 0..1. */
 function RiseWords({ text, reveal, className }) {
   const words = text.split(' ');
   return (
-    <motion.p className={className} style={{ '--p': reveal, '--n': words.length }} aria-label={text}>
-      {words.map((w, i) => (
-        <span key={i} className={styles.riseWord} style={{ '--i': i }} aria-hidden>
-          {w}{' '}
-        </span>
-      ))}
+    <motion.p className={className} style={{ '--p': reveal, '--n': words.length }} aria-label={text.replace(' | ', ' ')}>
+      {words.map((w, i) =>
+        w === '|' ? (
+          <br key={i} />
+        ) : (
+          <span key={i} className={styles.riseWord} style={{ '--i': i }} aria-hidden>
+            {w}{' '}
+          </span>
+        ),
+      )}
     </motion.p>
   );
 }
@@ -520,11 +665,157 @@ const LOGO_EL_H = (LOGO_EL_W * APPLE_BOX.h) / APPLE_BOX.w;
 const APPLE_PATH =
   'M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z';
 
-// Stop scrolling mid-journey for this long and a quiet "keep scrolling" cue appears.
+// How tall the logo stands, as a share of the viewport height.
+const LOGO_VH = 0.115;
+const LOGO_VH_PHONE = 0.1;
+// The middle of the apple's body (in the glyph's units): solid all round for
+// a radius of about 5, so a dot there grows as a plain circle before the bite
+// and the leaf show. The ball becomes the logo here.
+const APPLE_HEART = { x: 11.6, y: 14.6 };
+const HEART_CLIP = `${(((APPLE_HEART.x - APPLE_BOX.x) / APPLE_BOX.w) * 100).toFixed(2)}% ${(((APPLE_HEART.y - APPLE_BOX.y) / APPLE_BOX.h) * 100).toFixed(2)}%`;
+// From the heart to the element's centre, in element px (before scaling).
+const HEART_DX = ((APPLE_HEART.x - (APPLE_BOX.x + APPLE_BOX.w / 2)) * LOGO_EL_W) / APPLE_BOX.w;
+const HEART_DY = ((APPLE_HEART.y - (APPLE_BOX.y + APPLE_BOX.h / 2)) * LOGO_EL_W) / APPLE_BOX.w;
+const BALL_R = TIP_R; // the timeline's ball, in px
+// When (as shares of "now"): the words step back, the line winds into the
+// ball, the ball opens into the logo.
+const CLEAR = [0, 0.05];
+const REWIND = [0.02, 0.15];
+const OPEN = [0.15, 0.28];
+// The heart to the farthest point of the glyph (the leaf's tip), in its units.
+const HEART_REACH = 13.6;
+// What the logo says as it arrives.
+// "|" breaks the line.
+const STORY_LINE = "Everything I've made | lives in here.";
+const STORY_SUB = 'Ten years of brands, campaigns and motion, on one Mac.';
+const STORY_LINE_PHONE = STORY_LINE;
+const STORY_SUB_PHONE = 'Ten years of brands, campaigns and motion.';
+// From here (as a share of "now"), a click anywhere goes in.
+const END_FROM = 0.22;
+
+// The timeline playing on by itself: how long it rests on each role once it
+// has landed and opened, and on the whole journey before it pulls back to the logo.
+const AUTO_REST = 1500;
+const AUTO_REST_NOW = 3200; // time to take in the whole journey, laid out
+const AUTO_REST_LOGO = 2600; // time to read the line before the Mac drifts up
+// The Mac's drift: each word to the next, slow and continuous.
+const DRIFT_MS = 5600;
+
+// The career plays as one continuous run: one scroll from Me sets the ball
+// off, and it rolls 2015 to Now without stopping. Every leg (role to role)
+// takes the same time; the ball eases off as it passes a role (so the label
+// can be read) and picks up again between them, but never comes to rest.
+// A speed profile per leg, turned into a position curve (0..1 over the leg).
+const LEG_MS = 1900; // long enough to read each role as it passes
+const WAVE = 0.62; // how much it slows at a role: speed there is 1 - WAVE
+const profile = (w) => {
+  const N = 400;
+  const c = [0];
+  for (let i = 0; i < N; i += 1) c.push(c[i] + w((i + 0.5) / N));
+  const total = c[N];
+  return {
+    mean: total / N,
+    curve: (u) => {
+      const x = clamp01(u) * N;
+      const i = Math.floor(x);
+      return i >= N ? 1 : (c[i] + (c[i + 1] - c[i]) * (x - i)) / total;
+    },
+  };
+};
+const waveAt = (u) => 1 - WAVE * Math.cos(2 * Math.PI * u);
+// Mid legs: slow past each role, quicker between.
+const LEG_MID = profile(waveAt);
+// The first leg sets off from rest; the last (on to Now, as the camera pulls
+// back over the whole journey) comes to rest. Their speeds meet the mid legs'.
+const LEG_FIRST = profile((u) => smooth01(Math.min(1, u / 0.5)) * waveAt(u));
+const DRIFT = profile((u) => 1 - 0.45 * Math.cos(2 * Math.PI * u));
+const LEG_LAST = profile((u) => waveAt(u) * (1 - smooth01(Math.max(0, (u - 0.3) / 0.7))));
+
+// At the end of the story, still for this long: "Scroll down".
 const IDLE_HINT_MS = 900;
+
+// The journey as a game of four quarters, on a little scoreboard hung at the
+// top. Each quarter fills as you play it. First time through, the quarters
+// ahead are locked: the story is played in order. Back again, any quarter.
+const QUARTERS = [
+  { id: 'hero', label: 'Hi', range: () => [0, midOf(SPAN['hero>ab'])] },
+  { id: 'about', label: 'Me', range: () => [midOf(SPAN['hero>ab']), midOf(SPAN['ab>tl'])] },
+  { id: 'now', label: 'Career', range: () => [midOf(SPAN['ab>tl']), SPAN.now[0]] },
+  { id: 'logo', label: 'The work', range: () => [SPAN.now[0], SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.31] },
+];
+const midOf = ([a, b]) => (a + b) / 2;
+
+function Scoreboard({ progress, alpha, unlocked, goTo }) {
+  const [at, setAt] = useState(0);
+  const [reached, setReached] = useState(0);
+  const fills = useRef([]);
+  const read = (v) => {
+    let q = 0;
+    QUARTERS.forEach((x, i) => {
+      const [a, b] = x.range();
+      if (v >= a) q = i;
+      const f = clamp01((v - a) / (b - a));
+      const el = fills.current[i];
+      if (el) el.style.transform = `scaleX(${f.toFixed(4)})`;
+    });
+    setAt((cur) => (cur === q ? cur : q));
+    setReached((cur) => Math.max(cur, q));
+  };
+  useMotionValueEvent(progress, 'change', read);
+  useEffect(() => read(progress.get()), []); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <motion.nav className={styles.score} style={{ opacity: alpha }} aria-label="Chapters">
+      {QUARTERS.map((x, i) => {
+        const locked = !unlocked && i > reached;
+        return (
+          <button
+            key={x.id}
+            type="button"
+            className={`${styles.quarter} ${i === at ? styles.quarterOn : ''} ${locked ? styles.quarterLocked : ''}`}
+            onClick={() => !locked && goTo(x.id)}
+            aria-disabled={locked || undefined}
+            aria-current={i === at ? 'step' : undefined}
+            title={locked ? 'Keep scrolling to get here' : undefined}
+          >
+            <span className={styles.qLabel}>{x.label}</span>
+            <i aria-hidden>
+              <span ref={(el) => (fills.current[i] = el)} />
+            </i>
+          </button>
+        );
+      })}
+    </motion.nav>
+  );
+}
+
+// Trying the poster's inks: swatches on localhost (or with ?palettes), so Ken
+// can flip through them on the real page. Never shown to visitors.
+const SHOW_SWATCHES = import.meta.env.DEV || /[?&]palettes\b/.test(window.location.search);
+
+function Swatches({ current, onPick }) {
+  return (
+    <div className={styles.swatches} role="radiogroup" aria-label="Poster colours (preview only)">
+      {PALETTES.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          role="radio"
+          aria-checked={p.id === current}
+          title={p.label}
+          className={styles.swatch}
+          style={{ '--a': p.pop, '--b': p.pop2 }}
+          onClick={() => onPick(p)}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function JourneyC({ mode = 'open', active = true, onReachScreen, onSkip, onClosed, phone = false }) {
   const closing = mode === 'close';
+  const [palette, setPalette] = useState(readPalette);
+  // The Mac room's glow takes the poster's inks.
+  tintChapters([palette.pop, palette.pop2, palette.pop]);
   const [reduced] = useState(prefersReducedMotion);
   // Phones get the iPhone ending (DOM), so they never load the 3D MacBook.
   const [use3D, setUse3D] = useState(() => !phone && hasWebGL2() && !prefersReducedMotion());
@@ -533,6 +824,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const [dark, setDark] = useState(closing);
   const [contactOpen, setContactOpen] = useState(false);
   const [idle, setIdle] = useState(false);
+  // Someone who has been all the way in before may skip and jump around.
+  const [returning] = useState(journeyDone);
   const deckRef = useRef(null);
   const flatRef = useRef(!use3D && !phone);
   flatRef.current = !use3D && !phone;
@@ -552,7 +845,16 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const aboutInstant = reduced || closing;
 
   const { scrollYProgress: progress } = useScroll({ target: deckRef, offset: ['start start', 'end end'] });
-  const tlProgress = useTransform(progress, (v) => within(v, SPAN.tl));
+  // The deck's timeline beat ends on the whole journey (TIMELINE_NOW).
+  const tlProgress = useTransform(progress, (v) => within(v, SPAN.tl) * TIMELINE_NOW);
+  // The hero's basketball lands on the line as the timeline arrives.
+  const handoff = useTransform(progress, (v) => smooth01(within(v, SPAN['ab>tl'])));
+  // On the career itself (not arriving, not winding into the logo): skippable.
+  const [inCareer, setInCareer] = useState(false);
+  useMotionValueEvent(progress, 'change', (v) => {
+    const on = v >= SPAN.tl[0] && v < SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * 0.02;
+    setInCareer((cur) => (cur === on ? cur : on));
+  });
   // The grid: a design canvas behind About and the timeline, one cell per
   // year, its lines through the ruler and the year ticks. It stays put while
   // About passes over it, then pans and zooms with the timeline's camera.
@@ -562,12 +864,27 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     window.addEventListener('resize', on);
     return () => window.removeEventListener('resize', on);
   }, []);
-  const gridSize = useTransform(tlProgress, (p) => timelineGrid(tg, p).size);
-  const gridPosition = useTransform(tlProgress, (p) => timelineGrid(tg, p).position);
+  // Wide screens: the camera tracks Ken sideways from the hero into About.
+  const [wide, setWide] = useState(() => !phone && isWide());
+  useEffect(() => {
+    const on = () => setWide(!phone && isWide());
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, [phone]);
+  const stickyRef = useRef(null);
+  // Q2: the prints land and drop their inks over the second half of the
+  // arrival, settled by the stop.
+  const meSpan = [SPAN['hero>ab'][0] + (SPAN['hero>ab'][1] - SPAN['hero>ab'][0]) * 0.4, SPAN.about[0] + (SPAN.about[1] - SPAN.about[0]) * 0.6];
+  const gridSize = useTransform([tlProgress, timelineDrift], ([p]) => timelineGrid(tg, p).size);
+  const gridPosition = useTransform([tlProgress, timelineDrift], ([p]) => timelineGrid(tg, p).position);
 
   // "Now", in two beats (the journey rests between them).
-  //  1. The ball at Now becomes the Apple logo and grows a little, and "The
-  //     rest of the story lives on my Mac." rises with it, ink on paper.
+  //  1. Ten years wound into one dot: the words step back, the line rewinds
+  //     into Now's ball like a tape measure as the ball comes to the middle,
+  //     then the ball opens into the Apple logo (the logo, revealed from a
+  //     circle the ball's size at the heart of the apple: the dot swells,
+  //     then the bite and the leaf come). The line rises above it, ink on
+  //     paper.
   //  2. The logo slips to where the lid's logo will be, then shrinks and turns
   //     to the lid's angle while the page dissolves into the MacBook: the
   //     background goes to night, the line goes white, the laptop comes up
@@ -579,12 +896,31 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   lidRef.current = !phone && use3D;
   const hasLid = () => lidRef.current && logoRef.current?.lidW > 0;
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
-  const DISSOLVE = [0.36, 0.76];
+  // The night comes as the ball opens into the logo: paper to black, ink to
+  // white, so the logo is born white on the dark the laptop will rise from.
+  const DISSOLVE = [0.12, 0.3];
   const mid = (DISSOLVE[0] + DISSOLVE[1]) / 2;
   const paperOpacity = useTransform(nowT, (t) => 1 - smooth01(within(t, DISSOLVE)));
-  const tlFade = useTransform(nowT, (t) => within(t, [0, 0.12]));
-  const barAlpha = useTransform(nowT, (t) => 1 - within(t, [0, 0.12]));
-  const lineReveal = useTransform(nowT, (t) => within(t, [0.14, 0.31]));
+  // The deck's grain takes over from the hero's own as the hero leaves.
+  const paperGrain = useTransform([progress, nowT], ([v, t]) => 0.5 * within(v, SPAN['hero>ab']) * (1 - within(t, DISSOLVE)));
+  const tlFade = useTransform(nowT, (t) => within(t, CLEAR));
+  // Winding in speeds up as it goes, like a tape measure, and lands hard.
+  const rewind = useTransform(nowT, (t) => within(t, REWIND) ** 1.6);
+  const logoBase = () => (window.innerHeight * (phone ? LOGO_VH_PHONE : LOGO_VH)) / LOGO_EL_H;
+  // The opening: a circle at the apple's heart, from the ball's size to the
+  // whole logo (then no clip at all): it swells, then the bite and the leaf.
+  const logoClip = useTransform(nowT, (t) => {
+    const k = within(t, OPEN);
+    if (k >= 1) return 'none';
+    const e = inOut(k);
+    const r0 = BALL_R / logoBase();
+    const r = r0 + ((HEART_REACH * LOGO_EL_W) / APPLE_BOX.w - r0) * e;
+    return `circle(${r.toFixed(2)}px at ${HEART_CLIP})`;
+  });
+  const scoreAlpha = useTransform(nowT, (t) => 1 - within(t, [0.18, 0.3]));
+  const lineReveal = useTransform(nowT, (t) => within(t, [0.21, 0.305]));
+  const subOpacity = useTransform(nowT, (t) => within(t, [0.25, 0.31]));
+  const subY = useTransform(nowT, (t) => `${((1 - within(t, [0.25, 0.31])) * 8).toFixed(2)}px`);
   const lineOpacity = useTransform(nowT, (t) => (flatRef.current ? 1 : 1 - within(t, [0.93, 1])));
   // Ink on paper, white on night: it flips as the page crosses the middle.
   const lineColor = useTransform(nowT, (t) => {
@@ -593,8 +929,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     return `rgb(${c}, ${c}, ${Math.round(20 + (234 - 20) * k)})`;
   });
   // The glides do the easing; these stay gentle so nothing is rushed.
-  const morphT = useTransform(nowT, (t) => smooth01(within(t, [0, 0.17])));
-  const growT = useTransform(nowT, (t) => smooth01(within(t, [0.12, 0.31])));
   const placeT = useTransform(nowT, (t) => smooth01(within(t, [0.33, 0.5])));
   const settleT = useTransform(nowT, (t) => smooth01(within(t, [0.33, 0.8])));
   // Where the logo ends: the 3D scene reports the lid's place and angle on
@@ -612,11 +946,11 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (phone) return { ...phoneLogoPoint(), m: [k, 0, 0, k] };
     return { x: vw / 2, y: vh * 0.638, m: [-k, 0, 0, -k * 0.857] };
   };
-  const logoTransform = useTransform([morphT, growT, placeT, settleT], ([k, grow, place, settle]) => {
-    const vh = window.innerHeight;
-    // Born at Now, on the ruler.
-    const x0 = tg.vw / 2;
-    const y0 = tg.rulerY;
+  const logoTransform = useTransform([placeT, settleT], ([place, settle]) => {
+    // Where the ball wound in: the middle of the ruler, at the apple's heart.
+    const start = logoBase();
+    const x0 = tg.vw / 2 - HEART_DX * start;
+    const y0 = tg.rulerY - HEART_DY * start;
     const f = finalLogo();
     const [a, b, c, d] = f.m;
     // Final matrix as rotate(theta) x [[sx, sk], [0, sy]], so it can be eased.
@@ -625,10 +959,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const sx = Math.hypot(a, b);
     const sk = Math.cos(theta) * c + Math.sin(theta) * d;
     const sy = -Math.sin(theta) * c + Math.cos(theta) * d;
-    // Formed a little larger than the lid's logo, then grows a touch more.
-    const base = (vh * (phone ? 0.075 : 0.085)) / LOGO_EL_H;
-    const big = (vh * (phone ? 0.1 : 0.125)) / LOGO_EL_H;
-    const start = (base + (big - base) * grow) * (0.3 + 0.7 * k);
     const th = theta * settle;
     const ssx = start + (sx - start) * settle;
     const ssy = start + (sy - start) * settle;
@@ -639,14 +969,16 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const y = y0 + (f.y - y0) * place;
     return `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`;
   });
-  // The ball (Now's marker, same spot and size as the timeline's) swells a
-  // touch as the logo grows out of it, and is gone once the logo is whole.
-  const ballTransform = useTransform(morphT, (k) => `translate(${(tg.vw / 2).toFixed(2)}px, ${tg.rulerY.toFixed(2)}px) translate(-50%, -50%) scale(${(1 + 1.6 * k).toFixed(3)})`);
-  const ballOpacity = useTransform([nowT, morphT], ([t, k]) => (t > 0 ? 1 - within(k, [0.15, 0.5]) : 0));
-  // Without a lid to land on, the logo turns white with the line.
-  const whiteOpacity = useTransform(nowT, (t) => (hasLid() ? 0 : within(t, [mid - 0.02, mid + 0.02])));
-  const logoOpacity = useTransform([morphT, nowT], ([k, t]) => within(k, [0.1, 0.45]) * (flatRef.current ? 1 : 1 - within(t, [0.94, 0.99])));
-  const gridOpacity = useTransform(nowT, (t) => 1 - within(t, [0, 0.2]));
+  // The logo turns chrome with the night. On the lid it dims into the lid's
+  // own painted mark as it settles, so the laptop stops on one crisp logo.
+  const inkOpacity = useTransform(nowT, (t) => within(t, OPEN));
+  const whiteOpacity = useTransform(nowT, (t) => within(t, OPEN) * (hasLid() ? 1 - within(t, [0.6, 0.8]) : 1));
+  // Once it has settled on the lid (0.8), it hands over to the lid's own
+  // painted logo, so the laptop stops on a crisp mark, not two overlapping.
+  // It takes over from the ball the moment the line is wound in (the ball
+  // goes at the same moment: same dot, same place).
+  const logoOpacity = useTransform(nowT, (t) => (t >= REWIND[1] ? 1 : 0) * (flatRef.current || !hasLid() ? 1 : 1 - within(t, [0.8, 0.86])));
+  const gridOpacity = useTransform(nowT, (t) => 1 - within(t, [0, 0.1]));
 
   useMotionValueEvent(progress, 'change', (v) => {
     // About types itself as it arrives; back on the hero it resets, so the
@@ -695,9 +1027,20 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // settles onto the nearest stop.
   // After Shut Down, the swipe that triggered it is still coasting: none of
   // it may drag the page off the closing Mac.
+  // The timeline plays on by itself: the scroll that starts it sets it going,
+  // and it moves on a role at a time, resting on each, through the whole
+  // journey and into the logo. Scrolling along keeps pace with it (each scroll
+  // still moves a stop, at once); scrolling back stops it and goes back;
+  // scrolling forward again picks it up where it is.
   const goToIdRef = useRef(null);
+  const cutRef = useRef(null); // the dip a skip goes through
+  const autoRef = useRef(false);
+  const contactRef = useRef(false);
+  contactRef.current = contactOpen;
   useEffect(() => {
     if (!active) return undefined;
+    let autoGlide = false; // the glide under way is the timeline playing on
+    let autoTimer = 0;
     let last = 0;
     let prevMag = 0;
     let step = -1; // the stop the page is on, or gliding to (-1: none)
@@ -727,29 +1070,41 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const end = phone ? top + r.offsetHeight - vh() : maxScroll();
       return top + (end - top) * t;
     };
+    // The career's legs, as scroll targets with their own pace (see LEG_MS).
+    const careerPath = () => {
+      const ys = timelineStops().map((p) => spanAt(SPAN.tl, p / TIMELINE_NOW));
+      const end = spanAt(SPAN.tl, 1);
+      const leg = ys[1] - ys[0];
+      const legs = [{ y: ys[0], ms: 2700, curve: sineInOut }];
+      for (let i = 1; i < ys.length; i += 1) {
+        // Speed (px/ms) at u is distance/time x w(u)/mean, so dividing the
+        // time by the shape's mean makes every leg meet the next at a role.
+        const shape = i === 1 ? LEG_FIRST : LEG_MID;
+        legs.push({ y: ys[i], ms: LEG_MS / shape.mean, curve: shape.curve });
+      }
+      legs.push({ y: end, ms: (LEG_MS * ((end - ys[ys.length - 1]) / leg)) / LEG_LAST.mean, curve: LEG_LAST.curve });
+      return legs;
+    };
     const stops = () => {
       if (!deckRef.current) return [];
       const list = [
         { id: 'hero', y: deckAt(0) },
-        { id: 'about', y: spanAt(SPAN.about, 0.4), ms: 1600 },
-        // The timeline arrives whole, rests a beat, then the camera closes in
-        // on the ball: one scroll, two legs.
-        ...timelineStops().map((p, i) => ({
-          id: `role${i}`,
-          y: spanAt(SPAN.tl, p),
-          ...(i === 0 ? { ms: 1500, via: { y: spanAt(SPAN.tl, 0), ms: 1500, rest: 380 } } : {}),
-        })),
-        // From the last role: on to Now as the camera pulls back over the
-        // whole journey. Then it closes in on Now and, slowly, the ball
-        // becomes the logo as the line rises.
-        { id: 'now', y: spanAt(SPAN.tl, TIMELINE_NOW), ms: 2000 },
-        { id: 'logo', y: spanAt(SPAN.now, 0.31), ms: 3000, via: { y: spanAt(SPAN.tl, 1), ms: 1300 } },
+        // About sits at the end of its beat, so each move between hero,
+        // About and the timeline is all crossing, no dead scroll.
+        { id: 'about', y: spanAt(SPAN.about, 0.9), ms: 2700 },
+        // The career, in one run from Me: the ball comes to the middle and the
+        // ruler draws out of it, then it rolls role to role without stopping
+        // and on to Now as the camera pulls back over the whole journey.
+        // Then it pulls back further, slowly, until the whole career is the
+        // Apple logo, and the line rises.
+        { id: 'now', y: spanAt(SPAN.tl, 1), ms: 1700, path: careerPath() },
+        { id: 'logo', y: spanAt(SPAN.now, 0.31), ms: 3600 },
         { id: 'mac', y: spanAt(SPAN.now, 0.88), ms: 3000 },
       ];
       if (runwayRef.current) (phone ? PHONE_STOPS : CHAPTER_STOPS).forEach((t, i) => list.push({ id: `chapter${i}`, y: runAt(t), ms: 1300 }));
       return list;
     };
-    const glide = (y, ms, via) => {
+    const glide = (y, ms, via, path) => {
       gliding = true;
       clearTimeout(settleTimer);
       cancelRef.current?.();
@@ -763,11 +1118,34 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         }
         gliding = false;
         lastY = window.scrollY;
+        playOn();
       };
       // Glides ease gently (sine), so what they carry (a section changing,
       // the ball becoming the logo, the page becoming the laptop) is spread
       // over the whole glide instead of rushed through its middle.
       const curve = sineInOut;
+      if (path) {
+        // A run of legs, back to back, each at its own pace (the career).
+        // Input mid-leg (a trackpad's tail) does not break the run: the leg
+        // it cut short is finished from where it is, then the run goes on.
+        let k = 0;
+        const run = () => {
+          if (!gliding) return;
+          if (k > 0 && Math.abs(window.scrollY - path[k - 1].y) > 2) {
+            cancelRef.current = tweenScroll(path[k - 1].y, 360, run, sineOut);
+            return;
+          }
+          if (k >= path.length) {
+            land();
+            return;
+          }
+          const leg = path[k];
+          k += 1;
+          cancelRef.current = tweenScroll(leg.y, leg.ms, run, leg.curve);
+        };
+        run();
+        return;
+      }
       if (via) {
         // Two legs: it comes to rest at the waypoint, then sets off again
         // at once and slows into the stop (the ball starts turning into the
@@ -798,7 +1176,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         const end = runAt(1);
         if (end == null) return;
         step = -1;
-        glide(end + 2, 2600);
+        glide(end + 2, msOverride ?? 2600);
         return;
       }
       const prev = step >= 0 ? step : nearest(s, window.scrollY);
@@ -807,7 +1185,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       // laptop take their time), in both directions.
       const paced = Math.abs(i - prev) === 1 ? (i > prev ? s[i].ms : s[prev].ms) : null;
       const via = i === prev + 1 ? s[i].via : null;
-      glide(s[i].y, msOverride ?? paced ?? msFor(window.scrollY, s[i].y), via);
+      // The career runs as one path only when it is set off from Me.
+      const path = i === prev + 1 && !msOverride && s[prev]?.id === 'about' ? s[i].path : null;
+      glide(s[i].y, msOverride ?? paced ?? msFor(window.scrollY, s[i].y), via, path);
     };
     const nearest = (s, y) => s.reduce((best, x, i) => (Math.abs(x.y - y) < Math.abs(s[best].y - y) ? i : best), 0);
     const inRange = (s, y) => stepping && s.length > 0 && y <= s[s.length - 1].y + 2;
@@ -824,9 +1204,93 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       for (let i = s.length - 1; i >= 0; i -= 1) if (s[i].y < y - 2) return i;
       return -1;
     };
-    goToIdRef.current = (id, ms) => {
-      const i = stops().findIndex((x) => x.id === id);
-      if (i >= 0) goTo(i, ms);
+    // Stops the journey plays on from by itself: Now (on to the logo), and
+    // from the logo on, the Mac: it keeps drifting slowly through the words
+    // and in, until a scroll moves it on faster.
+    const drifts = (id) => id === 'logo' || id === 'mac' || id?.startsWith('chapter');
+    const playsOn = (id) => id === 'now' || drifts(id);
+    const playOn = () => {
+      clearTimeout(autoTimer);
+      autoGlide = false;
+      const here = step >= 0 ? stops()[step] : null;
+      if (!autoRef.current || !playsOn(here?.id)) {
+        autoRef.current = false;
+        return;
+      }
+      const tick = () => {
+        if (!autoRef.current || gliding) return;
+        // Not while nobody is watching, or the contact card is open.
+        if (document.hidden || contactRef.current) {
+          autoTimer = setTimeout(tick, 600);
+          return;
+        }
+        autoGlide = true;
+        if (drifts(here.id)) {
+          // The slow drift: a long, even glide to the next stop (or, past the
+          // last word, into the Mac), easing only a little at each word.
+          const s = stops();
+          const i = step + 1;
+          const to = i < s.length ? s[i].y : runAt(1) + 2;
+          const ms = i < s.length ? DRIFT_MS : DRIFT_MS * 1.4;
+          step = i < s.length ? i : -1;
+          glide(to, ms, null, [{ y: to, ms, curve: DRIFT.curve }]);
+          return;
+        }
+        goTo(step + 1);
+      };
+      autoTimer = setTimeout(tick, here.id === 'now' ? AUTO_REST_NOW : here.id === 'logo' ? AUTO_REST_LOGO : drifts(here.id) ? 0 : AUTO_REST);
+    };
+    // A scroll, swipe or key: one stop, forward or back. Forward onto the
+    // timeline sets it playing on; back stops it.
+    const userGo = (dir) => {
+      clearTimeout(autoTimer);
+      // Forward while it plays on: on to where it was heading, quicker.
+      const i = autoGlide && dir > 0 && step >= 0 ? step : next(dir);
+      autoGlide = false;
+      autoRef.current = dir > 0 && playsOn(stops()[i]?.id);
+      goTo(i);
+    };
+    // A skip (or a jump of more than one stop) does not fast-forward through
+    // everything in between: the page dips to its own colour for a beat,
+    // lands on the stop, and comes back up there.
+    const DARK_FROM = ['logo', 'mac'];
+    const cut = (i) => {
+      const s = stops();
+      const target = s[i];
+      const el = cutRef.current;
+      if (!target || !el) {
+        goTo(i);
+        return;
+      }
+      cancelRef.current?.();
+      clearTimeout(settleTimer);
+      gliding = true;
+      step = i;
+      const dark = DARK_FROM.includes(target.id) || target.id.startsWith('chapter');
+      el.style.background = dark ? '#07070a' : 'var(--paper)';
+      el.style.transition = 'opacity 240ms ease';
+      el.style.opacity = '1';
+      setTimeout(() => {
+        window.scrollTo(0, target.y);
+        lastY = target.y;
+        requestAnimationFrame(() => {
+          el.style.transition = 'opacity 460ms ease';
+          el.style.opacity = '0';
+          gliding = false;
+          playOn();
+        });
+      }, 250);
+    };
+    goToIdRef.current = (id, ms, opts = {}) => {
+      clearTimeout(autoTimer);
+      autoRef.current = false;
+      // 'in': all the way into the Mac (or the iPhone).
+      const s = stops();
+      const i = id === 'in' ? s.length : s.findIndex((x) => x.id === id);
+      if (i < 0) return;
+      const from = step >= 0 ? step : nearest(s, window.scrollY);
+      if (i < s.length && (opts.cut || Math.abs(i - from) > 1)) cut(i);
+      else goTo(i, ms);
     };
 
     const onScroll = () => {
@@ -848,6 +1312,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         }
         const i = nearest(s, now);
         step = i;
+        autoRef.current = false; // dragged (the scrollbar): the visitor drives
+        clearTimeout(autoTimer);
         if (Math.abs(s[i].y - now) > 2) glide(s[i].y, 480);
       }, 160);
     };
@@ -866,7 +1332,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const surge = mag >= 12 && mag > prevMag * 1.5 + 4 && t - steppedAt > 1200;
       if (gap > 220 || surge) {
         gestureSum = 0;
-        gestureSpent = gliding;
+        // (A glide it plays by itself is not one the visitor started.)
+        gestureSpent = gliding && !autoGlide;
         gestureFirst = mag;
         // After a long pause (a mouse wheel click, a new swipe) it counts at
         // once; after a short one it must build up first, or it is the last
@@ -883,8 +1350,15 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         return;
       }
       // Nothing moves the page under a glide (it would cancel it); the
-      // input that arrives meanwhile is dropped, not queued.
+      // input that arrives meanwhile is dropped, not queued. Except turning
+      // back while the timeline plays on: it stops and goes back at once.
       if (gliding) {
+        // While it plays on by itself, a scroll takes over: back stops it and
+        // goes back; forward moves it on to the next stop, quicker.
+        if (autoGlide && !gestureSpent && gestureSure && gestureSum >= 30) {
+          steppedAt = t;
+          userGo(Math.sign(delta));
+        }
         gestureSpent = true;
         e.preventDefault();
         return;
@@ -894,7 +1368,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         if (!gestureSpent && gestureSure && gestureSum >= 30) {
           gestureSpent = true;
           steppedAt = t;
-          goTo(next(Math.sign(delta)));
+          userGo(Math.sign(delta));
         }
         return;
       }
@@ -915,7 +1389,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       if (touchY == null || closingRef.current) return;
       const dy = touchY - (e.changedTouches[0]?.clientY ?? touchY);
       touchY = null;
-      if (Math.abs(dy) > 24 && !gliding && engaged()) goTo(next(Math.sign(dy)));
+      if (Math.abs(dy) <= 24 || !engaged()) return;
+      if (!gliding) userGo(Math.sign(dy));
+      else if (autoGlide && dy < 0) userGo(-1);
     };
     const onKey = (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || closingRef.current || (!engaged() && !gliding)) return;
@@ -926,7 +1402,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const back = ['ArrowUp', 'PageUp', 'ArrowLeft'].includes(e.key);
       if (!fwd && !back) return;
       e.preventDefault();
-      if (!gliding) goTo(next(fwd ? 1 : -1));
+      if (!gliding) userGo(fwd ? 1 : -1);
+      else if (autoGlide && back) userGo(-1);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -937,6 +1414,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     window.addEventListener('keydown', onKey);
     return () => {
       clearTimeout(settleTimer);
+      clearTimeout(autoTimer);
+      autoRef.current = false;
       goToIdRef.current = null;
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('wheel', onWheel);
@@ -956,7 +1435,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       setIdle(false);
       clearTimeout(t);
       const roomTop = runwayRef.current ? runwayRef.current.offsetTop : maxScroll();
-      t = setTimeout(() => setIdle(window.scrollY > 4 && window.scrollY < roomTop - 4), IDLE_HINT_MS);
+      // Not while the timeline plays on by itself: nothing to prompt.
+      t = setTimeout(() => setIdle(!autoRef.current && window.scrollY > 4 && window.scrollY < roomTop - 4), IDLE_HINT_MS);
     };
     window.addEventListener('scroll', arm, { passive: true });
     return () => {
@@ -966,13 +1446,21 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     };
   }, [loaded, closing, active]);
 
-  const openMac = useCallback(() => {
+  // The end of the story (the logo and its line, then the laptop): a click or
+  // tap anywhere goes in.
+  const [endOn, setEndOn] = useState(false);
+  useMotionValueEvent(nowT, 'change', (t) => {
+    const on = t >= END_FROM && t < 1;
+    setEndOn((cur) => (cur === on ? cur : on));
+    if (t > 0.8) markJourneyDone();
+  });
+  const enter = useCallback(() => {
     playShutter({ level: 0.5 });
     if (!use3D && !phone) {
       onReachScreen?.();
       return;
     }
-    goToIdRef.current?.('mac', 2800);
+    goToIdRef.current?.('in', 4200);
   }, [use3D, onReachScreen, phone]);
 
   // The hero's Scroll button: on to About, like a scroll.
@@ -989,12 +1477,15 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * t);
   }, []);
   const sceneFadeFrom = useCallback(() => nowY(0.4), [nowY]);
+  // The 3D renders only from here on: the logo starts heading for the lid at
+  // 0.33. Before that it would draw every frame, unseen, under the timeline.
+  const liveFrom = useCallback(() => nowY(0.22), [nowY]);
   const sceneFadeTo = useCallback(() => nowY(0.8), [nowY]);
 
   const flat = !use3D && !phone;
 
   return (
-    <section className={styles.journey} data-dark={dark ? 'true' : undefined} data-hero-dark={HERO_DARK ? 'true' : undefined} aria-label="Introduction">
+    <section className={styles.journey} style={paletteStyle(palette)} data-dark={dark ? 'true' : undefined} aria-label="Introduction">
       <MacRoom
         runwayRef={runwayRef}
         use3D={use3D}
@@ -1010,24 +1501,40 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         arrive="fade"
         sceneFadeFrom={sceneFadeFrom}
         sceneFadeTo={sceneFadeTo}
+        liveFrom={liveFrom}
         logoRef={logoRef}
       />
 
+      {/* The Mac room is drawn for the eye only; what Ken does, for everyone. */}
+      <ul className={styles.srOnly} aria-label="What I do">
+        {SERVICES.map((sv) => (
+          <li key={sv.id}>
+            {sv.name}: {sv.items.map((it) => it.label).join(', ')}
+          </li>
+        ))}
+      </ul>
+
       <header className={styles.bar}>
+        <Scoreboard progress={progress} alpha={scoreAlpha} unlocked={returning} goTo={(id) => goToIdRef.current?.(id)} />
         <nav className={styles.barLinks} aria-label="Quick links">
-          <button type="button" className={styles.barLink} onClick={() => setContactOpen(true)}>
-            Contact
-          </button>
+          {/* Straight to the work, for anyone who wants proof first. */}
           <button type="button" className={styles.barLink} onClick={onSkip}>
-            Skip intro
+            See the work
+          </button>
+          <button type="button" className={styles.hire} onClick={() => setContactOpen(true)}>
+            <i aria-hidden />
+            Work with me
           </button>
         </nav>
       </header>
 
       <div className={styles.page}>
         <div ref={deckRef} className={styles.deck} style={{ height: `${TOTAL + 100}vh` }}>
-          <div className={styles.deckSticky}>
+          <div ref={stickyRef} className={styles.deckSticky}>
             <motion.div className={styles.paperBg} style={{ opacity: paperOpacity }} aria-hidden />
+            {/* The hero's print grain, carried on in the paper under About and
+                the timeline, so the whole story is one printed sheet. */}
+            <motion.span className={styles.paperGrain} style={{ opacity: paperGrain }} aria-hidden />
             <motion.div className={`${styles.grid} ${lines[0] || aboutInstant ? styles.gridOn : ''}`} style={{ opacity: gridOpacity }} aria-hidden>
               <motion.div
                 className={styles.gridLines}
@@ -1035,56 +1542,115 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
               />
             </motion.div>
 
-            <Panel progress={progress} exit="hero>ab" exitAxis="y" reduced={reduced} className={styles.heroPanel} aria-label="Ken">
-              <Hero go={loaded} reduced={reduced} instant={closing} onOpenMac={openMac} onScrollOn={scrollToAbout} phone={phone} />
+            <Panel progress={progress} exit="hero>ab" exitAxis={wide ? 'x' : 'y'} reduced={reduced} className={styles.heroPanel} aria-label="Ken">
+              <Hero />
             </Panel>
 
-            <Panel progress={progress} enter="hero>ab" enterAxis="y" exit="ab>tl" reduced={reduced} className={styles.aboutPanel} aria-label="About">
-              <AboutPanel on={lines[0]} instant={aboutInstant} />
+            <Panel progress={progress} enter="hero>ab" enterAxis={wide ? 'x' : 'y'} exit="ab>tl" exitAxis={wide ? 'x' : 'y'} reduced={reduced} className={`${styles.aboutPanel} ${wide ? styles.aboutWide : ''}`} aria-label="About">
+              <MePanel progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} wide={wide} onSeeWork={onSkip} />
             </Panel>
 
+            {/* It slides in under the ball, which holds the middle. */}
             <Panel progress={progress} enter="ab>tl" reduced={reduced} className={styles.timelinePanel} aria-label="Career timeline">
-              <TimelineC progress={tlProgress} fade={tlFade} />
+              <TimelineC progress={tlProgress} fade={tlFade} retract={rewind} handoff={handoff} />
+              <AnimatePresence>
+                {inCareer && (
+                  <motion.button
+                    type="button"
+                    className={`${styles.note} ${styles.noteOn} ${styles.skipCareer}`}
+                    onClick={() => goToIdRef.current?.('logo', undefined, { cut: true })}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.4, ease: EASE }}
+                  >
+                    <span>skip career</span>
+                    <svg viewBox="0 0 90 30" aria-hidden>
+                      <path pathLength="1" d="M4 16C30 10 56 12 82 16" />
+                      <path pathLength="1" d="M72 7l11 9-11 8" />
+                    </svg>
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </Panel>
+
+            <Cast
+              progress={progress}
+              go={loaded || closing}
+              instant={closing}
+              reduced={reduced}
+              phone={phone}
+              rootRef={stickyRef}
+              tg={tg}
+              onScrollOn={scrollToAbout}
+              nameStyle={palette.name}
+            />
 
 
             <motion.div className={styles.storyLineWrap} style={{ opacity: lineOpacity, color: lineColor }}>
-              <RiseWords text={phone ? 'The rest of the story lives on my phone.' : 'The rest of the story lives on my Mac.'} reveal={lineReveal} className={styles.bridgeLine} />
+              <RiseWords text={phone ? STORY_LINE_PHONE : STORY_LINE} reveal={lineReveal} className={styles.bridgeLine} />
+              <motion.p className={styles.bridgeSub} style={{ opacity: subOpacity, y: subY }}>
+                {phone ? STORY_SUB_PHONE : STORY_SUB}
+              </motion.p>
               {flat && (
                 <button type="button" className={styles.btnLight} onClick={() => onReachScreen?.()}>
-                  Open my Mac
+                  See my work
                 </button>
               )}
             </motion.div>
 
-            {/* Now's ball becomes the lid's own Apple logo and settles onto it
-                as the MacBook comes up underneath. */}
-            <motion.span className={styles.ball} style={{ transform: ballTransform, opacity: ballOpacity }} aria-hidden />
+            {/* Ten years wound into one dot, which opens into the lid's own
+                Apple logo and settles onto it as the MacBook comes up. */}
             <motion.svg
               className={styles.logo}
               viewBox={`${APPLE_BOX.x} ${APPLE_BOX.y} ${APPLE_BOX.w} ${APPLE_BOX.h}`}
-              style={{ width: LOGO_EL_W, height: LOGO_EL_H, transform: logoTransform, opacity: logoOpacity }}
+              style={{ width: LOGO_EL_W, height: LOGO_EL_H, transform: logoTransform, opacity: logoOpacity, clipPath: logoClip }}
               aria-hidden
             >
-              <path fill={LID_LOGO_FILL} d={APPLE_PATH} />
-              <motion.path fill="#fff" d={APPLE_PATH} style={{ opacity: whiteOpacity }} />
+              <defs>
+                <linearGradient id="kenChrome" x1="0" y1="0" x2="0.35" y2="1">
+                  <stop offset="0" stopColor="#ffffff" />
+                  <stop offset="0.46" stopColor="#e4e6ea" />
+                  <stop offset="0.54" stopColor="#a9aeb6" />
+                  <stop offset="1" stopColor="#f4f5f7" />
+                </linearGradient>
+              </defs>
+              {/* The lid's own colour, under the chrome: it comes in with the
+                  chrome (so the ball, not a dark dot, is what opens) and is
+                  what is left when the chrome dims onto the lid. */}
+              <motion.path fill={LID_LOGO_FILL} d={APPLE_PATH} style={{ opacity: inkOpacity }} />
+              <motion.path fill="url(#kenChrome)" d={APPLE_PATH} style={{ opacity: whiteOpacity }} />
             </motion.svg>
 
-            <span className={styles.deckBar} aria-hidden>
-              <motion.span style={{ scaleX: progress, opacity: barAlpha }} />
-            </span>
+            {endOn && (
+              <button type="button" className={styles.enter} onClick={enter} aria-label="See my work" />
+            )}
+
           </div>
         </div>
         {phone ? <PhoneEnding onReach={onReachScreen} innerRef={runwayRef} /> : !flat && <div ref={runwayRef} className={styles.runway} aria-hidden />}
       </div>
 
-      <div className={`${styles.idleHint} ${idle && !contactOpen ? styles.idleHintOn : ''}`} aria-hidden>
-        <span>Keep scrolling</span>
+      {/* At the end of the story only: the ball does the asking before that. */}
+      <div className={`${styles.idleHint} ${idle && endOn && !contactOpen ? styles.idleHintOn : ''}`} aria-hidden>
+        <span>{phone ? 'Swipe up' : 'Scroll down'}</span>
         <i />
       </div>
 
-      {!loaded && <Loader reduced={reduced} onDone={onLoaded} />}
-      <ContactCard open={contactOpen} onClose={() => setContactOpen(false)} />
+      {/* A skip dips through this for a beat (see cut). */}
+      <div ref={cutRef} className={styles.cut} aria-hidden />
+
+      {SHOW_SWATCHES && !dark && (
+        <Swatches
+          current={palette.id}
+          onPick={(p) => {
+            savePalette(p.id);
+            setPalette(p);
+          }}
+        />
+      )}
+      {!loaded && <Loader reduced={reduced} onDone={onLoaded} withModel={use3D} />}
+      <BriefSheet open={contactOpen} onClose={() => setContactOpen(false)} onSeeWork={enter} style={paletteStyle(palette)} />
     </section>
   );
 }

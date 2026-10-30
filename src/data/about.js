@@ -3,7 +3,7 @@
 
 export const POSITIONING = {
   line: 'I direct brands, motion & interfaces.',
-  chip: 'Creative Lead · 10 yrs · Hyderabad',
+  chip: 'Designer · 10+ yrs · India',
 };
 
 // Intro3 "get to know me", one line per scroll beat. Lines marked PLACEHOLDER
@@ -38,7 +38,8 @@ export const SKILLS = [
 // freelance work (Shipley India, ParallelReality) that is left out here.
 export const ROLES = [
   { company: 'Milestone Technologies', role: 'Design Lead', dates: 'Dec 2023 - Present', from: 2023.92, to: null },
-  { company: 'Tandem Digital', role: 'Lead Graphic & UI Designer', dates: 'Jul 2020 - Sep 2023', from: 2020.5, to: 2023.75 },
+  // `clients`: brands done there, only where confirmed (Fluid AI: projectSections.js).
+  { company: 'Tandem Digital', role: 'Lead Graphic & UI Designer', dates: 'Jul 2020 - Sep 2023', from: 2020.5, to: 2023.75, clients: ['Fluid AI'] },
   { company: 'WebAnatomy', role: 'Visual Designer', dates: 'Jan 2020 - Jun 2020', from: 2020.0, to: 2020.5 },
   { company: 'MiGrocer', role: 'Visual Designer', dates: 'Nov 2018 - Feb 2020', from: 2018.83, to: 2020.12 },
   { company: 'Cowboy Studios', role: 'Graphic Designer', dates: 'Jun 2016 - Jul 2018', from: 2016.42, to: 2018.58 },
@@ -51,7 +52,6 @@ export const NOW = 'Now: Design Lead at Milestone Technologies. Learning R3F, sh
 export const CLIENTS = [
   'Milestone Technologies',
   'Marriott · Sheraton · Aloft',
-  'Nike × LeBron',
   'Fluid AI',
   'Tandem Digital',
   'Truearte',

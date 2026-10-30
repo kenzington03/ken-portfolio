@@ -8,3 +8,6 @@ awesome-ios-ui-master.zip
 
 # local browser-test screenshots
 .playwright-mcp/
+
+# Ken's private photo boards: never published
+public/__tmp/

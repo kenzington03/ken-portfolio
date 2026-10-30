@@ -19,32 +19,20 @@ export const HANDOFF_AT = 0.975;
 // Shut Down glides back to the last one.
 export const CHAPTER_STOPS = [0.18, 0.41, 0.645];
 
+// The three things Ken does (src/data/services.js), one per chapter. The
+// colours tint the room's glow; the journey sets them to its palette.
 export const CHAPTERS = [
-  {
-    id: 'build',
-    word: 'Build',
-    from: 0.03,
-    to: 0.26,
-    color: '#3d7bff',
-    caption: 'Brands from zero. Fluid AI, Truearte, Step-Set-Go, Sampoorna.',
-  },
-  {
-    id: 'move',
-    word: 'Move',
-    from: 0.26,
-    to: 0.49,
-    color: '#ff3d8b',
-    caption: 'Campaigns that move. Films and event visuals for Milestone’s Momentum 2026.',
-  },
-  {
-    id: 'ship',
-    word: 'Ship',
-    from: 0.49,
-    to: 0.72,
-    color: '#ffb224',
-    caption: 'Interfaces that ship. Including this one.',
-  },
+  { id: 'brand', word: 'Brand', from: 0.03, to: 0.26, color: '#5b2fd6', caption: 'Identity systems, logos, guidelines, naming, packaging, websites.' },
+  { id: 'campaigns', word: 'Campaigns', from: 0.26, to: 0.49, color: '#ffc21a', caption: 'Campaign strategy, creative direction, leading teams, social, events.' },
+  { id: 'motion', word: 'Motion', from: 0.49, to: 0.72, color: '#5b2fd6', caption: 'Video shoots, editing, motion graphics, AI video and content.' },
 ];
+
+/** Tints the chapters (and so the room's glow) with the journey's palette. */
+export function tintChapters(colors) {
+  CHAPTERS.forEach((ch, i) => {
+    ch.color = colors[i % colors.length];
+  });
+}
 
 export const HERO_COLOR = '#7a8cff';
 

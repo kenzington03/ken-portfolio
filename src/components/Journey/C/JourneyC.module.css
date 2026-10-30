@@ -12,8 +12,13 @@
   --night: #07070a;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --gutter: clamp(20px, 3.6vw, 56px);
-  --display: 'Bricolage Grotesque', 'Cabinet Grotesk', system-ui, sans-serif;
-  --text: 'Geist', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  --display: 'Big Shoulders', 'Cabinet Grotesk', system-ui, sans-serif;
+  --text: 'Instrument Sans', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Ken's hand: the notes he scribbles on the page. */
+  --hand: 'Gochi Hand', 'Caveat', 'Comic Sans MS', cursive;
+  --ball: #c45a26;
+  /* The second ink on the poster: the name is printed twice, a hair off. */
+  --riso: #ff6c2f;
   position: relative;
   color: var(--ink);
   font-family: var(--text);
@@ -47,25 +52,107 @@
   pointer-events: none;
 }
 
-.loaderLine {
-  display: grid;
-  place-items: center;
-  min-height: 2.6em;
-  font-size: clamp(20px, 2.1vw, 30px);
+/* His ball, dribbling on the paper: a fall that speeds up, a squash on the
+   floor, a rise that slows; its shadow tightens as it lands. */
+.dribble {
+  position: relative;
+  width: 64px;
+  height: 150px;
 }
 
-.loaderText {
+.dribbleBall {
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  width: 64px;
+  height: 64px;
+  transform-origin: 50% 100%;
+  animation: dribble 680ms infinite;
+}
+
+.dribbleBall img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation: dribbleSpin 2720ms linear infinite;
+}
+
+/* The light stays put while the leather turns. */
+.dribbleBall::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgb(255 236 214 / 0.3), transparent 34%),
+    radial-gradient(circle at 36% 30%, transparent 0, rgb(34 10 0 / 0.3) 68%, rgb(22 6 0 / 0.6) 100%);
+}
+
+.dribbleShadow {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 70px;
+  height: 10px;
+  margin-left: -35px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(20 12 6 / 0.4), transparent);
+  animation: dribbleShadow 680ms infinite;
+}
+
+@keyframes dribble {
+  0% {
+    transform: translateY(-82px);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  46% {
+    transform: translateY(0) scale(1.08, 0.88);
+    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
+  }
+  54% {
+    transform: translateY(-4px) scale(0.97, 1.04);
+    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
+  }
+  100% {
+    transform: translateY(-82px);
+  }
+}
+
+@keyframes dribbleSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dribbleShadow {
+  0%,
+  100% {
+    transform: scale(0.45);
+    opacity: 0.35;
+  }
+  46% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* The shot clock: big, tabular, in the poster's ink. */
+.clock {
   margin: 0;
-  max-width: 24ch;
-  font-family: var(--display);
-  font-size: inherit;
-  font-weight: 600;
-  font-variation-settings: 'opsz' 48, 'wdth' 92;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  text-align: center;
-  text-wrap: balance;
-  color: var(--ink);
+  font: 900 clamp(56px, 7vw, 96px) / 0.85 var(--display);
+  font-variation-settings: 'opsz' 72;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dribbleBall,
+  .dribbleBall img,
+  .dribbleShadow {
+    animation: none;
+  }
 }
 
 .loaderBar {
@@ -81,6 +168,16 @@
   inset: 0;
   background: var(--ink);
   transform-origin: left center;
+}
+
+/* A skip's dip: the page's own colour (or the night, into the Mac), over
+   everything but the top bar, for a beat. */
+.cut {
+  position: fixed;
+  inset: 0;
+  z-index: 28;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ---------- Bar ---------- */
@@ -127,13 +224,11 @@
 }
 
 .barLink:active,
-.btn:active,
 .btnLight:active {
   transform: scale(0.96);
 }
 
 .barLink:focus-visible,
-.btn:focus-visible,
 .btnLight:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
@@ -190,331 +285,43 @@
   transform-origin: left;
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero: a printed poster ----------
+   The name in blue ink across the sheet, printed over Ken (he stands behind
+   it, holding his laptop out in front of it), grain over the lot so the
+   drawing and the type sit in the same paper. */
 .hero {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: flex-end;
-  padding: 0 var(--gutter) clamp(28px, 6vh, 64px);
   overflow: hidden;
+  background: var(--paper);
 }
 
-/* A paper sweep under one light: the set the footage plays on. */
-.set {
+/* Paper grain over everything but the controls. */
+.grain {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(52% 64% at 74% 40%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0) 72%),
-    linear-gradient(180deg, #e6e6e2 0%, #ededea 62%, #dededa 100%);
-}
-
-/* The footage: a portrait clip on a white backdrop. It is brightened so the
-   backdrop goes pure white, then multiplied into the set, so no cut-out is
-   needed. The camera pushes in to chest height as he walks in from the
-   right; the name then sits across his body. */
-.figure {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  height: 100%;
-  aspect-ratio: 720 / 1366;
+  z-index: 3;
+  background: url('/assets/hero/art/grain.png') 0 0 / 256px 256px;
   mix-blend-mode: multiply;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 26%, #000 80%, transparent 97%);
-  mask-image: linear-gradient(to right, transparent 0%, #000 26%, #000 80%, transparent 97%);
-  transform: translateX(-50%) scale(1.25);
-  transform-origin: 50% 32%;
-}
-
-.figureIn {
-  transform: translateX(-50%) scale(2.2);
-  transition: transform 3600ms cubic-bezier(0.25, 0.6, 0.2, 1);
-}
-
-.clip {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(1.12) contrast(1.1);
-}
-
-/* ---------- Dark hero (preview: ?theme=dark) ----------
-   A dark set with one pool of light. The clip's white backdrop becomes that
-   light: it is masked to a soft oval, so the figure stands in a spotlight. */
-.heroDark {
-  --ink: #ececea;
-  --paper: #0b0b0d;
-  --muted: #9a9aa0;
-  background: #0b0b0d;
-  color: var(--ink);
-}
-
-/* The name inverts wherever it crosses the lit figure, so it reads on both. */
-.heroDark .kenSet .ken {
-  color: #fff;
-  mix-blend-mode: difference;
-}
-
-/* No stacking context here, or the blend could not see the footage. */
-.heroDark .heroCopy {
-  z-index: auto;
-}
-
-.heroDark .set {
-  background:
-    radial-gradient(46% 60% at 60% 44%, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 70%),
-    linear-gradient(180deg, #0d0d10 0%, #0b0b0d 60%, #060608 100%);
-}
-
-.heroDark .figure {
-  mix-blend-mode: normal;
-  -webkit-mask-image: radial-gradient(ellipse 34% 50% at 50% 42%, #000 30%, transparent 100%);
-  mask-image: radial-gradient(ellipse 34% 50% at 50% 42%, #000 30%, transparent 100%);
-}
-
-.heroDark .clip {
-  filter: brightness(0.8) contrast(1.12);
-}
-
-/* The top links sit over both dark and light sections in this variant. */
-.journey[data-hero-dark] .bar {
-  color: #fff;
-  mix-blend-mode: difference;
-}
-
-/* Viewfinder corners: on while framing, gone once the photo is taken. */
-.viewfinder {
-  position: absolute;
-  inset: clamp(84px, 12vh, 120px) clamp(28px, 6vw, 96px) clamp(28px, 6vh, 64px);
-  transition: opacity 400ms ease, transform 500ms var(--ease);
-}
-
-.setShot .viewfinder {
-  opacity: 0;
-  transform: scale(1.02);
-}
-
-.viewfinder i {
-  position: absolute;
-  width: 26px;
-  height: 26px;
-  border: solid var(--ink);
-  border-width: 2px 0 0 2px;
-  opacity: 0.5;
-}
-
-.viewfinder i:nth-child(2) {
-  right: 0;
-  transform: rotate(90deg);
-}
-
-.viewfinder i:nth-child(3) {
-  right: 0;
-  bottom: 0;
-  transform: rotate(180deg);
-}
-
-.viewfinder i:nth-child(4) {
-  bottom: 0;
-  transform: rotate(270deg);
-}
-
-/* The poster: Ken centred in frame, the name across his chest. */
-.heroCopy {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: clamp(96px, 12vh, 150px);
-  z-index: 2;
-  display: flex;
-  justify-content: center;
+  opacity: 0.55;
   pointer-events: none;
 }
 
-.hello {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0;
-  font-family: var(--display);
-  color: var(--ink);
-}
-
-.hi {
-  display: block;
-  margin: 0 0 clamp(0px, 0.4vw, 8px);
-  font-size: clamp(20px, 2.1vw, 34px);
-  font-weight: 450;
-  font-variation-settings: 'opsz' 32, 'wdth' 100;
-  letter-spacing: -0.01em;
-}
-
-/* The camera's readout, top left. */
-.hud {
+/* Where and when, top left. */
+.place {
   position: absolute;
   top: 22px;
   left: var(--gutter);
-  z-index: 3;
+  z-index: 4;
   display: flex;
-  align-items: center;
   gap: 10px;
   margin: 0;
   font: 500 13px/1 var(--text);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-}
-
-.hudShot {
+  letter-spacing: 0.01em;
   color: var(--muted);
 }
 
-.rec {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff3b30;
-  animation: rec 1.2s steps(1) infinite;
-}
-
-@keyframes rec {
-  50% {
-    opacity: 0.25;
-  }
-}
-
-/* Bottom row: who on the left, what to do on the right. */
-.heroFoot {
-  position: absolute;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: clamp(24px, 5vh, 52px);
-  z-index: 3;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-/* Ken is the whole point: huge, and laid across the figure. */
-.kenWrap {
-  position: relative;
-  display: block;
-  width: fit-content;
-  margin-left: -0.03em;
-}
-
-/* Bricolage's own axes do the work: the name starts thin and narrow and
-   snaps to heavy and full width on the shutter (with a little overshoot). */
-.ken {
-  display: flex;
-  font-size: clamp(150px, 25vw, 420px);
-  font-weight: normal;
-  font-variation-settings: 'opsz' 96, 'wdth' 75, 'wght' 220;
-  line-height: 0.8;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  transition:
-    font-variation-settings 760ms cubic-bezier(0.25, 1.5, 0.35, 1),
-    letter-spacing 760ms cubic-bezier(0.25, 1.5, 0.35, 1);
-}
-
-.kenSet .ken {
-  font-variation-settings: 'opsz' 96, 'wdth' 100, 'wght' 800;
-  letter-spacing: -0.05em;
-}
-
-/* Each letter rises from behind its own mask, one after another. */
-.kenLetter {
-  display: inline-block;
-  overflow: hidden;
-  padding: 0.08em 0.02em 0.04em;
-  margin: -0.08em -0.02em -0.04em;
-}
-
-.kenLetter > span {
-  display: inline-block;
-  transform: translate3d(0, 112%, 0);
-  transition: transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) calc(450ms + var(--i) * 120ms);
-}
-
-.kenIn .kenLetter > span {
-  transform: none;
-}
-
-.heroMeta {
-  display: grid;
-  gap: 6px;
-}
-
-.role {
-  margin: 0;
-  font: 700 clamp(18px, 1.6vw, 24px) / 1.1 var(--text);
-}
-
-.tagline {
-  margin: 0;
-  font-size: clamp(16px, 1.4vw, 21px);
-  color: var(--muted);
-}
-
-.heroActions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* The second action: Scroll, with a line running down inside it. */
-.btnGhost {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  height: 50px;
-  padding: 0 22px;
-  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--paper) 60%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--ink);
-  font: 500 15px/1 var(--text);
-  cursor: pointer;
-  transition: transform 160ms var(--ease), border-color 200ms ease;
-}
-
-.btnGhost i {
-  position: relative;
-  width: 1px;
-  height: 16px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--ink) 18%, transparent);
-}
-
-.btnGhost i::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--ink);
-  animation: cue 1.6s cubic-bezier(0.7, 0, 0.3, 1) infinite;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .btnGhost:hover {
-    border-color: var(--ink);
-  }
-}
-
-.btnGhost:active {
-  transform: scale(0.96);
-}
-
-.btnGhost:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-.btn,
 .btnLight {
   height: 50px;
   padding: 0 24px;
@@ -545,28 +352,605 @@
   color: #07070a;
 }
 
-.flash {
-  position: fixed;
+/* The print grain in the paper under About and the timeline (the hero has
+   its own, over its sheet). */
+.paperGrain {
+  position: absolute;
   inset: 0;
-  z-index: 60;
-  background: #fff;
+  background: url('/assets/hero/art/grain.png') 0 0 / 256px 256px;
+  mix-blend-mode: multiply;
+  opacity: 0;
   pointer-events: none;
-  animation: flash 640ms cubic-bezier(0.3, 0, 0.2, 1) both;
 }
 
-@keyframes flash {
+/* ---------- The cast: Ken, over the sections ----------
+   Placed and moved every frame by the Cast component (transforms only). */
+.cast {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.castFig {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.castArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* His shadow, made from his own shoes (ken-ground.webp: the drawing's width,
+   with 90 rows of floor below it), behind him. */
+.castGround {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: calc(100% * 2228 / 2138);
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* ---------- The ball: painted like him, placed and turned by Cast ----------
+   The seams turn with the roll; the light and the shadow stay put. */
+.ball {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80px;
+  height: 80px;
+  opacity: 0;
+  will-change: transform;
+}
+
+/* Its shadow, on the floor it rests on: a tight, dark contact where it
+   touches, and a soft one cast away from the light (upper left, as on him).
+   Both stay on the floor while the ball is up, and fade with height. */
+.ballShadow {
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: -11%;
+  height: 22%;
+  transform: translateY(var(--lift, 0px));
+  opacity: var(--floor, 1);
+  pointer-events: none;
+}
+
+.ballShadow::before,
+.ballShadow::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+/* Cast away from the light, soft. */
+.ballShadow::before {
+  left: 30%;
+  right: -38%;
+  top: 4%;
+  bottom: 4%;
+  background: radial-gradient(closest-side, rgb(18 14 12 / 0.2), rgb(18 14 12 / 0.07) 65%, transparent);
+}
+
+/* The contact: dark where it touches, peeking out either side of it. */
+.ballShadow::after {
+  left: 12%;
+  right: 12%;
+  top: 18%;
+  bottom: 22%;
+  background: radial-gradient(closest-side, rgb(14 10 8 / 0.7), rgb(14 10 8 / 0.3) 55%, transparent);
+}
+
+.ballBody {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* On his floor it has the floor's shadow; held in the middle, off the
+     page, a soft shadow falls on the paper under it instead. */
+  filter: drop-shadow(0 calc((1 - var(--floor, 0)) * 10px) calc((1 - var(--floor, 0)) * 12px) rgb(20 12 6 / calc((1 - var(--floor, 0)) * 0.28)));
+}
+
+/* The 3D ball (lit in its own scene), or its photo without WebGL. */
+.ballCanvas,
+.ballSpin {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------- The name: between Ken's body and his head ----------
+   Placed and moved every frame by the Cast (top, transform). "Hi, I'm Ken"
+   lands first; then the rest of the name slides out from behind the N. */
+.name {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: max-content;
+  font-size: var(--name-size, 200px);
+  opacity: 0;
+  transform-origin: 50% 0;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.nameWord,
+.nameFill {
+  display: flex;
+  /* Room around the glyphs (they overflow the tight line box), so the mask
+     never trims them and the orange pass is never cut off. */
+  padding: 0.12em 0.06em 0.12em 0;
+  margin: -0.12em -0.06em -0.12em 0;
+  font-family: var(--display);
+  font-variation-settings: 'opsz' 72;
+  font-weight: 900;
+  line-height: 0.74;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--accent);
+  /* Speckled where it missed, a little uneven where it pooled. */
+  -webkit-mask-image: url('/assets/hero/art/ink.png');
+  mask-image: url('/assets/hero/art/ink.png');
+  -webkit-mask-size: 256px 256px;
+  mask-size: 256px 256px;
+}
+
+/* The solid pass under the speckled one (a shade deeper, so the speckle
+   still reads), with the orange pass printed a hair off it. */
+.nameFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: color-mix(in srgb, var(--accent) 88%, #000);
+  filter: drop-shadow(0.032em 0.032em 0 var(--riso));
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.nameWord > span,
+.nameFill > span {
+  flex: none;
+}
+
+/* ---------- Name styles (picked with the palette) ---------- */
+/* Jersey: the ink, a paper inline, an outline in the second ink, and a
+   drop in it too, like a number on a team shirt. */
+.name_jersey .nameFill {
+  color: var(--pop);
+  filter: none;
+  text-shadow: 0.014em 0em 0 #f6f1e6, -0.014em 0em 0 #f6f1e6, 0em 0.014em 0 #f6f1e6, 0em -0.014em 0 #f6f1e6, 0.0099em 0.0099em 0 #f6f1e6, -0.0099em 0.0099em 0 #f6f1e6, 0.0099em -0.0099em 0 #f6f1e6, -0.0099em -0.0099em 0 #f6f1e6, 0.03em 0em 0 var(--pop-2), -0.03em 0em 0 var(--pop-2), 0em 0.03em 0 var(--pop-2), 0em -0.03em 0 var(--pop-2), 0.0213em 0.0213em 0 var(--pop-2), -0.0213em 0.0213em 0 var(--pop-2), 0.0213em -0.0213em 0 var(--pop-2), -0.0213em -0.0213em 0 var(--pop-2), 0.045em 0.045em 0 var(--pop-2);
+}
+
+.name_jersey .nameWord {
+  color: var(--pop);
+}
+
+/* Room between the letters for the outlines. */
+.name_jersey .nameWord,
+.name_jersey .nameFill {
+  letter-spacing: 0.035em;
+}
+
+/* Halftone: solid at the head of each letter, breaking into a dot screen
+   toward the foot; the second ink a hair off behind. */
+.name_halftone .nameFill {
+  color: transparent;
+  background: radial-gradient(circle, var(--pop) 0.0105em, transparent 0.0135em) 0 0 / 0.03em 0.03em;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0.025em 0.025em 0 var(--pop-2));
+}
+
+.name_halftone .nameWord {
+  color: var(--pop);
+  -webkit-mask-image: linear-gradient(180deg, #000 22%, transparent 70%);
+  mask-image: linear-gradient(180deg, #000 22%, transparent 70%);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+/* Block: ink letters standing on a hard block of colour. */
+.name_block .nameFill {
+  color: var(--ink);
+  filter: none;
+  text-shadow: 0.005em 0.005em 0 var(--pop), 0.01em 0.01em 0 var(--pop), 0.015em 0.015em 0 var(--pop), 0.02em 0.02em 0 var(--pop), 0.025em 0.025em 0 var(--pop), 0.03em 0.03em 0 var(--pop), 0.035em 0.035em 0 var(--pop), 0.04em 0.04em 0 var(--pop), 0.045em 0.045em 0 var(--pop), 0.05em 0.05em 0 var(--pop);
+}
+
+.name_block .nameWord {
+  color: var(--ink);
+}
+
+/* KEN: each letter rises from behind its own edge. The window is cut wide
+   of the letter (the outlines and the drop of the name styles reach past
+   the glyph), so nothing is clipped once it has risen. */
+.nameLetter {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.1em 0.08em 0.12em;
+  margin: -0.1em -0.08em -0.12em;
+}
+
+.nameLetter > span {
+  display: inline-block;
+  transform: translate3d(0, 140%, 0);
+  transition: transform 1100ms var(--ease) calc(750ms + var(--i) * 110ms);
+}
+
+.castUp .nameLetter > span {
+  transform: none;
+}
+
+/* NETH: each letter opens out of nothing, so the word grows from the middle. */
+.nameTail {
+  display: inline-grid;
+  grid-template-columns: 0fr;
+  transition: grid-template-columns 1050ms var(--ease) calc(1900ms + var(--i) * 85ms);
+}
+
+.nameTail > span {
+  min-width: 0;
+  overflow: hidden;
+  /* Room above and below for the outlines; none to the side, or a sliver of
+     the letter shows while its column is still closed. */
+  padding: 0.1em 0 0.12em;
+  margin: -0.1em 0 -0.12em;
+}
+
+.castUp .nameTail {
+  grid-template-columns: 1fr;
+}
+
+.hi {
+  position: absolute;
+  left: 0.02em;
+  bottom: 100%;
+  display: flex;
+  margin-bottom: 0.22em;
+  font-family: var(--display);
+  font-size: 0.2em;
+  font-weight: 800;
+  font-variation-settings: 'opsz' 72;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Each letter drops in and bounces, like the ball, one after the other. */
+.hi > span {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, -110%, 0);
+}
+
+.castUp .hi > span {
+  animation: hiDrop 900ms linear calc(80ms + var(--i) * 55ms) forwards;
+}
+
+@keyframes hiDrop {
   0% {
     opacity: 0;
+    transform: translate3d(0, -110%, 0);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
   }
-  7% {
+  12% {
     opacity: 1;
   }
-  18% {
-    opacity: 1;
+  45% {
+    transform: translate3d(0, 0, 0) scale(1.06, 0.9);
+    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
+  }
+  68% {
+    transform: translate3d(0, -26%, 0);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  86% {
+    transform: translate3d(0, 0, 0) scale(1.02, 0.97);
+    animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
+  }
+  94% {
+    transform: translate3d(0, -6%, 0);
   }
   100% {
-    opacity: 0;
+    opacity: 1;
+    transform: none;
   }
+}
+
+/* Under the K, left aligned with it. */
+.descriptor {
+  position: absolute;
+  left: 0.03em;
+  top: 100%;
+  margin-top: clamp(14px, 2.2vh, 26px);
+  font: 400 clamp(17px, 1.55vw, 26px) / 1.25 var(--text);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  transition: opacity 700ms ease 2700ms, transform 900ms var(--ease) 2700ms;
+}
+
+.descriptor b {
+  font-weight: 650;
+}
+
+.castUp .descriptor {
+  opacity: 1;
+  transform: none;
+}
+
+.castNarrow .descriptor {
+  left: auto;
+  right: 50%;
+  transform: translate3d(50%, 10px, 0);
+  font-size: 15px;
+}
+
+.castNarrow.castUp .descriptor {
+  transform: translate3d(50%, 0, 0);
+}
+
+.castNarrow .descriptor {
+  margin-top: 14px;
+}
+
+/* ---------- Notes: Ken's handwriting on the page ----------
+   The words write themselves left to right, then the arrow draws. */
+.note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  font: 400 clamp(21px, 1.75vw, 30px) / 1 var(--hand);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 200ms ease;
+}
+
+.note span {
+  clip-path: inset(-20% 100% -20% 0);
+}
+
+.note svg {
+  flex: none;
+  height: 1.5em;
+  width: auto;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.note svg path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.noteOn span {
+  animation: write 1000ms cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+.noteOn svg path {
+  animation: draw 520ms ease-out 900ms forwards;
+}
+
+.noteOn svg path + path {
+  animation-delay: 1300ms;
+  animation-duration: 260ms;
+}
+
+@keyframes write {
+  to {
+    clip-path: inset(-20% 0 -20% 0);
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note:hover {
+    color: var(--accent);
+  }
+}
+
+.note:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* "scroll down", under the descriptor on the left, its arrow pointing down. */
+.noteScroll {
+  position: absolute;
+  right: max(var(--gutter), 6vw);
+  bottom: clamp(36px, 9vh, 96px);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  transform: rotate(-3deg);
+  opacity: 0;
+  z-index: 2;
+}
+
+.noteScroll svg {
+  height: 2.2em;
+  margin-right: 1.6em;
+}
+
+.castNarrow .noteScroll {
+  left: 50%;
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
+  align-items: center;
+  font-size: 19px;
+  transform: translateX(-50%) rotate(-2deg);
+}
+
+.castNarrow .noteScroll svg {
+  margin-left: 0;
+  height: 1.6em;
+}
+
+/* On the career: for anyone who has seen enough of it. */
+.skipCareer {
+  position: absolute;
+  right: var(--gutter);
+  bottom: clamp(26px, 6vh, 60px);
+  z-index: 6;
+  transform: rotate(-2deg);
+}
+
+/* ---------- Scoreboard: the four quarters, hung top centre ---------- */
+.score {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #121214;
+  box-shadow: 0 12px 30px -14px rgb(18 18 20 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.quarter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgb(236 235 231 / 0.62);
+  font: 500 13px/1 var(--text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 250ms ease, color 250ms ease, opacity 250ms ease;
+}
+
+.quarter b {
+  font: 800 13px/1 var(--display);
+  letter-spacing: 0.06em;
+  color: #e9864d;
+}
+
+.quarter i {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 5px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.quarter i span {
+  display: block;
+  height: 100%;
+  background: #e9864d;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.quarterOn {
+  background: rgb(255 255 255 / 0.1);
+  color: #f4f4f2;
+}
+
+.quarterLocked {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .quarter:not(.quarterLocked):not(.quarterOn):hover {
+    color: #f4f4f2;
+  }
+}
+
+.quarter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Work with me: always one tap away ---------- */
+.hire {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 600 14px/1 var(--text);
+  cursor: pointer;
+  transition: transform 140ms var(--ease), background-color 200ms ease;
+}
+
+.hire i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #35d07f;
+  box-shadow: 0 0 0 3px rgb(53 208 127 / 0.22);
+}
+
+.hire:active {
+  transform: scale(0.96);
+}
+
+.hire:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.journey[data-dark] .hire {
+  background: #f2f2f0;
+  color: #07070a;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* ---------- The grid: a design canvas under About and the timeline ---------- */
@@ -643,9 +1027,9 @@
   font-family: var(--display);
   font-size: clamp(40px, 5.4vw, 90px);
   font-weight: 700;
-  font-variation-settings: 'opsz' 96, 'wdth' 90;
+  font-variation-settings: 'opsz' 72;
   line-height: 0.98;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.005em;
   color: var(--ink);
   text-wrap: balance;
 }
@@ -729,6 +1113,22 @@
     scale(calc(1 - var(--ak) * 0.06));
 }
 
+/* Wide screens: Ken stands on the left, so About takes the right. */
+.aboutWide .about {
+  align-items: flex-start;
+  padding-left: 44vw;
+  padding-right: var(--gutter);
+  text-align: left;
+}
+
+.aboutWide .aboutHead {
+  max-width: 13ch;
+}
+
+.aboutWide .fan {
+  --w: clamp(130px, 11.5vw, 210px);
+}
+
 .aboutInstant *,
 .aboutInstant .card {
   transition: none !important;
@@ -740,8 +1140,8 @@
   margin: 0;
   font-family: var(--display);
   font-weight: 700;
-  font-variation-settings: 'opsz' 96, 'wdth' 88;
-  letter-spacing: -0.035em;
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: -0.005em;
   color: #ececea;
   text-wrap: balance;
 }
@@ -753,7 +1153,7 @@
   display: inline-block;
   white-space: pre;
   opacity: var(--t);
-  filter: blur(calc((1 - var(--t)) * 12px));
+  filter: blur(calc((1 - var(--t)) * 6px));
   transform: translate3d(0, calc((1 - var(--t)) * 0.45em), 0) scale(calc(1.06 - var(--t) * 0.06));
 }
 
@@ -902,7 +1302,6 @@
   background: transparent;
 }
 
-.ball,
 .logo {
   position: absolute;
   left: 0;
@@ -912,16 +1311,10 @@
   will-change: transform, opacity;
 }
 
-.ball {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--ink);
-}
-
 .logo {
   overflow: visible;
 }
+
 
 .storyLineWrap {
   position: absolute;
@@ -937,47 +1330,53 @@
   text-align: center;
 }
 
+/* The end of the story: the whole screen opens the Mac. */
+.enter {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.enter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -6px;
+}
+
 .storyLineWrap .bridgeLine {
-  max-width: 18ch;
+  max-width: none;
   color: inherit;
-  font-size: clamp(28px, 4.1vw, 62px);
-  line-height: 0.96;
+  font-size: clamp(28px, 3.6vw, 56px);
+  line-height: 1;
+}
+
+.bridgeSub {
+  max-width: 44ch;
+  margin: -4px 0 0;
+  font: 500 clamp(15px, 1.15vw, 18px) / 1.4 var(--text);
+  letter-spacing: -0.005em;
+  /* Its opacity is the reveal's; the line's own colour, a step back. */
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  text-wrap: balance;
 }
 
 /* ---------- Narrow ---------- */
 /* ---------- Phones ---------- */
 @media (max-width: 700px) {
-  .hero {
-    padding-bottom: clamp(70px, 12vh, 110px);
+  .place {
+    top: 26px;
   }
-  .figure {
-    transform-origin: 50% 30%;
+  .score {
+    top: 58px;
   }
-  .heroCopy {
-    bottom: 196px;
+  .quarter {
+    padding: 0 10px;
   }
-  /* Phones: who, then the two actions side by side, full width. */
-  .heroFoot {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    bottom: 22px;
-  }
-  .heroActions > * {
-    flex: 1;
-    justify-content: center;
-  }
-  .hud {
-    top: 24px;
-  }
-  .figureIn {
-    transform: translateX(-50%) scale(1.7);
-  }
-  .ken {
-    font-size: 40vw;
-  }
-  .viewfinder {
-    inset: 76px 18px 18px;
+  .quarter:not(.quarterOn) .qLabel {
+    display: none;
   }
   .about {
     padding-top: 92px;
@@ -1007,6 +1406,9 @@
   .storyLineWrap .bridgeLine {
     font-size: clamp(26px, 8vw, 40px);
   }
+  .bridgeSub {
+    font-size: 15px;
+  }
   .scrollCue {
     bottom: 14px;
   }
@@ -1016,16 +1418,53 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ken,
-  .kenLetter > span,
-  .figureIn {
+  .nameLetter > span,
+  .nameTail,
+  .descriptor {
     transition: none;
   }
-  .flash {
-    display: none;
+  .hi > span {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+  .note span,
+  .note svg path {
+    clip-path: none;
+    stroke-dashoffset: 0;
+    animation: none !important;
   }
   .scrollCue i::after,
   .idleHint i {
     animation: none;
   }
+}
+
+/* Preview only: the poster's colour options, bottom left on localhost. */
+.swatches {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 60;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.85);
+  box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--a) 0 55%, var(--b) 55%);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+}
+
+.swatch[aria-checked='true'] {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #121214;
 }

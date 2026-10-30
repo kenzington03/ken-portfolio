@@ -1,13 +1,13 @@
 // The constant of every journey: a fixed dark room behind the page with the
 // Space Grey MacBook. Scroll over the runway (the element passed as
-// `runwayRef`) drives macProgress: orbit with Build / Move / Ship (each word
-// with its caption right under it), lid, wake, dive, then hand-off to the
+// `runwayRef`) drives macProgress: orbit with Brand / Campaigns / Motion (each
+// word with everything in it right under it), lid, wake, dive, then hand-off to the
 // welcome screen. Also owns the Shut Down replay (mode 'close').
 
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { SceneBoundary, maxScroll, tweenScroll } from '../Intro/shared.jsx';
 import { CHAPTERS, CHAPTER_STOPS, HANDOFF_AT, chapterAt, ease, ramp, roomColor } from '../Intro3/timeline.js';
-import { CHAPTER_CAPTIONS } from './content.js';
+import { CHAPTER_ITEMS } from './content.js';
 import styles from './MacRoom.module.css';
 
 const World = lazy(() => import('./World.jsx'));
@@ -46,6 +46,7 @@ export default function MacRoom({
   sway = true,
   sceneFadeFrom, // () => y where the 3D starts fading in (default: runway top - 1 vh)
   sceneFadeTo, // () => y where it is fully in (default: runway top)
+  liveFrom, // () => y from where the 3D renders every frame (default: 1.6 vh above the runway)
   arrive = 'rise', // 'rise' lifts the laptop in; 'fade' holds it still (when something hands off to it)
   wordsOnTop = false, // overhead flows: the Mac fills the middle, so words sit above it
   alwaysLive = false, // the Mac is on screen from the first frame (The Desk)
@@ -111,7 +112,7 @@ export default function MacRoom({
       swayRef.current.x += (pointer.current.x * 0.34 - swayRef.current.x) * k;
       swayRef.current.y += (pointer.current.y * -0.1 - swayRef.current.y) * k;
 
-      const near = alwaysLive || y > runTop - vh * 1.6;
+      const near = alwaysLive || y > (liveFrom ? liveFrom() : runTop - vh * 1.6);
       if (near !== liveRef.current) {
         liveRef.current = near;
         setLive(near);
@@ -176,7 +177,7 @@ export default function MacRoom({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [active, mode, onReachScreen, use3D, runwayRef, sceneFadeFrom, sceneFadeTo, alwaysLive, onFrame, arrive]);
+  }, [active, mode, onReachScreen, use3D, runwayRef, sceneFadeFrom, sceneFadeTo, liveFrom, alwaysLive, onFrame, arrive]);
 
   // Shut Down: start dived-in and glide back to the top.
   useEffect(() => {
@@ -213,14 +214,17 @@ export default function MacRoom({
             }}
             className={styles.chapter}
           >
-            <span className={styles.word} style={{ color: ch.color }}>
-              {ch.word}
-            </span>
-            {/* The caption comes in a scroll after its word, word by word. */}
+            <span className={styles.word}>{ch.word}</span>
+            {/* Everything in it comes in a scroll after its word, one by one. */}
             <span className={styles.caption} style={{ '--c': ch.color }}>
-              {CHAPTER_CAPTIONS[ch.id].split(' ').map((w, j) => (
-                <span key={j} className={styles.captionWord} data-caption-word="">
-                  {w}{' '}
+              {/* Two even rows of three, so no line starts on a dot. */}
+              {[0, 3].map((from) => (
+                <span key={from} className={styles.captionRow}>
+                  {CHAPTER_ITEMS[ch.id].slice(from, from + 3).map((w, j) => (
+                    <span key={j} className={styles.captionWord} data-caption-word="">
+                      {w}
+                    </span>
+                  ))}
                 </span>
               ))}
             </span>

@@ -3,13 +3,14 @@
 // the Mac.
 
 import { KUDOS_QUOTES } from '../../data/kudosQuotes.js';
+import { SERVICES } from '../../data/services.js';
 
 export const ME = {
   hello: "Hey, I'm Ken.",
   name: 'Kenneth Nathanael',
-  role: 'Creative Lead',
+  role: 'Designer',
   line: 'I direct brands, motion and interfaces.',
-  city: 'Hyderabad',
+  city: 'India',
   years: '10 yrs',
   email: 'kennethnathanael@gmail.com',
 };
@@ -36,13 +37,12 @@ export const STORY = [
 export const LOGOS = [
   { name: 'Milestone Technologies', src: '/assets/logos/milestone.png', w: 150 },
   { name: 'Marriott', src: '/assets/logos/marriott.svg', w: 40 },
-  { name: 'Nike', src: '/assets/logos/nike.svg', w: 54 },
   { name: 'Fluid AI', src: '/assets/logos/fluid-ai.jpg', w: 90 },
 ];
 
 // Real work, shown as images (project lives in the Mac).
 export const WORK = [
-  { title: 'Nike × LeBron', src: '/assets/journey/hero-lebron-nike.jpg' },
+  { title: 'LeBron James (personal project)', src: '/assets/journey/hero-lebron-nike.jpg' },
   { title: 'Fluid AI', src: '/assets/journey/hero-fluidai.jpg' },
   { title: 'Marriott · Aloft', src: '/assets/journey/hero-mariott.jpg' },
   { title: 'Motion', src: '/assets/journey/hero-motion.jpg' },
@@ -61,9 +61,7 @@ const tidy = (q) =>
 
 export const KUDOS = KUDOS_QUOTES.map((k) => ({ ...k, quote: tidy(k.quote) }));
 
-// Shown under the Build / Move / Ship words in the Mac room.
-export const CHAPTER_CAPTIONS = {
-  build: 'Identities with a reason behind every curve.',
-  move: 'Motion that explains before it impresses.',
-  ship: 'Interfaces that feel obvious the first time.',
-};
+// Under each of the three words in the Mac room (and the phone's ending):
+// everything in that category, from src/data/services.js.
+export const CHAPTER_ITEMS = Object.fromEntries(SERVICES.map((sv) => [sv.id, sv.items.map((it) => it.label)]));
+export const CHAPTER_CAPTIONS = Object.fromEntries(SERVICES.map((sv) => [sv.id, sv.items.map((it) => it.label).join(' · ')]));

@@ -9,7 +9,7 @@ export default function SocialProof() {
       className={`${styles.socialProof} ${portfolioOpened ? styles.hidden : ''}`}
       aria-live="polite"
     >
-      Design Lead at Milestone Technologies · Hyderabad, India · 10 years experience
+      Designer · India · 10+ years · Open to roles and freelance
     </p>
   );
 }

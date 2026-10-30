@@ -12,11 +12,14 @@ import OnekoPet from './OnekoPet.jsx';
 import SocialProof from './SocialProof.jsx';
 import styles from './Desktop.module.css';
 
+// The work first: Portfolio heads the column (the wallpaper circles it).
 const DESKTOP_ICONS = [
-  { id: 'aboutken', label: 'About Ken', appId: 'about', src: '/assets/icons/desktop-Resume.png' },
   { id: 'portfolio', label: 'Portfolio', appId: 'finder', src: PORTFOLIO_ICON_SRC },
+  { id: 'aboutken', label: 'About Ken', appId: 'about', src: '/assets/icons/desktop-Resume.png' },
   { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.png' },
   { id: 'contact', label: 'Contact', appId: 'contact', src: '/assets/icons/dock-contacts.png' },
+  // Back to the hero, the start of the journey (App's IntroFlow listens).
+  { id: 'start', label: 'Back to start', action: 'start', src: '/assets/icons/desktop-start.svg' },
 ];
 
 const ICON_W = 88;
@@ -136,6 +139,10 @@ export default function Desktop() {
       return;
     }
     dragRef.current = null;
+    if (item.action === 'start') {
+      window.dispatchEvent(new CustomEvent('ken:back-to-start'));
+      return;
+    }
     launchApp(item.appId, { animationOrigin: getOriginFromEvent(event) });
     setSelected(item.id);
   };
@@ -180,6 +187,7 @@ export default function Desktop() {
                 onClick={(e) => openIcon(item, e)}
                 onDragStart={(e) => e.preventDefault()}
                 data-tour={index === 0 ? 'desktop-icon' : undefined}
+                data-icon={item.id}
               >
                 <span className={styles.iconGraphic} data-animation-origin>
                   <DesktopIcon src={item.src} label={item.label} />

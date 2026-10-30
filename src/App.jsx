@@ -12,7 +12,6 @@ import AchievementToast from './components/Achievements/AchievementToast.jsx';
 import Spotlight from './components/Spotlight/Spotlight.jsx';
 import HelloScreen from './components/HelloScreen/HelloScreen.jsx';
 import JourneyBridge from './components/JourneyBridge/JourneyBridge.jsx';
-import OnboardingTour from './components/OnboardingTour/OnboardingTour.jsx';
 import IPhoneHome from './components/IPhoneHome/IPhoneHome.jsx';
 import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen.jsx';
 import ShutdownPrompt from './components/ShutdownPrompt/ShutdownPrompt.jsx';
@@ -41,6 +40,8 @@ const INTRO_ENABLED = (() => {
 })();
 // Its own chunk (with three.js), so the desktop never waits on it.
 const JourneyC = lazy(() => import('./components/Journey/C/JourneyC.jsx'));
+// Phones get a one-pager: no 3D, no Mac, no fake iOS.
+const PhonePage = lazy(() => import('./components/PhonePage/PhonePage.jsx'));
 
 const BLACKOUT_MS = 380;
 
@@ -70,7 +71,8 @@ function DesktopShell({ unlocked = true, onShutDown }) {
       <Desktop />
       <Dock />
       <HelloScreen />
-      <OnboardingTour />
+      {/* No tour: the wallpaper's handwritten notes show the way, and the
+          work opens straight away. */}
       <Spotlight open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
       <Screensaver />
       {onShutDown && <ShutdownPrompt onShutDown={onShutDown} disabled={!unlocked} />}
@@ -90,31 +92,16 @@ function AppShell() {
   const { isMobile } = useWindowSize();
 
   if (isMobile) {
-    // Journey C is built for phones too: it plays, then lands on the iPhone home.
-    return INTRO_ENABLED ? <MobileIntroFlow /> : <IPhoneHome />;
+    // `?intro=0` keeps the old iPhone home reachable for comparison.
+    if (!INTRO_ENABLED) return <IPhoneHome />;
+    return (
+      <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
+        <PhonePage />
+      </Suspense>
+    );
   }
 
   return INTRO_ENABLED ? <IntroFlow /> : <DesktopShell />;
-}
-
-/** Phones: the same intro, then straight into the iPhone home screen. */
-function MobileIntroFlow() {
-  const [done, setDone] = useState(false);
-  const finish = useCallback(() => setDone(true), []);
-
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle('intro-scroll', !done);
-    if (done) window.scrollTo(0, 0);
-    return () => root.classList.remove('intro-scroll');
-  }, [done]);
-
-  if (done) return <IPhoneHome />;
-  return (
-    <Suspense fallback={<div style={{ height: '100vh', background: '#07070a' }} />}>
-      <JourneyC mode="open" active onReachScreen={finish} onSkip={finish} phone />
-    </Suspense>
-  );
 }
 
 /** intro (scroll hero + 3D MacBook) → welcome → desktop; Shut Down plays it back. */
@@ -132,6 +119,17 @@ function IntroFlow() {
   }, [phase]);
 
   const skipToWork = useCallback(() => setPhase('desktop'), []);
+
+  // "Back to start" on the desktop: straight to the hero, no replay.
+  useEffect(() => {
+    const back = () => {
+      window.scrollTo(0, 0);
+      setIntroMode('open');
+      setPhase('intro');
+    };
+    window.addEventListener('ken:back-to-start', back);
+    return () => window.removeEventListener('ken:back-to-start', back);
+  }, []);
   const showWelcome = useCallback(() => setPhase('welcome'), []);
 
   const shutDown = useCallback(() => {

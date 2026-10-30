@@ -44,3 +44,69 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
+
+/* Ken's notes: the journey's paper (same grain, same faint grid). */
+/* ---------- Studio Light: warm paper, soft light falling across it ---------- */
+.studio {
+  background:
+    radial-gradient(55% 60% at 82% 18%, rgb(255 214 170 / 0.75), transparent 70%),
+    radial-gradient(60% 55% at 12% 88%, rgb(255 190 160 / 0.45), transparent 70%),
+    radial-gradient(40% 45% at 30% 30%, rgb(255 246 230 / 0.9), transparent 70%),
+    linear-gradient(160deg, #f4ede2, #ead9c6);
+}
+
+.studio::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/hero/art/grain.png') 0 0 / 160px 160px;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+/* ---------- Poster: his name, printed huge in the poster's inks ---------- */
+.poster {
+  overflow: hidden;
+  background: #ededea url('/assets/hero/art/grain.png') 0 0 / 160px 160px;
+}
+
+.posterName {
+  position: absolute;
+  left: -2vw;
+  bottom: -6vh;
+  font: 900 46vw / 0.74 'Big Shoulders', 'Cabinet Grotesk', sans-serif;
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.posterFill,
+.posterInk {
+  display: block;
+  color: var(--pop);
+}
+
+.posterFill {
+  position: absolute;
+  inset: 0;
+  color: color-mix(in srgb, var(--pop) 88%, #000);
+  filter: drop-shadow(0.025em 0.025em 0 var(--pop-2));
+}
+
+.posterInk {
+  position: relative;
+  -webkit-mask-image: url('/assets/hero/art/ink.png');
+  mask-image: url('/assets/hero/art/ink.png');
+  -webkit-mask-size: 420px 420px;
+  mask-size: 420px 420px;
+}
+
+.posterCredit {
+  position: absolute;
+  left: 32px;
+  top: 44px;
+  font: 500 13px/1 'Instrument Sans', -apple-system, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(18 18 20 / 0.6);
+}

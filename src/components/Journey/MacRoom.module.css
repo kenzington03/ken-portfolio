@@ -35,35 +35,74 @@
 }
 
 .word {
-  font-family: 'Bricolage Grotesque', 'Cabinet Grotesk', sans-serif;
+  font-family: 'Big Shoulders', 'Cabinet Grotesk', sans-serif;
   font-size: clamp(110px, 19vw, 320px);
   font-weight: 900;
-  font-variation-settings: 'wdth' 62;
+  font-variation-settings: 'opsz' 72;
   line-height: 0.8;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   white-space: nowrap;
+  color: #f2f1ed;
 }
 
 .caption {
-  max-width: 34ch;
+  display: grid;
+  justify-items: center;
+  row-gap: 8px;
+  max-width: min(880px, 92vw);
   padding: 0 20px;
-  font: 500 clamp(17px, 1.5vw, 22px) / 1.4 'Geist', 'Satoshi', -apple-system, sans-serif;
-  text-align: center;
+  font: 400 clamp(16px, 1.3vw, 20px) / 1.4 'Instrument Sans', -apple-system, sans-serif;
+  letter-spacing: 0.005em;
   color: rgba(236, 236, 233, 0.86);
-  text-wrap: balance;
 }
 
-/* Each caption word rises out of a blur in the chapter's colour, then
-   settles to white (--t 0..1 is set per frame). */
+/* Each item rises out of a blur in the chapter's colour, then settles to
+   white (--t 0..1 is set per frame). A small dot between items. */
 .captionWord {
   --t: 0;
-  display: inline-block;
-  white-space: pre;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
   opacity: var(--t);
   filter: blur(calc((1 - var(--t)) * 10px));
   transform: translate3d(0, calc((1 - var(--t)) * 0.7em), 0);
   color: color-mix(in srgb, var(--c) clamp(0%, calc((1 - var(--t)) * 140%), 100%), rgba(236, 236, 233, 0.9));
+}
+
+.captionRow {
+  display: flex;
+  justify-content: center;
+}
+
+/* Wide screens: all six on one line (the window above the laptop is short
+   at the first word), so the rows dissolve and the dot carries across. */
+@media (min-width: 1100px) {
+  .caption {
+    display: flex;
+    justify-content: center;
+    max-width: none;
+  }
+  .captionRow {
+    display: contents;
+  }
+  .captionRow + .captionRow .captionWord:first-child::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    margin: 0 16px;
+    border-radius: 50%;
+    background: rgba(236, 236, 233, 0.35);
+  }
+}
+
+.captionWord + .captionWord::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  margin: 0 16px;
+  border-radius: 50%;
+  background: rgba(236, 236, 233, 0.35);
 }
 
 /* Overhead flow: the words live in a window whose bottom edge sits just

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import styles from './HelloScreen.module.css';
 
-const STROKE_TITLE = "Welcome, to Ken's OS.";
+const STROKE_TITLE = "Welcome to Ken's OS.";
 
 const TIMING = {
   strokeFadeStart: 7200,

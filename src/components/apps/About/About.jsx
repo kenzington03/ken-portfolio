@@ -9,9 +9,9 @@ export default function About() {
       <div className={styles.left}>
         <div className={styles.portrait} aria-hidden />
         <h1>Kenneth Nathanael</h1>
-        <p className={styles.title}>Design Lead</p>
+        <p className={styles.title}>Designer</p>
         <p className={styles.bio}>
-          10 years designing brands, campaigns, interfaces, and motion. Based in Hyderabad, India.
+          10 years designing brands, campaigns, interfaces, and motion. Based in India.
         </p>
         <div className={styles.skills}>
           {SKILLS.map((skill) => (
@@ -52,7 +52,7 @@ export default function About() {
         <section className={styles.recognition}>
           <h2 className={styles.sectionTitle}>Recognition</h2>
           <p className={styles.recognitionIntro}>
-            Internal kudos and recognition from teams at Milestone Technologies.
+            Kudos and recognition from the teams I work with.
           </p>
           <RecognitionCards />
         </section>
