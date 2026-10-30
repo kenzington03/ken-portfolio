@@ -95,13 +95,15 @@ export default function Screensaver() {
       }, IDLE_MS);
     };
 
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
-    events.forEach((e) => window.addEventListener(e, resetIdle));
+    // Reading counts as being here: a trackpad scroll inside a window moves
+    // no mouse and scrolls no page, so wheel and scroll are caught at capture.
+    const events = ['pointerdown', 'mousemove', 'keydown', 'wheel', 'scroll', 'touchstart'];
+    events.forEach((e) => window.addEventListener(e, resetIdle, { capture: true, passive: true }));
     resetIdle();
 
     return () => {
       clearTimeout(idleTimer);
-      events.forEach((e) => window.removeEventListener(e, resetIdle));
+      events.forEach((e) => window.removeEventListener(e, resetIdle, { capture: true }));
     };
   }, [screensaverActive, setScreensaverActive, unlock]);
 
@@ -113,6 +115,16 @@ export default function Screensaver() {
 
   const dismiss = () => setScreensaverActive(false);
 
+  // Any sign of life wakes it, keys and scrolls included (the overlay itself
+  // never has focus, so they are heard on the window).
+  useEffect(() => {
+    if (!screensaverActive) return;
+    const wake = () => setScreensaverActive(false);
+    const events = ['keydown', 'wheel', 'touchstart'];
+    events.forEach((e) => window.addEventListener(e, wake, { passive: true }));
+    return () => events.forEach((e) => window.removeEventListener(e, wake));
+  }, [screensaverActive, setScreensaverActive]);
+
   if (!screensaverActive) return null;
 
   return (
@@ -120,7 +132,6 @@ export default function Screensaver() {
       className={styles.screensaver}
       onMouseMove={dismiss}
       onClick={dismiss}
-      onKeyDown={dismiss}
       role="presentation"
     >
       <Bouncer reduced={window.matchMedia?.('(prefers-reduced-motion: reduce)').matches} />

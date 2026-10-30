@@ -139,7 +139,12 @@ function AboutSlab() {
 function ContactFab() {
   const [on, setOn] = useState(false);
   useEffect(() => {
-    const check = () => setOn(window.scrollY > window.innerHeight * 0.8);
+    // Out of the way once the brief itself is on screen: it is the contact.
+    const check = () => {
+      const brief = document.getElementById('work-with-me');
+      const reached = brief && brief.getBoundingClientRect().top < window.innerHeight * 0.85;
+      setOn(window.scrollY > window.innerHeight * 0.8 && !reached);
+    };
     check();
     window.addEventListener('scroll', check, { passive: true });
     return () => window.removeEventListener('scroll', check);
@@ -261,7 +266,7 @@ function MacTeaser() {
   };
   return (
     <section className={`${styles.section} ${styles.mac}`} aria-labelledby="mac-h">
-      <img className={styles.macShot} src="/assets/phone/mac-poster.webp" alt="Ken's portfolio as a Mac desktop, with handwritten notes on the wallpaper" loading="lazy" />
+      <img className={styles.macShot} src="/assets/phone/mac-poster.webp" alt="Ken's portfolio as a Mac desktop, with the Portfolio window open" loading="lazy" />
       <h2 id="mac-h" className={styles.h2}>
         The full desktop lives on a laptop.
       </h2>

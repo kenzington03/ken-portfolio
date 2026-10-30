@@ -396,12 +396,14 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
       q.m = { lines, noteH };
     });
     const tallest = Math.max(0, ...parts.current.map((q) => q?.m?.noteH ?? 0));
-    layout.current = {
-      rulerY: g.rulerY,
-      base: g.narrow ? 44 : 52,
-      step: Math.ceil(tallest + (g.narrow ? 14 : 20)),
-      lanes: laneOut(g, sizes),
-    };
+    const lanes = laneOut(g, sizes);
+    const base = g.narrow ? 44 : 52;
+    // The lanes keep clear of the screen's foot (the corner buttons live
+    // there): on a short screen they close up, never tighter than a note.
+    const deepest = Math.max(1, ...lanes.map((l) => l.lane));
+    const room = g.vh - g.rulerY - base - tallest - (g.narrow ? 96 : 130);
+    const step = Math.max(Math.ceil(tallest + 4), Math.min(Math.ceil(tallest + (g.narrow ? 14 : 20)), Math.floor(room / deepest)));
+    layout.current = { rulerY: g.rulerY, base, step, lanes };
     aim(progress.get());
     return true;
   };
