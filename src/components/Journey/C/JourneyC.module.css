@@ -625,10 +625,12 @@
 
 /* Under the K, left aligned with it. */
 .descriptor {
+  /* Under the end of the name (the H), with room to breathe above it. */
   position: absolute;
-  left: 0.03em;
+  right: 0.06em;
   top: 100%;
-  margin-top: clamp(14px, 2.2vh, 26px);
+  margin-top: clamp(26px, 4vh, 46px);
+  text-align: right;
   font: 400 clamp(17px, 1.55vw, 26px) / 1.25 var(--text);
   letter-spacing: -0.01em;
   color: var(--ink);

@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
 import BriefSheet from '../../Brief/BriefSheet.jsx';
 import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../Intro/shared.jsx';
 import { CHAPTER_STOPS, POSES, tintChapters } from '../../Intro3/timeline.js';
@@ -575,7 +575,9 @@ const BEATS = [
   ['hero>ab', 60], // the camera closes in on Ken as he crosses left and About comes in (phones: About rises as the hero lifts)
   ['about', 40], // "10 years" rolls up and both lines type themselves (on time)
   ['ab>tl', 60], // About leaves left with Ken, the timeline arrives from the right
-  ['tl', 100], // the ball travels 2015 to Now, then the camera pulls back to the whole journey
+  // The career is scrolled through like a page (see freeAt): it gets room, so
+  // one swipe moves on a role or so, not the whole career.
+  ['tl', 560], // the ball travels 2015 to Now, then the camera pulls back to the whole journey
   ['now', 110], // the career shrinks into the Apple logo; the line rises; the logo settles as the Mac comes up
 ];
 const TOTAL = BEATS.reduce((n, [, len]) => n + len, 0);
@@ -843,7 +845,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
 
   const { scrollYProgress: progress } = useScroll({ target: deckRef, offset: ['start start', 'end end'] });
   // The deck's timeline beat ends on the whole journey (TIMELINE_NOW).
-  const tlProgress = useTransform(progress, (v) => within(v, SPAN.tl) * TIMELINE_NOW);
+  const tlRaw = useTransform(progress, (v) => within(v, SPAN.tl) * TIMELINE_NOW);
+  // Eased a touch behind the scroll, so a trackpad's flick reads as a glide
+  // along the line rather than a jump.
+  const tlProgress = useSpring(tlRaw, { stiffness: 120, damping: 28, mass: 0.7, restDelta: 0.0002 });
   // The hero's basketball lands on the line as the timeline arrives.
   const handoff = useTransform(progress, (v) => smooth01(within(v, SPAN['ab>tl'])));
   // On the career itself (not arriving, not winding into the logo): skippable.
