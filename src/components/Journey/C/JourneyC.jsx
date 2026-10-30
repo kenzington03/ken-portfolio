@@ -257,18 +257,12 @@ function castLayout(phone) {
     nameTop,
     neck: false, // the name holds the ball's line as the camera pushes in
     hero: { x: vw / 2, y: feet },
-    about: { x: vw * 0.2, y: vh * 0.5 },
     // Where the ball waits beside About, on the floor.
     rest: { x: vw * 0.4, y: vh - 22 },
   };
 }
 
 const PUSH = 0.07;
-// Section 2 (Me): the camera close on him, framed from the waist up. The
-// point of him held at the frame's anchor (his chest, in units of his
-// height), and how much bigger he is than in the hero.
-const ME_FOCUS = 0.36;
-const ME_SCALE = 1.7;
 // The ball. In the hero it rolls out from behind his legs and comes to rest
 // just past his right shoe. Into Me it glides along the bottom of the screen
 // to the middle; into the career it rises, straight up, onto the career's
@@ -418,29 +412,21 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
       // The camera on him. The hero holds his feet in place (the push grows
       // him upwards); About holds his chest, closer.
       const w = H * HERO_ART.aspect;
-      const camAt = (aa, bb) => {
-        let px = 0.5;
-        let py = 1;
-        let S = push;
+      const camAt = (aa) => {
+        const px = 0.5;
+        const py = 1;
+        const S = push;
         let qx = L.hero.x;
         let qy = L.hero.y;
-        if (wide) {
-          // Into Me the camera pushes in on him: he grows, framed from the
-          // waist up, his face in the upper third, on the left.
-          py = 1 + (ME_FOCUS - 1) * aa;
-          S = push + (ME_SCALE - push) * aa;
-          qx += (L.about.x - qx) * aa;
-          // Out with Me, to the left, as the pan carries on.
-          qx -= bb * vw;
-          qy += (L.about.y - qy) * aa;
-        } else {
-          qy -= aa * vh; // leaves with the hero, upwards
-        }
+        // Me is the words alone: he leaves with the hero's page, with his
+        // name (to the left; on phones, upwards).
+        if (wide) qx -= aa * vw;
+        else qy -= aa * vh;
         qx += p.sx * 12 * depth;
         qy += p.sy * 8 * depth + (1 - shown) * 24;
         return { left: qx - px * w * S, top: qy - py * H * S, S };
       };
-      const cam = camAt(a, b);
+      const cam = camAt(a);
 
       // The ball: it rolls out from behind his legs to the bottom right;
       // the first scroll glides it in a straight line to the middle (the
@@ -450,7 +436,7 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
       const b3 = ball3dRef.current;
       let noteX = null; // "scroll down" sits just right of the resting ball
       if (ball) {
-        const h0 = camAt(0, 0);
+        const h0 = camAt(0);
         const heroD = H * BALL * h0.S;
         const midD = Math.round(vh * BALL_SCREEN);
         const startX = h0.left + (w * h0.S) / 2; // behind his legs
@@ -518,7 +504,7 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
       }
 
       // Gone with About: nothing to draw until the page comes back up.
-      if (b >= 1 || (!wide && a >= 1)) {
+      if (a >= 1) {
         put(fig, 'op', 'opacity', '0');
         return;
       }

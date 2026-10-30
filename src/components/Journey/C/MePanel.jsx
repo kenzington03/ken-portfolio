@@ -1,15 +1,18 @@
-// Q2: who Ken is, loud. A slab of the poster's ink slides in beside him;
-// on it his paragraph writes itself with the scroll (so it plays back when
-// scrolling up), the claims that matter get a highlighter swipe as they are
-// written, and it ends on the three things he is: design, basketball, chess.
-// Under it, a collage of his work builds in step with the words (each piece
-// lands with the words it proves) and can be picked up and moved around.
+// Q2: who Ken is, in one line. The statement inks itself in with the scroll
+// (so it plays back when scrolling up), set in four lines that each land a
+// beat, the claims in the poster's ink. Beside it, his work as a loose pile
+// of polaroids, each dropping in as the words reach it; any can be picked up
+// and moved, and a tap opens the Portfolio.
 
 import { Fragment, useEffect, useMemo, useRef } from 'react';
 import { motion, useMotionValueEvent } from 'framer-motion';
 import styles from './MePanel.module.css';
 
-// The paragraph. A string is plain words; { hl } is a highlighted claim.
+// The statement, a line per array; `*` marks a word in the ink.
+const STATEMENT = [['Ten', 'years', 'building'], ['*brands', 'and', '*campaigns'], ['that', 'make', 'people'], ['*stop', 'and', '*look.']];
+
+// The longer story, told on the phone page. A string is plain words;
+// { hl } is a highlighted claim.
 export const STORY = [
   { kind: 'hello', parts: ["Hey, I'm Ken."] },
   { kind: 'line', parts: ["For ten years I've built", { hl: 'brands' }, 'for', { hl: 'B2B tech, pharma, crypto and finance.' }] },
@@ -19,55 +22,50 @@ export const STORY = [
   { kind: 'aside', parts: ['Same obsession: the next good move.'] },
 ];
 
-// The collage: where each piece sits in its box (left, top, width as % of
-// the box; r its turn; z its layer) and the word it lands with.
+// The polaroids: where each lies in the pile (left, top, width as % of the
+// pile; r its turn; z its layer), its caption, and the word it lands with.
+// (The phone page shows the same pieces, in its own strip.)
 export const COLLAGE = [
-  { id: 'fluid-ai', alt: 'Fluid AI brand identity', cue: 'brands', ratio: 1, x: 0, y: 6, w: 25, r: -6, z: 2 },
-  { id: 'truearte', alt: 'Truearte packaging', cue: 'brands', ratio: 720 / 669, x: 19, y: 36, w: 26, r: 4, z: 3 },
-  { id: 'qmart', alt: 'Qmart campaign banner', cue: 'campaigns', ratio: 720 / 431, x: 38, y: 0, w: 36, r: -3, z: 1 },
-  { id: 'beatles', alt: 'The Beatles, event artwork', cue: 'campaigns', ratio: 720 / 622, x: 44, y: 40, w: 24, r: 3, z: 4 },
-  { id: 'acdc', alt: 'AC/DC, event artwork', cue: 'campaigns', ratio: 720 / 623, x: 66, y: 34, w: 25, r: -4, z: 3 },
-  { id: 'lebron', alt: 'A redesign concept around LeBron James', cue: 'better.', ratio: 720 / 450, x: 71, y: 2, w: 29, r: 6, z: 2 },
+  { id: 'fluid-ai', alt: 'Fluid AI brand identity', caption: 'Fluid AI', cue: 'brands', x: 0, y: 6, w: 40, r: -8, z: 2, tape: true },
+  { id: 'qmart', alt: 'Qmart campaign banner', caption: 'Qmart', cue: 'campaigns', x: 34, y: 0, w: 33, r: 5, z: 3 },
+  { id: 'lebron', alt: 'A redesign concept around LeBron James', caption: 'LeBron, concept', cue: 'people', x: 63, y: 9, w: 35, r: 11, z: 2, tape: true },
+  { id: 'truearte', alt: 'Truearte packaging', caption: 'Truearte', cue: 'stop', x: 5, y: 50, w: 31, r: 6, z: 4 },
+  { id: 'beatles', alt: 'The Beatles, event artwork', caption: 'The Beatles', cue: 'and', x: 29, y: 37, w: 41, r: -3, z: 5, tape: true },
+  { id: 'acdc', alt: 'AC/DC, event artwork', caption: 'AC/DC', cue: 'look.', x: 66, y: 49, w: 33, r: -10, z: 4 },
 ];
 
-// Every word in order (each gets its turn as the scroll writes); the
-// highlights' spans of turns; and the turn each collage piece lands on.
+// Every word in order (each gets its turn as the scroll writes), and the
+// turn each polaroid lands on (the last of its cue word, so 'and' is the
+// one in the last line).
 const build = () => {
   let n = 0;
-  const lines = STORY.map((line) => ({
-    ...line,
-    parts: line.parts.map((p) => {
-      const text = typeof p === 'string' ? p : p.hl;
-      const words = text.split(' ').map((w) => ({ w, i: n++ }));
-      return { hl: typeof p !== 'string', words, from: words[0].i, to: words[words.length - 1].i + 1 };
+  const lines = STATEMENT.map((line) =>
+    line.map((raw) => {
+      const ink = raw.startsWith('*');
+      return { w: ink ? raw.slice(1) : raw, ink, i: n++ };
     }),
-  }));
-  const all = lines.flatMap((l) => l.parts.flatMap((p) => p.words));
-  const at = (word) => all.find((x) => x.w === word)?.i ?? 0;
-  const seen = {};
-  const pieces = COLLAGE.map((p) => {
-    const k = (seen[p.cue] = (seen[p.cue] ?? -1) + 1);
-    return { ...p, i: at(p.cue) + k * 1.2 };
-  });
+  );
+  const all = lines.flat();
+  const at = (word) => all.findLast((x) => x.w === word)?.i ?? 0;
+  const pieces = COLLAGE.map((p) => ({ ...p, i: at(p.cue) + 0.4 }));
   return { lines, pieces, total: n };
 };
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
 
-/** A piece of work in the collage: lands with its words, can be dragged. */
+/** A polaroid: lands with its word, can be picked up, a tap opens the work. */
 function Piece({ p, onSeeWork }) {
   const moved = useRef(false);
   return (
     <div className={styles.slot} style={{ '--i': p.i, '--r': `${p.r}deg`, left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, zIndex: p.z }}>
       <motion.button
         type="button"
-        className={styles.piece}
-        style={{ aspectRatio: p.ratio }}
+        className={styles.polaroid}
         drag
         dragMomentum={false}
-        whileHover={{ scale: 1.05, rotate: -1.5 }}
-        whileDrag={{ scale: 1.1, rotate: 0, zIndex: 20 }}
+        whileHover={{ scale: 1.04, rotate: -2 }}
+        whileDrag={{ scale: 1.08, rotate: 0, zIndex: 20 }}
         onDragStart={() => {
           moved.current = true;
         }}
@@ -79,7 +77,11 @@ function Piece({ p, onSeeWork }) {
         }}
         aria-label={`${p.alt}. Open the Portfolio`}
       >
-        <img src={`/assets/me/collage/${p.id}.webp`} alt="" draggable={false} loading="lazy" />
+        {p.tape && <span className={styles.tape} aria-hidden />}
+        <span className={styles.photo}>
+          <img src={`/assets/me/collage/${p.id}.webp`} alt="" draggable={false} loading="lazy" />
+        </span>
+        <span className={styles.caption}>{p.caption}</span>
       </motion.button>
     </div>
   );
@@ -100,41 +102,33 @@ export default function MePanel({ progress, span, arrive, instant, wide, onSeeWo
     const t = instant ? 1 : within(v, span[0], span[1]);
     const e = instant ? 1 : within(v, arrive[0], arrive[1]);
     root.style.setProperty('--e', (1 - e).toFixed(4));
-    // How many words are written (with a soft edge of four words).
-    root.style.setProperty('--w', (t * (total + 4)).toFixed(3));
+    // How many words are written (with a soft edge of two words).
+    root.style.setProperty('--w', (t * (total + 2)).toFixed(3));
   };
   useMotionValueEvent(progress, 'change', write);
   useEffect(() => write(progress.get()));
 
   return (
     <section ref={rootRef} className={`${styles.me} ${wide ? styles.wide : ''}`} aria-label="About Ken">
-      <div className={styles.slab} aria-hidden />
       <div className={styles.story}>
-        {lines.map((line, li) => {
-          const Tag = line.kind === 'hello' ? 'h2' : 'p';
-          return (
-            <Tag key={li} className={styles[line.kind]}>
-              {line.parts.map((part, pi) => (
-                <Fragment key={pi}>
-                  {pi > 0 && ' '}
-                  <span className={part.hl ? styles.hl : undefined} style={part.hl ? { '--a': part.from, '--b': part.to } : undefined}>
-                    {part.words.map((x, k) => (
-                      <Fragment key={k}>
-                        {k > 0 && ' '}
-                        <span className={styles.word} style={{ '--i': x.i }}>
-                          {x.w}
-                        </span>
-                      </Fragment>
-                    ))}
+        <p className={styles.eyebrow}>About</p>
+        <h2 className={styles.statement}>
+          {lines.map((line, li) => (
+            <span key={li} className={styles.line}>
+              {line.map((x, k) => (
+                <Fragment key={k}>
+                  {k > 0 && ' '}
+                  <span className={`${styles.word} ${x.ink ? styles.ink : ''}`} style={{ '--i': x.i }}>
+                    {x.w}
                   </span>
                 </Fragment>
               ))}
-            </Tag>
-          );
-        })}
+            </span>
+          ))}
+        </h2>
       </div>
 
-      <div className={styles.collage}>
+      <div className={styles.pile}>
         {pieces.map((p) => (
           <Piece key={p.id} p={p} onSeeWork={onSeeWork} />
         ))}
