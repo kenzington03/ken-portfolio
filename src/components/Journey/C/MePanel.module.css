@@ -1,13 +1,14 @@
-/* Q2: who Ken is, in one paragraph with its receipts. Ken close up on the
-   left; the paragraph in the right half, clear of the ball, which holds the
-   middle of the screen. Values written from scroll by MePanel:
+/* Q2: who Ken is, and the proof. Ken close up on the left; on the right,
+   the paragraph standing on the ball's line (the middle of the screen) and
+   the collage of his work under it. Values written from scroll by MePanel:
      --e   how far the section still has to travel in (1 .. 0), for depth
-     --w   how many words are written so far (each word has its --i) */
+     --w   how many words are written so far (words and pieces have --i) */
 
 .me {
   --display: 'Big Shoulders', 'Cabinet Grotesk', system-ui, sans-serif;
   --text: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --gut: max(var(--gutter, 24px), 4vw);
+  --col: 54%;
   --w: 999;
   position: absolute;
   inset: 0;
@@ -15,15 +16,16 @@
   font-family: var(--text);
 }
 
+/* ---------- The paragraph, above the line ---------- */
 .story {
   position: absolute;
-  left: 55%;
+  left: var(--col);
   right: var(--gut);
-  top: 50%;
+  bottom: calc(50% + 28px);
   display: grid;
-  gap: clamp(14px, 2vh, 22px);
+  gap: clamp(8px, 1.3vh, 14px);
   /* The far layer: it travels in a little less than the page does. */
-  transform: translate3d(calc(var(--e, 0) * -12vw), -50%, 0);
+  transform: translate3d(calc(var(--e, 0) * -12vw), 0, 0);
 }
 
 .hello,
@@ -34,7 +36,8 @@
 }
 
 .hello {
-  font: 900 clamp(46px, 4.6vw, 84px) / 0.92 var(--display);
+  margin-bottom: 4px;
+  font: 900 clamp(40px, 4vw, 72px) / 0.92 var(--display);
   font-variation-settings: 'opsz' 72;
   text-transform: uppercase;
   color: var(--accent);
@@ -42,15 +45,14 @@
 }
 
 .line {
-  font-size: clamp(21px, 1.85vw, 33px);
+  font-size: clamp(18px, 1.55vw, 27px);
   font-weight: 500;
-  line-height: 1.28;
+  line-height: 1.26;
   letter-spacing: -0.012em;
 }
 
 .aside {
-  margin-top: 6px;
-  font-size: clamp(15px, 1.1vw, 18px);
+  font-size: clamp(14px, 1vw, 17px);
   line-height: 1.4;
   color: color-mix(in srgb, var(--ink, #121214) 64%, transparent);
 }
@@ -64,93 +66,66 @@
   transform: translate3d(0, calc((1 - var(--k)) * 0.35em), 0);
 }
 
-/* The proof: a small rounded picture of the work, sitting in the line. It
-   pops in (a touch past its size, then settles) as its words are written. */
-.thumb {
-  --k: clamp(0, calc((var(--w) - var(--i)) * 1.4), 1);
-  display: inline-block;
-  width: 2.9em;
-  height: 1.45em;
-  margin: 0 0.06em;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  overflow: hidden;
-  vertical-align: -0.32em;
-  background: #ddd;
-  cursor: pointer;
-  box-shadow: 0 6px 14px -8px rgb(20 14 8 / 0.55), 0 0 0 2px #fff;
-  transform: scale(calc(var(--k) * (1 + (1 - var(--k)) * 0.6)));
-  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+/* ---------- The collage, under the line ---------- */
+.collage {
+  position: absolute;
+  left: var(--col);
+  right: var(--gut);
+  top: calc(50% + 34px);
+  bottom: 6%;
+  /* The near layer: a touch ahead of the page. */
+  translate: calc(var(--e, 0) * 5vw) 0;
 }
 
-.thumb img {
+/* A piece lands as its words are written: it drops in a little turned,
+   then settles to its own angle. */
+.piece {
+  --k: clamp(0, calc((var(--w) - var(--i)) * 0.9), 1);
+  position: absolute;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ddd;
+  cursor: pointer;
+  opacity: var(--k);
+  box-shadow: 0 0 0 3px #fff, 0 18px 30px -16px rgb(20 14 8 / 0.5);
+  transform: translate3d(0, calc((1 - var(--k)) * 26px), 0) rotate(calc(var(--r) + (1 - var(--k)) * 9deg)) scale(calc(0.86 + var(--k) * 0.14));
+  transition: box-shadow 300ms ease;
+}
+
+.piece img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .thumb:hover {
-    transform: scale(1.35) rotate(-2deg);
-  }
-}
-
-/* ---------- The way to the rest ---------- */
-.all {
-  position: absolute;
-  right: var(--gut);
-  bottom: 9%;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 0 4px;
-  border: 0;
-  background: none;
-  color: var(--ink, #121214);
-  font: 600 16px/1 var(--text);
-  cursor: pointer;
-  opacity: clamp(0, calc(var(--w) / 6), 1);
-}
-
-.all svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.thumb:focus-visible,
-.all:focus-visible {
+.piece:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .all:hover svg {
-    transform: translateX(4px);
+  .piece:hover {
+    z-index: 9 !important;
+    box-shadow: 0 0 0 3px #fff, 0 26px 40px -18px rgb(20 14 8 / 0.6);
+  }
+  .piece:hover img {
+    transform: scale(1.06);
   }
 }
 
-/* ---------- Narrow screens: the paragraph across the page ---------- */
-.me:not(.wide) .story {
-  left: 6%;
-  top: 22%;
-  transform: none;
+/* ---------- Narrow screens: the paragraph, then the collage ---------- */
+.me:not(.wide) {
+  --col: 6%;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .word {
     filter: none;
     transform: none;
-  }
-  .thumb {
-    transition: none;
   }
 }
