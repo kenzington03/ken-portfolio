@@ -257,10 +257,9 @@ export const HOME_APPS = [
    him, and the games); page two holds the rest; past the last page is the
    App Library with everything, as on iOS. */
 const byId = (id) => HOME_APPS.find((a) => a.id === id);
-export const HOME_PAGES = [
-  ['portfolio', 'about', 'contact', 'resume', 'games'].map(byId),
-  ['claude', 'milestone', 'social', 'print'].map(byId),
-];
+// The beta keeps it to what matters on a phone (Ken, Oct 2026): the work,
+// and a way to reach him.
+export const HOME_PAGES = [['portfolio', 'contact'].map(byId)];
 
 /* Real iOS dock: Phone / Safari / Messages / Spotify. Phone is
    intercepted before any app sheet opens (IPhoneHome.jsx) and just

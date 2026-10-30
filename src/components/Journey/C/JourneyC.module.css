@@ -84,6 +84,41 @@
   color: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 
+/* Contact, always a click away, bottom right. */
+.contactFab {
+  position: fixed;
+  right: max(var(--gutter), 24px);
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 31;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font: 600 15px/1 var(--text);
+  cursor: pointer;
+  box-shadow: 0 12px 26px -12px rgb(0 0 0 / 0.55);
+  transition: transform 300ms var(--ease);
+}
+
+.contactFab i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34c759;
+  box-shadow: 0 0 0 3px rgb(52 199 89 / 0.25);
+}
+
+@media (hover: hover) {
+  .contactFab:hover {
+    transform: translateY(-2px);
+  }
+}
+
 /* A skip's dip: the page's own colour (or the night, into the Mac), over
    everything but the top bar, for a beat. */
 .cut {
@@ -738,7 +773,7 @@
 .skipCareer {
   position: absolute;
   right: var(--gutter);
-  bottom: clamp(26px, 6vh, 60px);
+  bottom: clamp(84px, 11vh, 120px);
   z-index: 6;
   transform: rotate(-2deg);
 }

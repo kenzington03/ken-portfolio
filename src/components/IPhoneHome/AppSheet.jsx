@@ -77,7 +77,7 @@ function AboutContent() {
       <div className={styles.aboutHero}>
         <img className={styles.aboutAvatar} src="/assets/profile/ken.jpg" alt="Kenneth Nathanael" />
         <h2 className={styles.aboutName}>Kenneth Nathanael</h2>
-        <p className={styles.aboutTitle}>Design Lead · Milestone Technologies</p>
+        <p className={styles.aboutTitle}>Designer · India</p>
       </div>
       <div className={styles.aboutBio}>
         <p>Ten years shaping brands, campaigns and interfaces. I start with the idea and stay for the last pixel.</p>
@@ -97,7 +97,7 @@ function ResumeContent() {
   return (
     <div className={styles.scrollContent}>
       <div className={styles.resumeHeader}>
-        <p className={styles.resumeIntro}>Kenneth Nathanael, Design Lead</p>
+        <p className={styles.resumeIntro}>Kenneth Nathanael, Designer</p>
       </div>
       <a
         href="/cv.pdf"

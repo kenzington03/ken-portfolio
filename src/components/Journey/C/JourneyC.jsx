@@ -1661,6 +1661,15 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         <i />
       </div>
 
+      {/* Contact, always there: bottom right, all the way through the story
+          (hidden in the Mac's dark room, where the bar's own button reads). */}
+      {!dark && (
+        <button type="button" className={styles.contactFab} onClick={() => setContactOpen(true)}>
+          <i aria-hidden />
+          Contact me
+        </button>
+      )}
+
       {/* A skip dips through this for a beat (see cut). */}
       <div ref={cutRef} className={styles.cut} aria-hidden />
 

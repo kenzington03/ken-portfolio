@@ -90,13 +90,14 @@ function DesktopShell({ unlocked = true, onShutDown }) {
 
 function AppShell() {
   const { isMobile } = useWindowSize();
+  // Phones: the page, or (the cat button, or `?intro=0`) the iPhone beta.
+  const [iphone, setIphone] = useState(!INTRO_ENABLED);
 
   if (isMobile) {
-    // `?intro=0` keeps the old iPhone home reachable for comparison.
-    if (!INTRO_ENABLED) return <IPhoneHome />;
+    if (iphone) return <IPhoneHome onExit={() => setIphone(false)} />;
     return (
       <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
-        <PhonePage />
+        <PhonePage onIPhone={() => setIphone(true)} />
       </Suspense>
     );
   }

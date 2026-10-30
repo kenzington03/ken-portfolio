@@ -112,6 +112,9 @@
   overflow: hidden;
   animation: roll 1700ms cubic-bezier(0.33, 1, 0.68, 1) 900ms both;
   box-shadow: 0 0.5em 0.4em -0.45em rgb(14 10 8 / 0.7);
+  /* It leaves the hero as the swish below picks it up. */
+  opacity: var(--hero-ball, 1);
+  transition: opacity 200ms ease;
 }
 
 .ball img {
@@ -427,4 +430,242 @@
   .ctas {
     animation: none;
   }
+}
+
+/* ---------- The note: the full site is a Mac desktop ---------- */
+.laptop {
+  display: grid;
+  gap: 12px;
+  margin: max(12px, env(safe-area-inset-top)) var(--gutter) 0;
+  padding: 14px 14px 14px 16px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: #f4f2ec;
+}
+
+.laptop p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgb(244 242 236 / 0.78);
+}
+
+.laptop b {
+  color: #fff;
+  font-weight: 650;
+}
+
+.catBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 14px 6px 6px;
+  border: 0;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+  font: 600 15px/1.15 var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.catBtn img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.catBtn small {
+  display: block;
+  font-weight: 500;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.6);
+}
+
+/* ---------- The swish: his ball through a net ---------- */
+.swish {
+  position: relative;
+  height: 62svh;
+  min-height: 380px;
+  overflow: hidden;
+}
+
+.hoopBack,
+.rim,
+.net {
+  position: absolute;
+  left: 50%;
+  width: 46%;
+  max-width: 200px;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  transform-origin: 50% 0;
+}
+
+.hoopBack,
+.rim {
+  top: 34%;
+  translate: -50% 0;
+}
+
+.hoopBack {
+  stroke: var(--ink);
+  stroke-width: 3;
+  opacity: 0.45;
+}
+
+.rim {
+  z-index: 3;
+  stroke: var(--accent);
+  stroke-width: 5;
+}
+
+.net {
+  top: calc(34% + 2.6%);
+  z-index: 2;
+  margin-left: calc(min(46%, 200px) / -2);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  opacity: 0.6;
+}
+
+.swishBall {
+  position: absolute;
+  left: calc(50% - 30px);
+  top: 34%;
+  z-index: 1;
+  width: 60px;
+  height: 60px;
+  will-change: transform;
+}
+
+.swishBall img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 8px 14px -6px rgb(20 12 6 / 0.45);
+}
+
+.swishWord {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8%;
+  margin: 0;
+  font: 900 clamp(34px, 11vw, 52px) / 1 var(--display);
+  font-variation-settings: 'opsz' 72;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--accent);
+  filter: drop-shadow(0.03em 0.03em 0 var(--riso));
+}
+
+/* ---------- Who he is, loud ---------- */
+.slab {
+  display: grid;
+  gap: 14px;
+  margin: 0 10px;
+  padding: 40px 20px 32px;
+  border-radius: 22px;
+  background: url('/assets/hero/art/grain.png') 0 0 / 140px 140px, var(--accent);
+  background-blend-mode: multiply;
+  color: #fbf7ef;
+  box-shadow: inset 0 -8px 0 var(--riso);
+}
+
+.s_hello {
+  margin: 0 0 4px;
+  font: 900 clamp(44px, 14vw, 64px) / 0.9 var(--display);
+  font-variation-settings: 'opsz' 72;
+  text-transform: uppercase;
+  filter: drop-shadow(0.035em 0.035em 0 var(--riso));
+}
+
+.s_line {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.38;
+}
+
+.s_big {
+  margin: 8px 0 0;
+  font: 900 clamp(32px, 10vw, 44px) / 0.95 var(--display);
+  font-variation-settings: 'opsz' 72;
+  text-transform: uppercase;
+  color: var(--riso);
+}
+
+.s_aside {
+  margin: 0;
+  font-size: 14px;
+  color: rgb(251 247 239 / 0.82);
+}
+
+.hl {
+  padding: 0.04em 0.18em 0.02em;
+  border-radius: 3px;
+  background: var(--riso);
+  color: #fbf7ef;
+  font-weight: 650;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.collageGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.collagePic {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px #fbf7ef, 0 14px 22px -12px rgb(10 6 4 / 0.55);
+  transform: rotate(var(--r));
+}
+
+/* ---------- Contact, always a thumb away ---------- */
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font: 600 15px/1 var(--text);
+  text-decoration: none;
+  box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.55);
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  pointer-events: none;
+  transition: opacity 260ms ease, transform 360ms var(--ease);
+}
+
+.fabOn {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.fabDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34c759;
+  box-shadow: 0 0 0 3px rgb(52 199 89 / 0.25);
 }

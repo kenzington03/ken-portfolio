@@ -5,7 +5,7 @@ import MobileDock from './MobileDock.jsx';
 import AppSheet from './AppSheet.jsx';
 import FolderOverlay from './FolderOverlay.jsx';
 import MobileSpotlight from './MobileSpotlight.jsx';
-import SkillsWidget from './SkillsWidget.jsx';
+import AssistiveTouch from './AssistiveTouch.jsx';
 import AppLibrary from './AppLibrary.jsx';
 import { HOME_PAGES } from './appData.jsx';
 import styles from './IPhoneHome.module.css';
@@ -13,7 +13,7 @@ import styles from './IPhoneHome.module.css';
 // Home pages, then the App Library.
 const PAGE_COUNT = HOME_PAGES.length + 1;
 
-export default function IPhoneHome() {
+export default function IPhoneHome({ onExit }) {
   const [activeApp, setActiveApp] = useState(null);
   const [activeFolder, setActiveFolder] = useState(null);
   const [wiggle, setWiggle] = useState(false);
@@ -106,7 +106,6 @@ export default function IPhoneHome() {
       <div ref={pagerRef} className={`${styles.pager} ${styles.unlock}`} onScroll={onPagerScroll} onClick={(e) => e.stopPropagation()}>
         {HOME_PAGES.map((apps, i) => (
           <section key={i} className={styles.page} aria-label={`Home screen ${i + 1}`}>
-            {i === 0 && <SkillsWidget />}
             <AppGrid apps={apps} wiggle={wiggle} onTap={handleTap} onLongPress={enterWiggle} />
           </section>
         ))}
@@ -157,6 +156,27 @@ export default function IPhoneHome() {
       <AppSheet app={activeApp} onClose={() => setActiveApp(null)} />
 
       <MobileSpotlight open={spotlightOpen} onClose={() => setSpotlightOpen(false)} onOpenApp={handleTap} />
+
+      {/* iPhone's always-on shortcut: home, back, contact, or out of the beta. */}
+      <AssistiveTouch
+        onHome={() => {
+          setActiveApp(null);
+          setActiveFolder(null);
+          setSpotlightOpen(false);
+          goToPage(0);
+        }}
+        onBack={() => {
+          if (spotlightOpen) setSpotlightOpen(false);
+          else if (activeApp) setActiveApp(null);
+          else if (activeFolder) setActiveFolder(null);
+          else onExit?.();
+        }}
+        onContact={() => {
+          setActiveFolder(null);
+          setActiveApp({ ...HOME_PAGES[0].find((a) => a.id === 'contact'), rect: null });
+        }}
+        onExit={onExit}
+      />
     </div>
   );
 }

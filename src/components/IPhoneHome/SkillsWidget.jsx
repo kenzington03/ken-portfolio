@@ -54,7 +54,7 @@ export default function SkillsWidget() {
       <div className={styles.top}>
         <div>
           <p className={styles.eyebrow}>Skills</p>
-          <p className={styles.subtitle}>Design Lead · Milestone</p>
+          <p className={styles.subtitle}>Designer · India</p>
         </div>
         <MotionGlyph />
       </div>
