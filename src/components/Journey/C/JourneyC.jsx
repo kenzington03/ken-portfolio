@@ -286,7 +286,7 @@ const ME_SCALE = 1.7;
 const BALL = 0.115;
 const BALL_IN = { delay: 2500, ms: 1900 };
 const BALL_REST_Y = 0.977; // its base on his floor, in units of his height
-const BALL_HERO_X = 0.74; // where it rests, as a share of the screen's width
+const BALL_HERO_X = 0.8; // where it rests, as a share of the screen's width (the scroll note sits left of it)
 const BALL_SCREEN = 0.062;
 const ROLL_K = 0.25;
 // A ball rolling to a stop slows evenly (friction): its travel eases out

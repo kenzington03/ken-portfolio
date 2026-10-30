@@ -16,25 +16,19 @@ export const STORY = [
   { kind: 'hello', parts: ["Hey, I'm Ken."] },
   {
     kind: 'line',
-    parts: [
-      "For ten years I've built brands",
-      { img: '/assets/phone/work/fluid-ai.webp', alt: 'Fluid AI brand work' },
-      'for B2B tech, pharma, crypto and finance, where trust has to land at first glance.',
-    ],
-  },
-  {
-    kind: 'line',
-    parts: ['I make campaigns', { img: '/assets/phone/work/social-media.webp', alt: 'Campaign and social work' }, 'people actually stop for.'],
+    parts: ["For ten years I've built brands", { img: '/assets/phone/work/fluid-ai.webp', alt: 'Fluid AI brand work' }, 'for B2B tech, pharma, crypto and finance.'],
   },
   {
     kind: 'line',
     parts: [
-      "And when no one's asking, I redesign what I love: the Nike app, rebuilt around LeBron James",
-      { img: '/assets/phone/work/lebron-nike.webp', alt: 'The LeBron James concept' },
+      'I start with the idea and the strategy, then design campaigns',
+      { img: '/assets/phone/work/social-media.webp', alt: 'Campaign work' },
+      'built to make a real impact.',
     ],
   },
-  { kind: 'aside', parts: ['Away from the screen: basketball, and a long game of chess.'] },
-];
+  { kind: 'line', parts: ["I can't look at a design without asking how it could be better."] },
+  { kind: 'aside', parts: ['Off the screen: basketball, chess, and whatever sparks my curiosity next.'] },
+]
 
 // Every word and thumbnail in order, so each gets its turn as the scroll
 // writes the paragraph.

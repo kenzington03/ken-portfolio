@@ -791,7 +791,9 @@
 /* "scroll down", under the descriptor on the left, its arrow pointing down. */
 .noteScroll {
   position: absolute;
-  right: max(var(--gutter), 17vw);
+  /* Left of the resting ball (at 80% of the width) with clear air between
+     them, and clear of him on the other side. */
+  right: calc(20vw + 96px);
   bottom: clamp(36px, 9vh, 96px);
   flex-direction: column;
   align-items: flex-end;
