@@ -15,6 +15,8 @@ import styles from './Desktop.module.css';
 // The work first: Portfolio heads the column (the wallpaper circles it).
 const DESKTOP_ICONS = [
   { id: 'portfolio', label: 'Portfolio', appId: 'finder', src: PORTFOLIO_ICON_SRC },
+  // Talking to Ken, never more than a click away: opens the brief.
+  { id: 'talk', label: "Let's talk", action: 'talk', src: '/assets/icons/desktop-talk.svg' },
   { id: 'aboutken', label: 'About Ken', appId: 'about', src: '/assets/icons/desktop-Resume.png' },
   { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.png' },
   { id: 'contact', label: 'Contact', appId: 'contact', src: '/assets/icons/dock-contacts.png' },
@@ -141,6 +143,10 @@ export default function Desktop() {
     dragRef.current = null;
     if (item.action === 'start') {
       window.dispatchEvent(new CustomEvent('ken:back-to-start'));
+      return;
+    }
+    if (item.action === 'talk') {
+      window.dispatchEvent(new CustomEvent('ken:brief'));
       return;
     }
     launchApp(item.appId, { animationOrigin: getOriginFromEvent(event) });

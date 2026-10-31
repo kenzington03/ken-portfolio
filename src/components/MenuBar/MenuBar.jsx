@@ -15,7 +15,7 @@ const APP_LABELS = {
   systempreferences: 'System Preferences',
 };
 
-export default function MenuBar({ onOpenAchievements, onShutDown }) {
+export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }) {
   const { windows, activeWindowId, launchApp } = useOS();
   const [now, setNow] = useState(() => new Date());
   const [appleOpen, setAppleOpen] = useState(false);
@@ -93,6 +93,13 @@ export default function MenuBar({ onOpenAchievements, onShutDown }) {
       </div>
       <div className={styles.center}>{activeAppName}</div>
       <div className={styles.right}>
+        {/* The same brief as on the way in: what can Ken design for you? */}
+        {onWorkWithMe && (
+          <button type="button" className={styles.hire} onClick={onWorkWithMe}>
+            <i aria-hidden />
+            Work with me
+          </button>
+        )}
         <span className={styles.wifi} title="Wi-Fi" aria-hidden>
           <span className={styles.wifiBar} />
           <span className={styles.wifiBar} />

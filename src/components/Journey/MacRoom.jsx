@@ -1,13 +1,13 @@
 // The constant of every journey: a fixed dark room behind the page with the
 // Space Grey MacBook. Scroll over the runway (the element passed as
-// `runwayRef`) drives macProgress: orbit with Brand / Campaigns / Motion (each
-// word with everything in it right under it), lid, wake, dive, then hand-off to the
+// `runwayRef`) drives macProgress: orbit with the three lines (one sentence:
+// I build brands, launch them with campaigns, and make them move; each with
+// what it buys right under it), lid, wake, dive, then hand-off to the
 // welcome screen. Also owns the Shut Down replay (mode 'close').
 
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { SceneBoundary, maxScroll, tweenScroll } from '../Intro/shared.jsx';
 import { CHAPTERS, CHAPTER_STOPS, HANDOFF_AT, chapterAt, ease, ramp, roomColor } from '../Intro3/timeline.js';
-import { CHAPTER_ITEMS } from './content.js';
 import styles from './MacRoom.module.css';
 
 const World = lazy(() => import('./World.jsx'));
@@ -16,6 +16,23 @@ const CLOSE_MS = 1300;
 // caption fully in, lid shut, before the lid beat begins).
 const CLOSED_AT = CHAPTER_STOPS[2];
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
+
+/** A chapter's line, letter by letter: `t` 0..1 brings them up (each tips up
+ *  out of its own slot, one after another), `out` 0..1 lifts them away over
+ *  the top in the same order. Both follow the scroll, so it plays back. */
+function setLetters(chapterEl, t, out) {
+  const letters = chapterEl.__letters || (chapterEl.__letters = chapterEl.querySelectorAll('[data-letter]'));
+  const SPREAD = 7;
+  const n = letters.length;
+  // Written only when they change: the room ticks every frame.
+  const key = `${t.toFixed(4)}|${out.toFixed(4)}`;
+  if (chapterEl.__lettersAt === key) return;
+  chapterEl.__lettersAt = key;
+  letters.forEach((el, i) => {
+    el.style.setProperty('--t', clamp01((t * (n + SPREAD) - i) / SPREAD).toFixed(3));
+    el.style.setProperty('--o', clamp01((out * (n + SPREAD) - i) / SPREAD).toFixed(3));
+  });
+}
 
 /** Reveals a chapter's caption word by word (t 0..1): each word rises out of
  *  a blur in the chapter's colour and settles to white. */
@@ -29,8 +46,7 @@ function setCaption(chapterEl, t) {
   });
 }
 // The words' window runs from under the top bar to just above the laptop;
-// the word + caption sit centred in it (even space above and below).
-const WORD_TOP = 64;
+// the line + caption sit centred in it (even space above and below).
 const WORD_GAP = 18;
 
 export default function MacRoom({
@@ -52,6 +68,8 @@ export default function MacRoom({
   alwaysLive = false, // the Mac is on screen from the first frame (The Desk)
   onFrame, // (y, p) per frame, for journey-specific effects
   logoRef, // optional: written with the lid logo's screen position ({ x, y, lidW } in px)
+  beats, // optional: the runway's own beats (orbit, lid, wake, dive) for the 3D rig
+  words = true, // false: no chapter words (the journey says its own)
   className = '',
   children, // extra fixed layers drawn behind the canvas (e.g. a cutting mat)
 }) {
@@ -149,16 +167,19 @@ export default function MacRoom({
         const outT = ease(ramp(p, ch.to - 0.05, ch.to + 0.02));
         const vis = quietRef.current ? 0 : inT * (1 - outT);
         if (wordsOnTop) {
-          // Rotating slide: tips up from behind the laptop, tips away over the top.
-          // Travel = from the centre of the window to just below its bottom
-          // edge, i.e. hidden behind the laptop's lid.
-          const travel = winH ? (winH - WORD_TOP) / 2 + el.offsetHeight / 2 + 12 : el.offsetHeight * 1.2;
-          el.style.opacity = String(quietRef.current ? 0 : Math.min(1, inT * 2.5) * (1 - outT));
-          el.style.transform = `translate3d(0, ${((1 - inT) * travel - outT * travel * 0.5).toFixed(1)}px, 0) rotateX(${((1 - inT) * -78 + outT * 72).toFixed(1)}deg)`;
-          setCaption(el, ramp(p, ch.from + 0.075, ch.from + 0.135));
+          // The line comes in letter by letter, its caption a beat behind,
+          // and leaves the same way (the caption first) for the next line.
+          // One line at a time: each is gone before the next comes in.
+          const letIn = ramp(p, ch.from, ch.from + 0.08);
+          // (Both stay whole past the chapter's stop: see CHAPTER_STOPS.)
+          const letOut = ramp(p, ch.to - 0.045, ch.to - 0.005);
+          el.style.opacity = quietRef.current || letIn <= 0 || letOut >= 1 ? '0' : '1';
+          setLetters(el, letIn, letOut);
+          setCaption(el, ramp(p, ch.from + 0.03, ch.from + 0.09) * (1 - ramp(p, ch.to - 0.055, ch.to - 0.03)));
         } else {
           el.style.opacity = String(vis);
           el.style.transform = `translate3d(0, ${(1 - inT) * 8 - outT * 8}vh, 0)`;
+          setLetters(el, 1, 0);
           setCaption(el, ramp(p, ch.from + 0.075, ch.from + 0.135));
         }
       });
@@ -206,7 +227,7 @@ export default function MacRoom({
       {children}
       <div ref={glowRef} className={styles.glow} style={{ '--room': '122 140 255' }} />
       <div ref={wordsRef} className={`${styles.words} ${wordsOnTop ? styles.wordsTop : ''}`}>
-        {CHAPTERS.map((ch, i) => (
+        {words && CHAPTERS.map((ch, i) => (
           <div
             key={ch.id}
             ref={(el) => {
@@ -214,17 +235,25 @@ export default function MacRoom({
             }}
             className={styles.chapter}
           >
-            <span className={styles.word}>{ch.word}</span>
-            {/* Everything in it comes in a scroll after its word, one by one. */}
+            <span className={styles.word} style={{ '--c': ch.color }} aria-label={ch.line.replace('*', '')}>
+              {ch.line.split(' ').map((w, j) => {
+                const key = w.startsWith('*');
+                return (
+                  <span key={j} className={`${styles.lineWord} ${key ? styles.key : ''}`} aria-hidden>
+                    {[...(key ? w.slice(1) : w)].map((c, k) => (
+                      <span key={k} className={styles.letter} data-letter="">
+                        {c}
+                      </span>
+                    ))}
+                  </span>
+                );
+              })}
+            </span>
+            {/* What it buys, a beat after its line, word by word. */}
             <span className={styles.caption} style={{ '--c': ch.color }}>
-              {/* Two even rows of three, so no line starts on a dot. */}
-              {[0, 3].map((from) => (
-                <span key={from} className={styles.captionRow}>
-                  {CHAPTER_ITEMS[ch.id].slice(from, from + 3).map((w, j) => (
-                    <span key={j} className={styles.captionWord} data-caption-word="">
-                      {w}
-                    </span>
-                  ))}
+              {ch.caption.split(' ').map((w, j) => (
+                <span key={j} className={styles.captionWord} data-caption-word="">
+                  {w}
                 </span>
               ))}
             </span>
@@ -245,14 +274,17 @@ export default function MacRoom({
                 poses={poses}
                 anchorRef={wordsOnTop ? anchorRef : undefined}
                 logoRef={logoRef}
+                beats={beats}
               />
             </Suspense>
           </SceneBoundary>
         </div>
       )}
-      <span className={styles.rail}>
-        <span ref={railRef} />
-      </span>
+      {words && (
+        <span className={styles.rail}>
+          <span ref={railRef} />
+        </span>
+      )}
     </div>
   );
 }

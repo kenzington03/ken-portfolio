@@ -71,16 +71,15 @@ const restYear = (r) => {
 };
 
 // The beats, as timeline progress:
-//   0 .. IN     the whole timeline, then the camera closes in on the ball
-//   IN .. LAST  one even step per role, the camera on the ball
-//   LAST .. OUT on to Now while the camera pulls back to the whole journey
-// Past OUT it holds on the whole journey (the journey never drives it there).
+//   0 .. LAST   one even step per role, the camera on the ball (the ball
+//               lands on the first role, and sets off from it at once)
+//   LAST .. OUT on to Now, a leg like the others (the camera stays on the ball)
 // Inside a beat everything is linear: the glides that drive it do the easing.
-const IN = 0.12;
+const IN = 0;
 const STEP = 0.09;
 const STOPS = SEQ.map((_, i) => IN + i * STEP);
 const LAST = STOPS[STOPS.length - 1];
-const OUT = LAST + 0.12;
+const OUT = LAST + STEP;
 const PATH = SEQ.map(restYear);
 const yearAt = (p) => {
   if (p <= IN) return PATH[0];
@@ -91,10 +90,7 @@ const yearAt = (p) => {
 };
 // How far the camera is in: 0 shows the whole line, 1 is on the ball (from
 // the start: the ruler draws out of the ball as it arrives).
-const zoomAt = (p) => {
-  if (p <= LAST) return 1;
-  return 1 - within(p, LAST, OUT);
-};
+const zoomAt = () => 1;
 // A role is written out while the ball is on it, and left behind as soon as
 // the ball sets off again.
 const NEAR = 0.016;
@@ -107,7 +103,7 @@ const statesAt = (p) => SEQ.map((_, i) => stateOf(i, p));
 // Each role's two moves, as progress windows: it rises in over the last
 // stretch of the ball's approach, and leaves over the whole of its next leg
 // (the last one leaves as the camera pulls back to the whole journey).
-const ARRIVE = SEQ.map((_, i) => [STOPS[i] - (i === 0 ? 0.05 : STEP * 0.4), STOPS[i]]);
+const ARRIVE = SEQ.map((_, i) => [STOPS[i] - (i === 0 ? 0.05 : STEP * 0.34), STOPS[i]]);
 const LEAVE = SEQ.map((_, i) => [STOPS[i], i < SEQ.length - 1 ? STOPS[i + 1] : OUT]);
 
 // Momentum: the ball never quite stops. While the camera holds on a role,
@@ -147,7 +143,7 @@ function stepDrift(p, dt) {
 
 /** Where the ball rests, one stop per role, as timeline progress. */
 export const timelineStops = () => [...STOPS];
-/** The whole journey, seen from afar with the ball on Now. */
+/** The end of the career: the ball on Now. */
 export const TIMELINE_NOW = OUT;
 
 function Wheel({ year, place }) {
@@ -238,20 +234,19 @@ export function timelineGrid(g, p) {
 
 /** Lanes for the notes under the line, seen from afar (the closest they ever
  *  get): each note takes the first lane where it clears the one before. A
- *  note hangs back over its own period, ending where the role ended; one that
- *  would run off the left edge hangs forward instead. `sizes` are the notes'
- *  measured widths. */
+ *  note hangs from its role's milestone (the dot where it began), reading
+ *  on to the right. `sizes` are the notes' measured widths. */
 function laneOut(g, sizes) {
   const lanes = [];
   // Packed as the notes will lie at the journey's widest view (the overview
   // scale), so none overlap there.
   const at = (yr) => g.left + (g.x(yr) - g.left) * g.out;
   return SEQ.map((r, i) => {
-    const x = at(spanOf(r)[1]);
+    const x = at(spanOf(r)[0]);
     // Air around each note, so the whole journey reads at a glance.
     const w = (sizes[i] ?? 160) + (g.narrow ? 24 : 48);
-    const flip = x - w >= 12;
-    const [a, b] = flip ? [x - w, x] : [x, x + w];
+    const flip = false;
+    const [a, b] = [x, x + w];
     let lane = lanes.findIndex((taken) => taken.every(([c, d]) => b < c || a > d));
     if (lane === -1) lane = lanes.push([]) - 1;
     lanes[lane].push([a, b]);
@@ -261,7 +256,7 @@ function laneOut(g, sizes) {
 
 // The ball on the line (the slider's knob): its radius in px. The logo
 // opens from a circle this size.
-export const TIP_R = 18;
+export const TIP_R = 15;
 
 // The note's type sizes (px): what each line of the big label shrinks to.
 const NOTE_PX = { company: 14.5, logo: 30, title: 11.5, when: 11.5 };
@@ -287,6 +282,7 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
   // places itself from its own spot on the line (--a) with calc().
   const rootRef = useRef(null);
   const parts = useRef([]); // per role: its elements and their measured sizes
+  const spanRefs = useRef([]); // per role: its span's ink
   const layout = useRef(null); // ruler, lane spacing and the notes' lanes
   const aim = (p) => {
     const el = rootRef.current;
@@ -299,6 +295,14 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
     // they bunch up at the ball, and its halo goes as it becomes the logo.
     el.style.setProperty('--marks', (1 - within(r, 0.35, 0.75)).toFixed(3));
     el.style.setProperty('--halo', (1 - within(r, 0.6, 1)).toFixed(3));
+    // Each role's span inks in right behind the ball as it rolls through.
+    const yr = yearAt(p);
+    SEQ.forEach((r, i) => {
+      const el = spanRefs.current[i];
+      if (!el) return;
+      const [from, to] = spanOf(r);
+      el.style.transform = `scaleX(${clamp01((yr - from) / (to - from)).toFixed(4)})`;
+    });
     // The timeline is not laid out while it is off stage: measure once it is.
     if (!layout.current && !measure()) return;
     SEQ.forEach((r, i) => stage(parts.current[i], p, s, r, i));
@@ -307,13 +311,14 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
   const stage = (q, p, s, r, i) => {
     const L = layout.current;
     if (!q?.big || !q.m || !L) return;
-    const u = within(p, ...ARRIVE[i]);
+    // The first role rises in as the ball lands on it (the shot's end).
+    const u = i === 0 ? within(handoff.get(), 0.64, 0.92) : within(p, ...ARRIVE[i]);
     const t = within(p, ...LEAVE[i]);
     const { m } = q;
-    const [from, to] = spanOf(r);
+    const [from] = spanOf(r);
     const { lane, flip } = L.lanes[i];
     const laneY = L.base + lane * L.step;
-    const x0 = (g.x(to) - g.x(from)) * s; // where the role ended, from its dot
+    const x0 = 0; // its milestone: the dot where the role began
 
     // Rising in, a line at a time out of its own mask: name (or logo) first.
     q.inners.forEach((el, j) => {
@@ -323,16 +328,16 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
     });
     q.big.style.visibility = u > 0 ? 'visible' : 'hidden';
 
-    // Leaving: the label travels with the ball (it keeps its place over it),
-    // then, as the ball nears the next role, sinks under the line, each line
-    // easing down to its size in the note and stacking in order where the
-    // role ended. The name leads.
+    // Leaving: the label rides along with the ball (it keeps its place over
+    // it), then settles under the line at its own milestone, each line easing
+    // down to its size in the note and stacking in order, the name first.
+    // It is under the line before the next role rises in over the ball.
     const ballFrom = (g.x(PATH[i]) - g.x(from)) * s;
     const ballNow = (g.x(yearAt(p)) - g.x(from)) * s;
     const follow = t > 0 ? ballNow - ballFrom : 0;
     let y = L.rulerY + laneY;
     m.lines.forEach((ln, j) => {
-      const k = inOutCubic(within(t, 0.42 + j * 0.05, 0.9 + j * 0.03));
+      const k = inOutCubic(within(t, 0.24 + j * 0.04, 0.58 + j * 0.04));
       if (!ln.kept) {
         // Phones keep the note to name and years: the title steps back.
         q.wraps[j].style.transform = "";
@@ -358,7 +363,7 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
     // A hairline drops from the line to catch it as it lands.
     const lead = q.leader;
     lead.style.height = `${(laneY + m.noteH - 2).toFixed(1)}px`;
-    lead.style.transform = `translate3d(${x0.toFixed(2)}px, 0, 0) scaleY(${inOutCubic(within(t, 0.55, 0.95)).toFixed(4)})`;
+    lead.style.transform = `translate3d(${x0.toFixed(2)}px, 0, 0) scaleY(${inOutCubic(within(t, 0.32, 0.66)).toFixed(4)})`;
   };
   // The sizes the moves are built from (transforms do not change them), and
   // the notes' lanes, packed from their real sizes.
@@ -445,7 +450,7 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
   const ink = useTransform(fade, (f) => 1 - f);
   // The line slides in under the ball (the panel's own move); the year and
   // the title come up as it settles.
-  const headInk = useTransform([fade, handoff], ([f, h]) => (1 - f) * smooth(within(h, 0.4, 1)));
+  const headInk = useTransform([fade, handoff], ([f, h]) => (1 - f) * smooth(within(h, 0.45, 0.8)));
   // The knob is the basketball: it turns as it rolls (distance over radius).
 
   const [states, setStates] = useState(() => statesAt(progress.get()));
@@ -483,7 +488,12 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
             const [from, to] = spanOf(r);
             return (
               <span key={keyOf(r)} className={styles.span} style={{ '--a': at(from), '--w': (g.x(to) - g.x(from)).toFixed(2) }} aria-hidden>
-                <i className={`${r.internship ? styles.intern : ''} ${states[i] !== 'ahead' ? styles.spanOn : ''}`} />
+                <i
+                  ref={(el) => {
+                    spanRefs.current[i] = el;
+                  }}
+                  className={r.internship ? styles.intern : undefined}
+                />
               </span>
             );
           })}
@@ -571,7 +581,8 @@ function Role({ role: r, index, state, at, partsRef, onLogo }) {
         <h3 className={styles.bigHead}>
           {line(0, `${styles.company} ${logo ? styles.hasLogo : ''}`, logo ? <img className={styles.logo} src={logo} alt={r.company} onLoad={onLogo} data-key="" /> : <span data-key="">{r.company}</span>)}
         </h3>
-        {line(1, styles.jobTitle, <span data-key="">{logo ? `${title}, ${r.company}` : title}</span>)}
+        {/* (A company since renamed says so: "now Phygital24".) */}
+        {line(1, styles.jobTitle, <span data-key="">{`${logo ? `${title}, ${r.company}` : title}${r.now ? ` (now ${r.now})` : ''}`}</span>)}
         {line(
           2,
           styles.when,

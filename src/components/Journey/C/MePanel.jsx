@@ -1,15 +1,14 @@
-// Q2: who Ken is, in one line. The statement inks itself in with the scroll
-// (so it plays back when scrolling up), set in four lines that each land a
-// beat, the claims in the poster's ink. Beside it, his work as a loose pile
-// of polaroids, each dropping in as the words reach it; any can be picked up
-// and moved, and a tap opens the Portfolio.
+// Q2: who Ken is, in one sentence, set big in the middle of the page. It
+// writes itself in with the scroll (so it plays back when scrolling up), each
+// word rising into place out of a blur. Under a fine pointer the letters
+// thicken and lift as it passes over them.
 
 import { Fragment, useEffect, useMemo, useRef } from 'react';
-import { motion, useMotionValueEvent } from 'framer-motion';
+import { useMotionValueEvent } from 'framer-motion';
 import styles from './MePanel.module.css';
 
-// The statement, a line per array; `*` marks a word in the ink.
-const STATEMENT = [['Ten', 'years', 'building'], ['*brands', 'and', '*campaigns'], ['that', 'make', 'people'], ['*stop', 'and', '*look.']];
+// The statement, a line per array, broken where it reads aloud.
+const STATEMENT = [['Ten', 'years', 'designing'], ['brands', 'and', 'campaigns'], ['for', 'products', 'that', 'are'], ['hard', 'to', 'explain.']];
 
 // The longer story, told on the phone page. A string is plain words;
 // { hl } is a highlighted claim.
@@ -22,79 +21,113 @@ export const STORY = [
   { kind: 'aside', parts: ['Same obsession: the next good move.'] },
 ];
 
-// The polaroids: where each lies in the pile (left, top, width as % of the
-// pile; r its turn; z its layer), its caption, and the word it lands with.
-// (The phone page shows the same pieces, in its own strip.)
+// The work, shown on the phone page as polaroids in a strip (caption, turn r;
+// x, y, w, z and tape place them).
 export const COLLAGE = [
   { id: 'fluid-ai', alt: 'Fluid AI brand identity', caption: 'Fluid AI', cue: 'brands', x: 0, y: 6, w: 40, r: -8, z: 2, tape: true },
   { id: 'qmart', alt: 'Qmart campaign banner', caption: 'Qmart', cue: 'campaigns', x: 34, y: 0, w: 33, r: 5, z: 3 },
-  { id: 'lebron', alt: 'A redesign concept around LeBron James', caption: 'LeBron, concept', cue: 'people', x: 63, y: 9, w: 35, r: 11, z: 2, tape: true },
-  { id: 'truearte', alt: 'Truearte packaging', caption: 'Truearte', cue: 'stop', x: 5, y: 50, w: 31, r: 6, z: 4 },
-  { id: 'beatles', alt: 'The Beatles, event artwork', caption: 'The Beatles', cue: 'and', x: 29, y: 37, w: 41, r: -3, z: 5, tape: true },
-  { id: 'acdc', alt: 'AC/DC, event artwork', caption: 'AC/DC', cue: 'look.', x: 66, y: 49, w: 33, r: -10, z: 4 },
+  { id: 'lebron', alt: 'A redesign concept around LeBron James', caption: 'LeBron, concept', cue: 'designing', x: 63, y: 9, w: 35, r: 11, z: 2, tape: true },
+  { id: 'truearte', alt: 'Truearte packaging', caption: 'Truearte', cue: 'products', x: 5, y: 50, w: 31, r: 6, z: 4 },
+  { id: 'beatles', alt: 'The Beatles, event artwork', caption: 'The Beatles', cue: 'hard', x: 29, y: 37, w: 41, r: -3, z: 5, tape: true },
+  { id: 'acdc', alt: 'AC/DC, event artwork', caption: 'AC/DC', cue: 'explain.', x: 66, y: 49, w: 33, r: -10, z: 4 },
 ];
 
-// Every word in order (each gets its turn as the scroll writes), and the
-// turn each polaroid lands on (the last of its cue word, so 'and' is the
-// one in the last line).
+// Every word in order: each gets its turn as the scroll writes.
 const build = () => {
   let n = 0;
-  const lines = STATEMENT.map((line) =>
-    line.map((raw) => {
-      const ink = raw.startsWith('*');
-      return { w: ink ? raw.slice(1) : raw, ink, i: n++ };
-    }),
-  );
-  const all = lines.flat();
-  const at = (word) => all.findLast((x) => x.w === word)?.i ?? 0;
-  const pieces = COLLAGE.map((p) => ({ ...p, i: at(p.cue) + 0.4 }));
-  return { lines, pieces, total: n };
+  const lines = STATEMENT.map((line) => line.map((w) => ({ w, i: n++ })));
+  return { lines, total: n };
 };
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
 
-/** A polaroid: lands with its word, can be picked up, a tap opens the work. */
-function Piece({ p, onSeeWork }) {
-  const moved = useRef(false);
-  return (
-    <div className={styles.slot} style={{ '--i': p.i, '--r': `${p.r}deg`, left: `${p.x}%`, top: `${p.y}%`, width: `${p.w}%`, zIndex: p.z }}>
-      <motion.button
-        type="button"
-        className={styles.polaroid}
-        drag
-        dragMomentum={false}
-        whileHover={{ scale: 1.04, rotate: -2 }}
-        whileDrag={{ scale: 1.08, rotate: 0, zIndex: 20 }}
-        onDragStart={() => {
-          moved.current = true;
-        }}
-        onPointerDown={() => {
-          moved.current = false;
-        }}
-        onClick={() => {
-          if (!moved.current) onSeeWork?.();
-        }}
-        aria-label={`${p.alt}. Open the Portfolio`}
-      >
-        {p.tape && <span className={styles.tape} aria-hidden />}
-        <span className={styles.photo}>
-          <img src={`/assets/me/collage/${p.id}.webp`} alt="" draggable={false} loading="lazy" />
-        </span>
-        <span className={styles.caption}>{p.caption}</span>
-      </motion.button>
-    </div>
-  );
+// The pointer over the statement: letters within REACH px of it swell from
+// the line's weight to the face's heaviest and lift a touch, and ease back as
+// it moves on.
+const WEIGHT = { base: 720, max: 900 };
+const LIFT = 0.07; // em, at the pointer
+const REACH = 170;
+
+function useLetterWeight(storyRef) {
+  useEffect(() => {
+    const story = storyRef.current;
+    if (!story) return undefined;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return undefined;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const letters = [...story.querySelectorAll('[data-l]')].map((el) => ({ el, x: 0, y: 0, w: WEIGHT.base }));
+    let measured = false;
+    // Where each letter sits in the statement (at the line's weight).
+    const measure = () => {
+      measured = story.offsetWidth > 0;
+      letters.forEach((l) => {
+        l.x = l.el.offsetLeft + l.el.offsetWidth / 2;
+        l.y = l.el.offsetTop + l.el.offsetHeight / 2;
+      });
+    };
+    const ptr = { x: -1e4, y: -1e4 };
+    let raf = 0;
+    const frame = () => {
+      raf = 0;
+      if (!measured) measure();
+      const box = story.getBoundingClientRect();
+      const px = ptr.x - box.left;
+      const py = ptr.y - box.top;
+      let moving = false;
+      letters.forEach((l) => {
+        const d = Math.hypot(px - l.x, (py - l.y) * 1.3);
+        const k = Math.max(0, 1 - d / REACH);
+        const target = WEIGHT.base + (WEIGHT.max - WEIGHT.base) * k * k;
+        const next = l.w + (target - l.w) * 0.2;
+        if (Math.abs(next - l.w) > 0.4) {
+          moving = true;
+          l.w = next;
+          const f = (next - WEIGHT.base) / (WEIGHT.max - WEIGHT.base);
+          l.el.style.fontVariationSettings = `'wght' ${next.toFixed(0)}, 'opsz' 72`;
+          l.el.style.transform = f > 0.01 ? `translate3d(0, ${(-LIFT * f).toFixed(3)}em, 0)` : '';
+        }
+      });
+      if (moving) raf = requestAnimationFrame(frame);
+    };
+    const kick = () => {
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+    const onMove = (e) => {
+      ptr.x = e.clientX;
+      ptr.y = e.clientY;
+      kick();
+    };
+    const onLeave = () => {
+      ptr.x = -1e4;
+      ptr.y = -1e4;
+      kick();
+    };
+    const onResize = () => {
+      measured = false;
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    document.addEventListener('pointerleave', onLeave);
+    window.addEventListener('resize', onResize);
+    document.fonts?.ready.then(onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerleave', onLeave);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [storyRef]);
 }
 
 /**
  * `progress` is the journey's scroll; `span` [a, b] is where the paragraph
  * writes itself; `arrive` [a, b] the whole crossing from the hero, for the
- * depth. `instant` shows it written. `onSeeWork` opens the Portfolio.
+ * depth. `instant` shows it written.
  */
-export default function MePanel({ progress, span, arrive, instant, wide, onSeeWork }) {
+export default function MePanel({ progress, span, arrive, instant, wide }) {
   const rootRef = useRef(null);
-  const { lines, pieces, total } = useMemo(build, []);
+  const storyRef = useRef(null);
+  const { lines, total } = useMemo(build, []);
+  useLetterWeight(storyRef);
 
   const write = (v) => {
     const root = rootRef.current;
@@ -110,31 +143,26 @@ export default function MePanel({ progress, span, arrive, instant, wide, onSeeWo
 
   return (
     <section ref={rootRef} className={`${styles.me} ${wide ? styles.wide : ''}`} aria-label="About Ken">
-      <div className={styles.story}>
-        <p className={styles.eyebrow}>About</p>
+      <div ref={storyRef} className={styles.story}>
         <h2 className={styles.statement}>
+          <span className={styles.srOnly}>{STATEMENT.map((l) => l.join(' ')).join(' ')}</span>
           {lines.map((line, li) => (
             <span key={li} className={styles.line}>
               {line.map((x, k) => (
                 <Fragment key={k}>
                   {k > 0 && ' '}
-                  <span className={`${styles.word} ${x.ink ? styles.ink : ''}`} style={{ '--i': x.i }}>
-                    {x.w}
+                  <span className={styles.word} style={{ '--i': x.i }} aria-hidden>
+                    {[...x.w].map((c, j) => (
+                      <span key={j} className={styles.l} data-l="">
+                        {c}
+                      </span>
+                    ))}
                   </span>
                 </Fragment>
               ))}
             </span>
           ))}
         </h2>
-      </div>
-
-      <div className={styles.pile}>
-        {pieces.map((p) => (
-          <Piece key={p.id} p={p} onSeeWork={onSeeWork} />
-        ))}
-        <span className={styles.hint} aria-hidden>
-          Pick one up
-        </span>
       </div>
     </section>
   );

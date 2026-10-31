@@ -19,7 +19,8 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  /* Over everything, the Mac's menu bar and windows included. */
+  z-index: 20000;
   display: grid;
   place-items: center;
   padding: clamp(10px, 3vh, 36px) clamp(10px, 3vw, 36px);
@@ -133,103 +134,97 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- 01: the three ---------- */
-.cats {
+/* ---------- 01: what you need, in plain words ---------- */
+.needs {
   display: grid;
-  border-top: 1px solid var(--b-line);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 8px;
 }
 
-.cat {
-  border-bottom: 1px solid var(--b-line);
-}
-
-.catBtn {
+/* A tile: a small drawing, the thing, what it covers; a ring that fills. */
+.need {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: 'name tick' 'blurb tick';
-  align-items: center;
-  gap: 4px 16px;
-  width: 100%;
-  min-height: 76px;
-  padding: 16px 4px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-areas: 'icon name' 'icon hint';
+  align-content: start;
+  gap: 4px 12px;
+  min-height: 74px;
+  padding: 14px 40px 14px 14px;
   border: 0;
-  background: none;
+  border-radius: 14px;
+  background: rgb(242 241 237 / 0.035);
+  box-shadow: inset 0 0 0 1px var(--b-line);
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color 200ms ease, box-shadow 200ms ease, transform 160ms var(--b-ease);
 }
 
-.catName {
+.need:active {
+  transform: scale(0.98);
+}
+
+.needIcon {
+  grid-area: icon;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--b-muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 200ms ease;
+}
+
+.needName {
   grid-area: name;
-  font-size: clamp(22px, 2.2vw, 28px);
+  font-size: 16px;
   font-weight: 500;
-  letter-spacing: -0.02em;
-  transition: transform 400ms var(--b-ease);
+  letter-spacing: -0.01em;
 }
 
-.catBlurb {
-  grid-area: blurb;
-  font-size: 14px;
+.needHint {
+  grid-area: hint;
+  font-size: 13px;
+  line-height: 1.35;
   color: var(--b-muted);
+}
+
+.need .tick {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 18px;
+  height: 18px;
+}
+
+.needOn {
+  background: rgb(242 241 237 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(242 241 237 / 0.4);
+}
+
+.needOn .needIcon {
+  stroke: var(--b-ink);
 }
 
 /* A ring that fills when picked. */
 .tick {
-  grid-area: tick;
-  width: 22px;
-  height: 22px;
   border-radius: 50%;
   box-shadow: inset 0 0 0 1.5px rgb(242 241 237 / 0.35);
   transition: box-shadow 300ms var(--b-ease), background 300ms ease;
 }
 
-.catOn .tick {
+.needOn .tick {
   background: var(--b-ink);
-  box-shadow: inset 0 0 0 6px var(--b-pop);
+  box-shadow: inset 0 0 0 5px var(--b-pop);
 }
 
 @media (hover: hover) {
-  .catBtn:hover .catName {
-    transform: translateX(6px);
-  }
-}
-
-.chipsWrap {
-  overflow: hidden;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 2px 4px 20px;
-}
-
-.chip {
-  min-height: 38px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgb(242 241 237 / 0.22);
-  color: var(--b-muted);
-  font: 400 14px/1 var(--b-text);
-  cursor: pointer;
-  transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
-}
-
-.chip[aria-pressed='true'] {
-  background: var(--b-ink);
-  box-shadow: none;
-  color: var(--b-bg);
-}
-
-@media (hover: hover) {
-  .chip:not([aria-pressed='true']):hover {
-    color: var(--b-ink);
-    box-shadow: inset 0 0 0 1px rgb(242 241 237 / 0.5);
+  .need:not(.needOn):hover {
+    background: rgb(242 241 237 / 0.06);
   }
 }
 
@@ -334,6 +329,39 @@
   text-underline-offset: 4px;
 }
 
+/* Rather talk: a short call, booked into Ken's calendar. */
+.book {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(242 241 237 / 0.22);
+  color: var(--b-ink);
+  font: 500 14px/1 var(--b-text);
+  text-decoration: none;
+  transition: box-shadow 200ms ease;
+}
+
+.book svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: hover) {
+  .book:hover {
+    box-shadow: inset 0 0 0 1px rgb(242 241 237 / 0.55);
+  }
+}
+
 .quiet:hover {
   color: var(--b-ink);
 }
@@ -362,8 +390,8 @@
 }
 
 .close:focus-visible,
-.catBtn:focus-visible,
-.chip:focus-visible,
+.need:focus-visible,
+.book:focus-visible,
 .primary:focus-visible,
 .quiet:focus-visible,
 .foot a:focus-visible {

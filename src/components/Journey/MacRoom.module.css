@@ -42,67 +42,59 @@
   line-height: 0.8;
   letter-spacing: -0.02em;
   text-transform: uppercase;
-  white-space: nowrap;
   color: #f2f1ed;
+  /* A sentence part: it may wrap, balanced, centred. */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 0.24em;
+  max-width: 92vw;
+  text-align: center;
 }
 
 .caption {
-  display: grid;
-  justify-items: center;
-  row-gap: 8px;
-  max-width: min(880px, 92vw);
+  display: block;
+  max-width: min(640px, 92vw);
   padding: 0 20px;
-  font: 400 clamp(16px, 1.3vw, 20px) / 1.4 'Instrument Sans', -apple-system, sans-serif;
+  text-align: center;
+  text-wrap: balance;
+  font: 400 clamp(16px, 1.3vw, 20px) / 1.45 'Instrument Sans', -apple-system, sans-serif;
   letter-spacing: 0.005em;
   color: rgba(236, 236, 233, 0.86);
 }
 
-/* Each item rises out of a blur in the chapter's colour, then settles to
-   white (--t 0..1 is set per frame). A small dot between items. */
+/* Each word rises out of a blur in the chapter's colour, then settles to
+   white (--t 0..1 is set per frame). */
 .captionWord {
   --t: 0;
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
+  display: inline-block;
+  margin: 0 0.14em;
   opacity: var(--t);
-  filter: blur(calc((1 - var(--t)) * 10px));
+  filter: blur(calc((1 - var(--t)) * 8px));
   transform: translate3d(0, calc((1 - var(--t)) * 0.7em), 0);
   color: color-mix(in srgb, var(--c) clamp(0%, calc((1 - var(--t)) * 140%), 100%), rgba(236, 236, 233, 0.9));
 }
 
-.captionRow {
-  display: flex;
-  justify-content: center;
+/* The line, a word at a time, a letter at a time (--t in, --o out, set per
+   frame): each letter tips up out of its slot and away over the top. */
+.lineWord {
+  display: inline-flex;
+  white-space: nowrap;
 }
 
-/* Wide screens: all six on one line (the window above the laptop is short
-   at the first word), so the rows dissolve and the dot carries across. */
-@media (min-width: 1100px) {
-  .caption {
-    display: flex;
-    justify-content: center;
-    max-width: none;
-  }
-  .captionRow {
-    display: contents;
-  }
-  .captionRow + .captionRow .captionWord:first-child::before {
-    content: '';
-    width: 4px;
-    height: 4px;
-    margin: 0 16px;
-    border-radius: 50%;
-    background: rgba(236, 236, 233, 0.35);
-  }
+.letter {
+  --t: 0;
+  --o: 0;
+  display: inline-block;
+  opacity: calc(var(--t) * (1 - var(--o)));
+  transform: translate3d(0, calc((1 - var(--t)) * 0.5em - var(--o) * 0.4em), 0) rotateX(calc((1 - var(--t)) * -80deg + var(--o) * 70deg));
+  transform-origin: 50% 80%;
+  backface-visibility: hidden;
 }
 
-.captionWord + .captionWord::before {
-  content: '';
-  width: 4px;
-  height: 4px;
-  margin: 0 16px;
-  border-radius: 50%;
-  background: rgba(236, 236, 233, 0.35);
+/* The word that carries each line, in the chapter's colour. */
+.key {
+  color: var(--c);
 }
 
 /* Overhead flow: the words live in a window whose bottom edge sits just
@@ -125,7 +117,11 @@
 }
 
 .wordsTop .word {
-  font-size: clamp(72px, 10.5vw, 176px);
+  font-size: clamp(48px, 6.4vw, 116px);
+  line-height: 0.9;
+  white-space: normal;
+  text-align: center;
+  perspective: 600px;
 }
 
 .scene {

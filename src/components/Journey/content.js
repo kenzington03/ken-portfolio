@@ -61,7 +61,4 @@ const tidy = (q) =>
 
 export const KUDOS = KUDOS_QUOTES.map((k) => ({ ...k, quote: tidy(k.quote) }));
 
-// Under each of the three words in the Mac room (and the phone's ending):
-// everything in that category, from src/data/services.js.
-export const CHAPTER_ITEMS = Object.fromEntries(SERVICES.map((sv) => [sv.id, sv.items.map((it) => it.label)]));
 export const CHAPTER_CAPTIONS = Object.fromEntries(SERVICES.map((sv) => [sv.id, sv.items.map((it) => it.label).join(' · ')]));

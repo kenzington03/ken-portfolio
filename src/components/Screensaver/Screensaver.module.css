@@ -1,13 +1,18 @@
-/* Screensaver: the bouncing-logo classic, with Ken's name. */
+/* Screensaver: two to pick from (see Screensaver.jsx). The print run on
+   warm paper; the particles on night. */
 
 .screensaver {
   position: fixed;
   inset: 0;
   z-index: 100000;
   overflow: hidden;
-  background: #050507;
+  background: #050508;
   cursor: none;
-  animation: fadeIn 500ms ease;
+  animation: fadeIn 700ms ease;
+}
+
+.light {
+  background: #efece4;
 }
 
 @keyframes fadeIn {
@@ -16,49 +21,61 @@
   }
 }
 
-.bouncer {
+.sheet {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Print run ---------- */
+.print {
+  position: absolute;
+  inset: 0;
+}
+
+/* Paper grain over the prints. */
+.grain {
+  position: absolute;
+  inset: 0;
+  background: url('/assets/hero/art/grain.png') 0 0 / 256px 256px;
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* The mark that bounces: Ken's name in the current pair of inks. */
+.mark {
+  --ink-a: #ff4f1a;
+  --ink-b: #16234a;
   position: absolute;
   top: 0;
   left: 0;
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  padding: 18px 30px 20px;
-  border: 3px solid currentColor;
-  border-radius: 22px;
-  transition: color 180ms linear;
+  padding: 0 0.04em;
+  font: 900 clamp(84px, 11vw, 168px) / 0.86 'Big Shoulders', 'Cabinet Grotesk', sans-serif;
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: 0.01em;
+  color: var(--ink-a);
+  text-shadow: 0.035em 0.035em 0 var(--ink-b);
+  transition: color 160ms linear, text-shadow 160ms linear;
   will-change: transform;
 }
 
-/* Reduced motion: it simply sits in the middle. */
-.bouncerStill {
+/* A corner: the mark jolts as the big stamp lands. */
+.slam {
+  animation: slam 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slam {
+  from {
+    scale: 1.25;
+  }
+}
+
+.markStill {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-.bouncerName {
-  font-family: 'Big Shoulders', 'Cabinet Grotesk', sans-serif;
-  font-size: clamp(64px, 9vw, 132px);
-  font-weight: 900;
-  font-variation-settings: 'wdth' 112;
-  line-height: 0.8;
-  letter-spacing: -0.04em;
-}
-
-.bouncerTag {
-  font: 600 13px/1 -apple-system, BlinkMacSystemFont, 'Satoshi', sans-serif;
-  letter-spacing: 0.02em;
-}
-
-.clock {
-  position: absolute;
-  top: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  font: 600 15px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.55);
 }
 
 .score {
@@ -69,9 +86,14 @@
   align-items: center;
   gap: 8px;
   margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgb(18 18 20 / 0.88);
   transform: translateX(-50%);
-  font: 500 13px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  color: rgba(255, 255, 255, 0.5);
+  font: 500 12px/1 'Instrument Sans', -apple-system, sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.6);
   white-space: nowrap;
 }
 
@@ -84,7 +106,37 @@
   width: 1px;
   height: 12px;
   margin: 0 6px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(255 255 255 / 0.2);
+}
+
+/* ---------- Particles ---------- */
+.particles {
+  position: absolute;
+  inset: 0;
+}
+
+.away {
+  position: absolute;
+  left: 50%;
+  bottom: 64px;
+  margin: 0;
+  transform: translateX(-50%);
+  font: 500 12px/1 'Instrument Sans', -apple-system, sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.42);
+  white-space: nowrap;
+}
+
+/* ---------- Both ---------- */
+.clock {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 600 15px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: rgb(18 18 20 / 0.55);
 }
 
 .hint {
@@ -94,6 +146,10 @@
   margin: 0;
   transform: translateX(-50%);
   font: 400 12px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgb(255 255 255 / 0.32);
   white-space: nowrap;
+}
+
+.light .hint {
+  color: rgb(18 18 20 / 0.4);
 }

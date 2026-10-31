@@ -19,12 +19,15 @@ export const HANDOFF_AT = 0.975;
 // Shut Down glides back to the last one.
 export const CHAPTER_STOPS = [0.18, 0.41, 0.645];
 
-// The three things Ken does (src/data/services.js), one per chapter. The
-// colours tint the room's glow; the journey sets them to its palette.
+// The three things Ken does (src/data/services.js), one per chapter. `line`
+// is what the Mac room says: one sentence across the three, each part
+// picking up the last (`*` marks the word in the chapter's colour); `caption`
+// is what that buys a client. `word` is the short name (the phone ending).
+// The colours tint the room's glow; the journey sets them to its palette.
 export const CHAPTERS = [
-  { id: 'brand', word: 'Brand', from: 0.03, to: 0.26, color: '#5b2fd6', caption: 'Identity systems, logos, guidelines, naming, packaging, websites.' },
-  { id: 'campaigns', word: 'Campaigns', from: 0.26, to: 0.49, color: '#ffc21a', caption: 'Campaign strategy, creative direction, leading teams, social, events.' },
-  { id: 'motion', word: 'Motion', from: 0.49, to: 0.72, color: '#5b2fd6', caption: 'Video shoots, editing, motion graphics, AI video and content.' },
+  { id: 'brand', word: 'Brand', line: 'I build *brands,', from: 0.03, to: 0.26, color: '#5b2fd6', caption: 'Identity, logos and guidelines that make you look like one company everywhere.' },
+  { id: 'campaigns', word: 'Campaigns', line: 'launch them with *campaigns,', from: 0.26, to: 0.49, color: '#ffc21a', caption: 'Strategy, creative direction, social and events, so the launch gets noticed.' },
+  { id: 'motion', word: 'Motion', line: 'and make them *move.', from: 0.49, to: 0.72, color: '#5b2fd6', caption: 'Shoots, edits, motion graphics and AI video, so your feed never goes quiet.' },
 ];
 
 /** Tints the chapters (and so the room's glow) with the journey's palette. */

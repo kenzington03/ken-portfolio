@@ -10,13 +10,16 @@
   --line: rgba(18, 18, 20, 0.1);
   --accent: #3d7bff;
   --night: #07070a;
+  /* The hero's own set: a design tool's canvas, warm white. */
+  --stage: #f6f5f1;
+  --stage-ink: var(--ink);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --gutter: clamp(20px, 3.6vw, 56px);
   --display: 'Big Shoulders', 'Cabinet Grotesk', system-ui, sans-serif;
   --text: 'Instrument Sans', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
-  /* Ken's hand: the notes he scribbles on the page. */
-  --hand: 'Gochi Hand', 'Caveat', 'Comic Sans MS', cursive;
   --ball: #c45a26;
+  /* The ball as the career's knob, and the rim it drops through. */
+  --knob: #e8622a;
   /* The second ink on the poster: the name is printed twice, a hair off. */
   --riso: #ff6c2f;
   position: relative;
@@ -26,6 +29,14 @@
   background: #07070a;
 }
 
+/* On the paper, the Mac's room behind the pinned deck is paper too: while
+   the page is moving, a frame's lag in the pin never shows a dark seam. */
+.journey:not([data-dark]),
+.journey .roomPaper {
+  background: var(--paper);
+}
+
+
 .page {
   position: relative;
   z-index: 1;
@@ -33,7 +44,7 @@
 
 
 /* ---------- Loader: a line to read and one hairline of real progress,
-   on the hero's own paper, so it melts straight into it ---------- */
+   on the hero's own dark set, so it melts straight into it ---------- */
 .loader {
   position: fixed;
   inset: 0;
@@ -43,7 +54,8 @@
   justify-items: center;
   gap: 28px;
   padding: 0 24px;
-  background: var(--paper);
+  background: var(--stage);
+  color: var(--stage-ink);
   transition: opacity 560ms ease;
 }
 
@@ -63,7 +75,7 @@
 .fillOutline {
   display: block;
   color: transparent;
-  -webkit-text-stroke: 2px color-mix(in srgb, var(--ink) 30%, transparent);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--stage-ink) 30%, transparent);
 }
 
 .fillInk {
@@ -102,7 +114,7 @@
   font: 600 15px/1 var(--text);
   cursor: pointer;
   box-shadow: 0 12px 26px -12px rgb(0 0 0 / 0.55);
-  transition: transform 300ms var(--ease);
+  transition: transform 300ms var(--ease), background-color 300ms ease, color 300ms ease;
 }
 
 .contactFab i {
@@ -242,19 +254,347 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--paper);
+  background: var(--stage);
 }
 
-/* Paper grain over everything but the controls. */
+/* Print grain over everything but the controls. */
 .grain {
   position: absolute;
   inset: 0;
   z-index: 3;
   background: url('/assets/hero/art/grain.png') 0 0 / 256px 256px;
   mix-blend-mode: multiply;
-  opacity: 0.55;
+  opacity: 0.5;
   pointer-events: none;
 }
+
+/* ---------- The canvas: the hero's set, a design tool's ----------
+   A fine dot grid on warm white, rulers along the top and the left; the
+   name sits selected on it. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgb(18 18 20 / 0.16) 1px, transparent 1.3px) 12px 12px / 24px 24px;
+  transform: translate3d(calc(var(--px, 0) * -6px), calc(var(--py, 0) * -4px), 0);
+  opacity: 0;
+  transition: opacity 900ms ease 200ms;
+}
+
+.canvasOn {
+  opacity: 1;
+}
+
+.rulerTop,
+.rulerLeft {
+  position: absolute;
+  background-color: rgb(246 245 241 / 0.92);
+  font: 500 9px/1 var(--text);
+  font-variant-numeric: tabular-nums;
+  color: rgb(18 18 20 / 0.38);
+}
+
+/* Ticks every 10 px, longer every 50. */
+.rulerTop {
+  left: 18px;
+  right: 0;
+  top: 0;
+  height: 18px;
+  border-bottom: 1px solid rgb(18 18 20 / 0.1);
+  background-image:
+    repeating-linear-gradient(90deg, rgb(18 18 20 / 0.22) 0 1px, transparent 1px 50px),
+    repeating-linear-gradient(90deg, rgb(18 18 20 / 0.13) 0 1px, transparent 1px 10px);
+  background-size: 100% 8px, 100% 4px;
+  background-position: -18px 100%, -18px 100%;
+  background-repeat: repeat-x;
+}
+
+.rulerLeft {
+  left: 0;
+  top: 18px;
+  bottom: 0;
+  width: 18px;
+  border-right: 1px solid rgb(18 18 20 / 0.1);
+  background-image:
+    repeating-linear-gradient(180deg, rgb(18 18 20 / 0.22) 0 1px, transparent 1px 50px),
+    repeating-linear-gradient(180deg, rgb(18 18 20 / 0.13) 0 1px, transparent 1px 10px);
+  background-size: 8px 100%, 4px 100%;
+  background-position: 100% -18px, 100% -18px;
+  background-repeat: repeat-y;
+}
+
+.rulerTop span {
+  position: absolute;
+  top: 3px;
+  transform: translateX(-15px);
+}
+
+.rulerLeft span {
+  position: absolute;
+  left: 3px;
+  transform: translateY(-15px) rotate(-90deg) translateX(-100%);
+  transform-origin: 0 0;
+}
+
+/* ---------- Edit mode: remix the poster ----------
+   The name, selected as on a canvas: a blue box, eight handles (the bottom
+   right one sizes it), its name and its size. Only while editing. */
+.select {
+  position: absolute;
+  inset: -0.075em -0.035em -0.075em -0.045em;
+  border: 1.5px solid #0d99ff;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 200ms ease, transform 300ms var(--ease);
+  pointer-events: none;
+}
+
+.castEditing .name {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+.castEditing .name:active {
+  cursor: grabbing;
+}
+
+.castEditing .select {
+  opacity: 1;
+  transform: none;
+}
+
+.castEditing .select [data-corner] {
+  pointer-events: auto;
+  cursor: nwse-resize;
+  width: 13px;
+  height: 13px;
+  margin: -7px 0 0 -7px;
+}
+
+/* Snap guides: pink, as in a design tool. */
+.guideV,
+.guideH {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  background: #ff3e8e;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.guideV {
+  width: 1px;
+  height: 100%;
+}
+
+.guideH {
+  width: 100%;
+  height: 1px;
+}
+
+/* The way in: a quiet pill under the clock. */
+.remix {
+  position: fixed;
+  top: 46px;
+  left: max(var(--gutter), 24px);
+  z-index: 31;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 12px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(18 18 20 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(18 18 20 / 0.1);
+  color: var(--ink);
+  font: 600 12px/1 var(--text);
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 140ms var(--ease);
+}
+
+.remix svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .remix:hover {
+    background: rgb(18 18 20 / 0.1);
+  }
+}
+
+.remix:active {
+  transform: scale(0.96);
+}
+
+.remix:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The toolbar, top centre while editing. */
+.posterBar {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 10px;
+  border-radius: 14px;
+  background: #18181b;
+  box-shadow: 0 16px 40px -16px rgb(0 0 0 / 0.6), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  color: #ececea;
+  transform: translateX(-50%);
+}
+
+.pbGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pbSep {
+  width: 1px;
+  height: 20px;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.pbIcon,
+.pbType,
+.pbText {
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: 500 12px/1 var(--text);
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.pbIcon {
+  width: 30px;
+  display: grid;
+  place-items: center;
+}
+
+.pbIcon svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.pbType,
+.pbText {
+  padding: 0 10px;
+}
+
+.pbType[aria-checked='true'] {
+  background: rgb(255 255 255 / 0.14);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pbIcon:hover,
+  .pbType:hover,
+  .pbText:hover {
+    background: rgb(255 255 255 / 0.08);
+  }
+}
+
+/* An ink: the poster's two colours, split on the diagonal. */
+.pbInk {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--a) 50%, var(--b) 50%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15);
+  cursor: pointer;
+  transition: transform 140ms var(--ease);
+}
+
+.pbInk[aria-checked='true'] {
+  box-shadow: 0 0 0 2px #18181b, 0 0 0 4px #ececea;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pbInk:hover {
+    transform: scale(1.12);
+  }
+}
+
+.pbDone {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #ececea;
+  color: #121214;
+  font: 600 12px/1 var(--text);
+  cursor: pointer;
+}
+
+.pbIcon:focus-visible,
+.pbType:focus-visible,
+.pbText:focus-visible,
+.pbInk:focus-visible,
+.pbDone:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.select i {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  margin: -5px 0 0 -5px;
+  border: 1.5px solid #0d99ff;
+  background: #fff;
+}
+
+.h_nw { left: 0; top: 0; }
+.h_n { left: 50%; top: 0; }
+.h_ne { left: 100%; top: 0; }
+.h_e { left: 100%; top: 50%; }
+.h_se { left: 100%; top: 100%; }
+.h_s { left: 50%; top: 100%; }
+.h_sw { left: 0; top: 100%; }
+.h_w { left: 0; top: 50%; }
+
+.selectName {
+  position: absolute;
+  left: -1.5px;
+  bottom: calc(100% + 6px);
+  font: 500 11px/1 var(--text);
+  color: #0d99ff;
+  white-space: nowrap;
+}
+
+.selectSize {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: #0d99ff;
+  color: #fff;
+  font: 600 10px/1 var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
 
 /* Where and when, top left. */
 .place {
@@ -268,7 +608,7 @@
   font: 500 13px/1 var(--text);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--stage-ink) 55%, transparent);
 }
 
 .btnLight {
@@ -425,6 +765,52 @@
   -webkit-user-drag: none;
 }
 
+/* ---------- The hoop: the shot from About into the career ----------
+   Ink lines on the paper, the rim in the ball's orange. Two layers (see
+   HoopBack / HoopFront), placed by the Cast. */
+.hoop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  aspect-ratio: 1;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.hoop svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.board {
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  fill: color-mix(in srgb, var(--paper) 70%, transparent);
+}
+
+.board + .board {
+  fill: none;
+}
+
+.rim {
+  stroke: var(--knob);
+  stroke-width: 3.2;
+}
+
+/* The net stretches down as the ball drops through, then shivers back. */
+.net {
+  stroke: color-mix(in srgb, var(--ink) 70%, transparent);
+  stroke-width: 1;
+  transform-box: view-box;
+  transform-origin: 60px 31px;
+  transform: scale(calc(1 - 0.14 * var(--swish, 0)), calc(1 + 0.32 * var(--swish, 0)));
+}
+
 /* ---------- The name: between Ken's body and his head ----------
    Placed and moved every frame by the Cast (top, transform). "Hi, I'm Ken"
    lands first; then the rest of the name slides out from behind the N. */
@@ -578,7 +964,7 @@
   font-variation-settings: 'opsz' 72;
   line-height: 1;
   letter-spacing: 0;
-  color: var(--ink);
+  color: var(--stage-ink);
   white-space: nowrap;
 }
 
@@ -633,7 +1019,7 @@
   text-align: right;
   font: 400 clamp(17px, 1.55vw, 26px) / 1.25 var(--text);
   letter-spacing: -0.01em;
-  color: var(--ink);
+  color: var(--stage-ink);
   white-space: nowrap;
   opacity: 0;
   transform: translate3d(0, 10px, 0);
@@ -664,8 +1050,8 @@
   margin-top: 14px;
 }
 
-/* ---------- Notes: Ken's handwriting on the page ----------
-   The words write themselves left to right, then the arrow draws. */
+/* ---------- Notes: small labels on the page ----------
+   The words wipe in left to right, then the arrow draws. */
 .note {
   display: inline-flex;
   align-items: center;
@@ -675,7 +1061,9 @@
   border-radius: 10px;
   background: none;
   color: var(--ink);
-  font: 400 clamp(21px, 1.75vw, 30px) / 1 var(--hand);
+  font: 600 12px/1 var(--text);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
@@ -739,123 +1127,178 @@
   outline-offset: 2px;
 }
 
-/* "scroll down", under the descriptor on the left, its arrow pointing down. */
+/* "scroll down", beside the resting ball, its arrow pointing down (on the
+   hero's dark set). */
 .noteScroll {
   position: absolute;
+  color: var(--stage-ink);
   /* Just right of the resting ball, with clear air (left is set by Cast). */
   left: 70%;
   bottom: clamp(36px, 9vh, 96px);
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  transform: rotate(-3deg);
+  align-items: center;
+  gap: 10px;
   opacity: 0;
   z-index: 2;
 }
 
 .noteScroll svg {
-  height: 2.2em;
-  margin-left: 1.6em;
+  height: 3em;
+  stroke-width: 3;
 }
 
 .castNarrow .noteScroll {
   left: 50%;
-  bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
+  /* Clear of the section nav along the bottom. */
+  bottom: max(84px, calc(env(safe-area-inset-bottom) + 74px));
   align-items: center;
-  font-size: 19px;
-  transform: translateX(-50%) rotate(-2deg);
+  transform: translateX(-50%);
 }
 
 .castNarrow .noteScroll svg {
-  margin-left: 0;
-  height: 1.6em;
+  height: 2.4em;
 }
 
-/* On the career: for anyone who has seen enough of it. */
+/* On the career: under its title, top right, for anyone who has seen
+   enough of it. */
 .skipCareer {
   position: absolute;
+  top: calc(80px + clamp(17px, 1.4vw, 22px) * 1.3 + 0.4em + 22px);
   right: var(--gutter);
-  bottom: clamp(84px, 11vh, 120px);
   z-index: 6;
-  transform: rotate(-2deg);
-}
-
-/* ---------- Scoreboard: the four quarters, hung top centre ---------- */
-.score {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  display: flex;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
-  background: #121214;
-  box-shadow: 0 12px 30px -14px rgb(18 18 20 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.06);
-  transform: translateX(-50%);
-  pointer-events: auto;
-}
-
-.quarter {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 32px;
-  padding: 0 14px;
-  border: 0;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px 0 16px;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
   border-radius: 999px;
-  background: transparent;
-  color: rgb(236 235 231 / 0.62);
-  font: 500 13px/1 var(--text);
-  white-space: nowrap;
+  background: color-mix(in srgb, var(--paper) 80%, transparent);
+  color: var(--ink);
+  font: 600 13px/1 var(--text);
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background-color 250ms ease, color 250ms ease, opacity 250ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 140ms var(--ease);
 }
 
-.quarter b {
-  font: 800 13px/1 var(--display);
-  letter-spacing: 0.06em;
-  color: #e9864d;
-}
-
-.quarter i {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 5px;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: rgb(255 255 255 / 0.1);
-}
-
-.quarter i span {
-  display: block;
-  height: 100%;
-  background: #e9864d;
-  transform: scaleX(0);
-  transform-origin: left;
-}
-
-.quarterOn {
-  background: rgb(255 255 255 / 0.1);
-  color: #f4f4f2;
-}
-
-.quarterLocked {
-  opacity: 0.4;
-  cursor: default;
+.skipCareer svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 220ms var(--ease);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .quarter:not(.quarterLocked):not(.quarterOn):hover {
-    color: #f4f4f2;
+  .skipCareer:hover {
+    border-color: var(--ink);
+  }
+  .skipCareer:hover svg {
+    transform: translateX(2px);
   }
 }
 
-.quarter:focus-visible {
+.skipCareer:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+
+/* ---------- Sections: the way around, bottom left ----------
+   Three names on a line, the ball rolling along under them (placed by
+   SectionNav). Frosted, so it reads over the paper and over the Mac. */
+.secNav {
+  position: fixed;
+  left: max(var(--gutter), 24px);
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 31;
+  padding: 10px 18px 13px 14px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent), 0 12px 28px -18px rgb(0 0 0 / 0.45);
+  color: var(--ink);
+  transition: background-color 400ms ease, color 400ms ease, box-shadow 400ms ease;
+}
+
+.secNavDark {
+  background: rgb(22 22 26 / 0.55);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 28px -18px rgb(0 0 0 / 0.8);
+  color: #ececea;
+}
+
+.secTrack {
+  position: relative;
+  display: flex;
+  gap: 26px;
+}
+
+.secLink {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 600 14px/1 var(--text);
+  letter-spacing: -0.005em;
+  opacity: 0.45;
+  cursor: pointer;
+  transition: opacity 250ms ease;
+}
+
+.secNum {
+  font: 700 10px/1 var(--text);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.secOn {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .secLink:hover {
+    opacity: 1;
+  }
+}
+
+.secLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* The line the ball rolls along. */
+.secLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in srgb, currentColor 22%, transparent);
+  pointer-events: none;
+}
+
+/* A little basketball: orange, its seams turning as it rolls. */
+.secBall {
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 9px;
+  height: 9px;
+  margin-left: -1px;
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 0.5px), rgb(0 0 0 / 0.45) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(0deg, transparent calc(50% - 0.5px), rgb(0 0 0 / 0.45) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    var(--knob);
+  will-change: transform;
 }
 
 /* ---------- Work with me: always one tap away ---------- */
@@ -1112,7 +1555,7 @@
 /* Starts the moment the deck un-pins (hence the overlap), so the laptop is
    already moving as the last panel lifts away: no dead scroll. */
 .runway {
-  height: 420vh;
+  height: 220vh;
   margin-top: -100vh;
   pointer-events: none;
 }
@@ -1263,23 +1706,91 @@
   will-change: transform, opacity;
 }
 
+.logoCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .logo {
   overflow: visible;
 }
 
 
+/* What the Mac is: over the big logo, under the top bar. On the 3D Mac it is
+   in the room behind the laptop (the lid comes up over it). */
+.storyOuter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .storyLineWrap {
   position: absolute;
-  inset: 64px 0 auto;
+  inset: clamp(72px, 9vh, 104px) 0 auto;
   z-index: 3;
   display: grid;
-  place-content: center;
   justify-items: center;
-  gap: 18px;
-  height: calc(41.35vh - 82px);
-  min-height: 150px;
+  gap: 14px;
   padding: 0 var(--gutter);
+  color: #efeeea;
   text-align: center;
+  /* Over the career's head until the logo: clicks pass through to it. */
+  pointer-events: none;
+}
+
+.storyLineWrap button {
+  pointer-events: auto;
+}
+
+/* What is inside: four names, each with what it is, on one line. */
+.inside {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.insideItem {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  font: 400 13px/1 var(--text);
+  color: rgb(239 238 234 / 0.6);
+}
+
+.insideItem b {
+  font-weight: 600;
+  color: #efeeea;
+}
+
+.openCue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  font: 600 12px/1 var(--text);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(239 238 234 / 0.72);
+}
+
+.openCue svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: nudge 1.4s cubic-bezier(0.5, 0, 0.3, 1) infinite;
 }
 
 /* The end of the story: the whole screen opens the Mac. */
@@ -1321,14 +1832,8 @@
   .place {
     top: 26px;
   }
-  .score {
-    top: 58px;
-  }
-  .quarter {
-    padding: 0 10px;
-  }
-  .quarter:not(.quarterOn) .qLabel {
-    display: none;
+  .secTrack {
+    gap: 18px;
   }
   .about {
     padding-top: 92px;
@@ -1392,31 +1897,3 @@
   }
 }
 
-/* Preview only: the poster's colour options, bottom left on localhost. */
-.swatches {
-  position: fixed;
-  left: 14px;
-  bottom: 14px;
-  z-index: 60;
-  display: flex;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 0.85);
-  box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.35);
-  backdrop-filter: blur(8px);
-}
-
-.swatch {
-  width: 26px;
-  height: 26px;
-  border: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--a) 0 55%, var(--b) 55%);
-  cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
-}
-
-.swatch[aria-checked='true'] {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #121214;
-}

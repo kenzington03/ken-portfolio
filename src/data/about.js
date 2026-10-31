@@ -41,7 +41,7 @@ export const ROLES = [
   // `clients`: brands done there, only where confirmed (Fluid AI: projectSections.js).
   { company: 'Tandem Digital', role: 'Lead Graphic & UI Designer', dates: 'Jul 2020 - Sep 2023', from: 2020.5, to: 2023.75, clients: ['Fluid AI'] },
   { company: 'WebAnatomy', role: 'Visual Designer', dates: 'Jan 2020 - Jun 2020', from: 2020.0, to: 2020.5 },
-  { company: 'MiGrocer', role: 'Visual Designer', dates: 'Nov 2018 - Feb 2020', from: 2018.83, to: 2020.12 },
+  { company: 'MiGrocer', now: 'Phygital24', role: 'Visual Designer', dates: 'Nov 2018 - Feb 2020', from: 2018.83, to: 2020.12 },
   { company: 'Cowboy Studios', role: 'Graphic Designer', dates: 'Jun 2016 - Jul 2018', from: 2016.42, to: 2018.58 },
   { company: 'ABAI', full: 'Association of Bangalore Animation Industry', role: 'Internship', dates: 'Feb 2016 - Apr 2016, Feb 2018 - May 2018', from: 2016.08, to: 2018.42, spans: [[2016.08, 2016.33], [2018.08, 2018.42]], internship: true },
   { company: 'DreamWorks Dedicated Unit', role: 'Artist Model', dates: 'Aug 2015 - Feb 2016', from: 2015.58, to: 2016.17, internship: true },

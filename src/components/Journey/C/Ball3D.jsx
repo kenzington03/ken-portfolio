@@ -2,11 +2,14 @@
 // channels (maps from the scratch texture script, made for three.js's sphere
 // UVs), lit from the upper left like the drawing of Ken. The Cast places it
 // and says how far it has rolled (its turn is the ground covered over its
-// radius, about the axis across its travel); this draws a frame only when
-// something changed. Without WebGL, the photo of the ball stands in.
+// radius, about the axis across its travel), and how far it has turned to
+// chrome (a mirror sphere over it, reflecting the journey's one studio, see
+// chromeEnv.js); this draws a frame only when something changed. Without
+// WebGL, the photo of the ball stands in.
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { CHROME_GLSL } from './chromeEnv.js';
 
 export default function Ball3D({ apiRef, className, fallbackClassName }) {
   const canvasRef = useRef(null);
@@ -53,6 +56,62 @@ export default function Ball3D({ apiRef, className, fallbackClassName }) {
     roll.add(ball);
     scene.add(roll);
 
+    // The chrome: the same ball in mirror metal over it, fading in (uMix).
+    // Its channels come from the ball's own normal map, sunk and dark, so it
+    // is a chrome basketball, and they roll with it.
+    const chromeMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthTest: false,
+      uniforms: { uMix: { value: 0 }, uSeams: { value: 1 }, uNormal: { value: normalMap } },
+      vertexShader: /* glsl */ `
+        varying vec3 vN;
+        varying vec3 vPos;
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          vN = normalize(normalMatrix * normal);
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vPos = mv.xyz;
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        uniform float uMix;
+        uniform float uSeams;
+        uniform sampler2D uNormal;
+        varying vec3 vN;
+        varying vec3 vPos;
+        varying vec2 vUv;
+        ${CHROME_GLSL}
+        // The normal map, applied from screen-space derivatives (no tangents).
+        vec3 perturb(vec3 p, vec3 n, vec2 uv, vec3 m) {
+          vec3 q0 = dFdx(p), q1 = dFdy(p);
+          vec2 st0 = dFdx(uv), st1 = dFdy(uv);
+          vec3 q1p = cross(q1, n), q0p = cross(n, q0);
+          vec3 T = q1p * st0.x + q0p * st1.x;
+          vec3 B = q1p * st0.y + q0p * st1.y;
+          float det = max(dot(T, T), dot(B, B));
+          float s = det == 0.0 ? 0.0 : inversesqrt(det);
+          return normalize(T * (m.x * s) + B * (m.y * s) + n * m.z);
+        }
+        void main() {
+          vec3 m = texture2D(uNormal, vUv).xyz * 2.0 - 1.0;
+          m.xy *= 1.6 * uSeams;
+          vec3 n = perturb(vPos, normalize(vN), vUv, normalize(m));
+          vec3 col = chrome(vec3(0.0, 0.0, -1.0), n);
+          // Down in the channels the metal goes dark.
+          col *= mix(1.0, mix(0.12, 1.0, smoothstep(0.82, 0.97, normalize(m).z)), uSeams);
+          gl_FragColor = vec4(col, uMix);
+        }
+      `,
+    });
+    chromeMat.extensions = { derivatives: true };
+    const chromeBall = new THREE.Mesh(geo, chromeMat);
+    chromeBall.renderOrder = 1;
+    chromeBall.visible = false;
+    // Inside the ball's own turn, so its channels sit on the ball's and roll.
+    ball.add(chromeBall);
+
     // Soft daylight from the upper left, a warm bounce from the floor.
     scene.add(new THREE.HemisphereLight(0xfff4e8, 0x4a3426, 0.95));
     const key = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -62,15 +121,19 @@ export default function Ball3D({ apiRef, className, fallbackClassName }) {
     fill.position.set(2.6, -1, 1.5);
     scene.add(fill);
 
-    const state = { size: 80, rz: 0, rx: 0 };
+    const state = { size: 80, rz: 0, rx: 0, chrome: 0, seams: 1 };
     let size = 0;
     apiRef.current = {
-      /** size in CSS px; rz, rx: turns (radians) about the screen's z and x. */
-      set(sz, rz, rx = 0) {
-        if (sz === state.size && rz === state.rz && rx === state.rx) return;
+      /** size in CSS px; rz, rx: turns (radians) about the screen's z and x;
+       *  chrome 0..1: how far it has turned to mirror metal; seams 0..1: its
+       *  channels (they melt away just before it becomes the logo). */
+      set(sz, rz, rx = 0, chrome = 0, seams = 1) {
+        if (sz === state.size && rz === state.rz && rx === state.rx && chrome === state.chrome && seams === state.seams) return;
+        state.seams = seams;
         state.size = sz;
         state.rz = rz;
         state.rx = rx;
+        state.chrome = chrome;
         dirty = true;
       },
     };
@@ -86,6 +149,11 @@ export default function Ball3D({ apiRef, className, fallbackClassName }) {
         renderer.setSize(px, px, false);
       }
       roll.rotation.set(state.rx, 0, state.rz);
+      chromeMat.uniforms.uMix.value = state.chrome;
+      chromeMat.uniforms.uSeams.value = state.seams;
+      chromeBall.visible = state.chrome > 0.001;
+      // All chrome: the leather under it need not be drawn.
+      mat.visible = state.chrome < 0.999;
       renderer.render(scene, camera);
     };
     tick();
@@ -95,6 +163,7 @@ export default function Ball3D({ apiRef, className, fallbackClassName }) {
       apiRef.current = null;
       geo.dispose();
       mat.dispose();
+      chromeMat.dispose();
       map.dispose();
       normalMap.dispose();
       renderer.dispose();

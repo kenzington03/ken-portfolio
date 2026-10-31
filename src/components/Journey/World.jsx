@@ -91,7 +91,7 @@ function LogoAnchor({ logoRef }) {
 }
 
 /** `poses` lets a journey choose where the camera starts (e.g. overhead). */
-export default function World({ progressRef, screenOnRef, swayRef, onReady, live = false, active = true, poses = POSES, fog = true, anchorRef, logoRef }) {
+export default function World({ progressRef, screenOnRef, swayRef, onReady, live = false, active = true, poses = POSES, beats = BEATS, fog = true, anchorRef, logoRef }) {
   return (
     <Canvas
       camera={{ fov: 30, near: 0.05, far: 80, position: [0, 3, 12] }}
@@ -112,7 +112,7 @@ export default function World({ progressRef, screenOnRef, swayRef, onReady, live
       {anchorRef && <TopAnchor anchorRef={anchorRef} />}
       {logoRef && <LogoAnchor logoRef={logoRef} />}
       <Suspense fallback={null}>
-        <Rig progressRef={progressRef} screenOnRef={screenOnRef} onReady={onReady} beats={BEATS} poses={poses} sway={swayRef} />
+        <Rig progressRef={progressRef} screenOnRef={screenOnRef} onReady={onReady} beats={beats} poses={poses} sway={swayRef} />
       </Suspense>
     </Canvas>
   );

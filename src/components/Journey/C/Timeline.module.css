@@ -101,7 +101,7 @@
   background: color-mix(in srgb, var(--ink) 16%, transparent);
 }
 
-/* A role's span along the ruler: draws out from its start when reached.
+/* A role's span along the ruler: inks in behind the ball (set per frame).
    Work in ink, internships in the accent. */
 .span {
   top: calc(var(--ruler-y) - 1px);
@@ -114,15 +114,10 @@
   background: var(--ink);
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .span i.intern {
   background: var(--accent);
-}
-
-.span i.spanOn {
-  transform: scaleX(1);
 }
 
 /* A small tick per year, its number just under the line. */

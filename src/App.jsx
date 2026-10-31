@@ -15,6 +15,8 @@ import JourneyBridge from './components/JourneyBridge/JourneyBridge.jsx';
 import IPhoneHome from './components/IPhoneHome/IPhoneHome.jsx';
 import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen.jsx';
 import ShutdownPrompt from './components/ShutdownPrompt/ShutdownPrompt.jsx';
+import BriefSheet from './components/Brief/BriefSheet.jsx';
+import { paletteStyle, readPalette } from './components/Journey/C/palette.js';
 import styles from './App.module.css';
 
 function GlobalKeyboardBridge({ spotlightOpen, onSpotlightToggle }) {
@@ -48,7 +50,14 @@ const BLACKOUT_MS = 380;
 function DesktopShell({ unlocked = true, onShutDown }) {
   const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
   const { helloDismissed, dismissHello } = useOS();
+  // "Let's talk", from anywhere on the Mac (the desktop icon asks for it).
+  useEffect(() => {
+    const open = () => setBriefOpen(true);
+    window.addEventListener('ken:brief', open);
+    return () => window.removeEventListener('ken:brief', open);
+  }, []);
 
   // Intro flow: the welcome screen stands in for the hello screen.
   useEffect(() => {
@@ -67,6 +76,7 @@ function DesktopShell({ unlocked = true, onShutDown }) {
       <MenuBar
         onOpenAchievements={() => setAchievementsOpen(true)}
         onShutDown={onShutDown}
+        onWorkWithMe={() => setBriefOpen(true)}
       />
       <Desktop />
       <Dock />
@@ -77,6 +87,7 @@ function DesktopShell({ unlocked = true, onShutDown }) {
       <Screensaver />
       {onShutDown && <ShutdownPrompt onShutDown={onShutDown} disabled={!unlocked} />}
       <AchievementToast />
+      <BriefSheet open={briefOpen} onClose={() => setBriefOpen(false)} style={paletteStyle(readPalette())} />
       <Modal
         title="Achievements"
         open={achievementsOpen}

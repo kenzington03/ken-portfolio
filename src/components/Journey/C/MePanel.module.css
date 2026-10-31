@@ -1,9 +1,8 @@
-/* Q2: who Ken is, in one line, on the hero's own paper. The statement on the
-   left, four lines that each land a beat; his work on the right as a loose
-   pile of polaroids. The ball rests between them at the foot of the screen.
+/* Q2: who Ken is, in one sentence, big in the middle of the page. The ball rests at the
+   foot of the screen, right of the middle, where it stood in the hero.
    Values written from scroll by MePanel:
      --e   how far the section still has to travel in (1 .. 0), for depth
-     --w   how many words are written so far (words and polaroids have --i) */
+     --w   how many words are written so far (each word has --i) */
 
 .me {
   --display: 'Big Shoulders', 'Cabinet Grotesk', system-ui, sans-serif;
@@ -20,159 +19,57 @@
 .story {
   position: absolute;
   left: var(--gut);
-  top: 50%;
-  width: 54%;
-  translate: calc(var(--e, 0) * 12vw) -54%;
-}
-
-.eyebrow {
-  margin: 0 0 clamp(16px, 2.6vh, 28px);
-  font: 700 12px/1 var(--text);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--pop, #e8462c);
+  right: var(--gut);
+  top: 46%;
+  text-align: center;
+  /* Comes up a little behind its panel, for depth (--e 1..0 as it arrives). */
+  translate: 0 calc(-50% + var(--e, 0) * 16vh);
 }
 
 .statement {
   margin: 0;
-  font: 800 clamp(46px, 5.6vw, 108px) / 0.92 var(--display);
-  font-variation-settings: 'opsz' 72;
+  font: 800 clamp(36px, min(6.8vw, 10.5vh), 132px) / 0.92 var(--display);
+  font-variation-settings: 'wght' 720, 'opsz' 72;
   text-transform: uppercase;
   letter-spacing: 0.005em;
 }
 
-/* One line each, never re-wrapped: the breaks are the point. */
+/* One line each, never re-wrapped: the breaks are the point. Each line is
+   a mask the words rise out of. */
 .line {
   display: block;
   white-space: nowrap;
 }
 
-/* A word inks in from a faint print as the writing reaches it. */
+/* A word rises into place as the writing reaches it (--w, set from the
+   scroll, so it plays back too), out of a blur. */
 .word {
   --k: clamp(0, calc(var(--w) - var(--i)), 1);
-  opacity: calc(0.14 + var(--k) * 0.86);
-}
-
-.ink {
-  color: var(--pop, #e8462c);
-}
-
-/* ---------- The polaroids ---------- */
-.pile {
-  position: absolute;
-  left: 57%;
-  right: var(--gut);
-  top: 11%;
-  bottom: 20%;
-  translate: calc(var(--e, 0) * 8vw) 0;
-}
-
-/* A polaroid's place: it drops in as its word is written, a little turned,
-   and settles to its own angle. */
-.slot {
-  --k: clamp(0, calc((var(--w) - var(--i)) * 1.4), 1);
-  position: absolute;
+  display: inline-block;
   opacity: var(--k);
-  transform: translate3d(0, calc((1 - var(--k)) * -34px), 0) rotate(calc(var(--r) + (1 - var(--k)) * 12deg)) scale(calc(1.12 - var(--k) * 0.12));
+  filter: blur(calc((1 - var(--k)) * 6px));
+  transform: translate3d(0, calc((1 - var(--k)) * 0.5em), 0) rotate(calc((1 - var(--k)) * 4deg));
+  transform-origin: 0 100%;
 }
 
-.polaroid {
-  position: relative;
-  display: block;
-  width: 100%;
-  padding: 7% 7% 0;
-  border: 0;
-  border-radius: 3px;
-  background: #fbfaf6;
-  color: #2a2a2e;
-  text-align: left;
-  cursor: grab;
-  touch-action: none;
-  box-shadow:
-    0 1px 1px rgb(0 0 0 / 0.08),
-    0 14px 26px -12px rgb(20 14 8 / 0.45);
-}
-
-.polaroid:active {
-  cursor: grabbing;
-}
-
-.photo {
-  display: block;
-  aspect-ratio: 1;
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
-  background: #222;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-.photo img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none;
-}
-
-.caption {
-  display: block;
-  padding: 0.7em 0 1.1em;
-  font: 600 clamp(11px, 0.85vw, 14px) / 1.2 var(--text);
-  letter-spacing: 0.01em;
-}
-
-/* A strip of tape holding some of them down. */
-.tape {
-  position: absolute;
-  z-index: 1;
-  top: -9px;
-  left: 50%;
-  width: 34%;
-  height: 22px;
-  translate: -50% 0;
-  rotate: -3deg;
-  background: rgb(236 228 206 / 0.72);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
-}
-
-.polaroid:focus-visible {
-  outline: 3px solid var(--pop, #e8462c);
-  outline-offset: 5px;
-}
-
-/* An invitation, under the pile. */
-.hint {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--ink, #121214);
-  color: #fff;
-  font: 700 11px/1 var(--text);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: clamp(0, calc(var(--w) - 12), 1);
-}
-
-/* ---------- Narrow screens: the statement over the pile ---------- */
-.me:not(.wide) .story {
-  top: 12%;
-  width: auto;
-  right: var(--gut);
-  translate: 0 0;
-}
-
-.me:not(.wide) .statement {
-  font-size: clamp(40px, 10vw, 84px);
-}
-
-.me:not(.wide) .pile {
-  left: var(--gut);
-  top: 50%;
-  bottom: 16%;
+/* A letter: its weight follows the pointer (see useLetterWeight). */
+.l {
+  display: inline-block;
+  font-variation-settings: 'wght' 720, 'opsz' 72;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .slot {
-    transform: rotate(var(--r));
+  .word {
+    filter: none;
+    transform: none;
   }
 }
