@@ -24,6 +24,8 @@ import MacRoom from '../MacRoom.jsx';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import MePanel from './MePanel.jsx';
+import MePanelY2K from './MePanelY2K.jsx';
+import MePanelFleur from './MePanelFleur.jsx';
 import Ball3D from './Ball3D.jsx';
 import ChromeLogo from './ChromeLogo.jsx';
 import useClock from '../../../hooks/useClock.js';
@@ -31,6 +33,14 @@ import { PALETTES, paletteStyle, readPalette, savePalette } from './palette.js';
 import styles from './JourneyC.module.css';
 
 const EASE = [0.16, 1, 0.3, 1];
+// Section 2 in other looks, to compare: ?about=y2k or ?about=fleur.
+const ABOUT_LOOK = (() => {
+  try {
+    return new URLSearchParams(window.location.search).get('about');
+  } catch {
+    return null;
+  }
+})();
 // Same file the 3D rig loads (kept as a literal so this chunk stays free of three.js).
 const MODEL_SRC = '/models/macbook-rigged.glb';
 
@@ -2380,7 +2390,13 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             </Panel>
 
             <Panel progress={progress} enter="hero>ab" enterAxis="y" exit={SHOT_CAM} exitAxis="y" reduced={reduced} className={`${styles.aboutPanel} ${wide ? styles.aboutWide : ''}`} aria-label="About">
-              <MePanel progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} wide={wide} />
+              {ABOUT_LOOK === 'y2k' ? (
+                <MePanelY2K progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} />
+              ) : ABOUT_LOOK === 'fleur' ? (
+                <MePanelFleur progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} onSeeWork={onSkip} />
+              ) : (
+                <MePanel progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} wide={wide} />
+              )}
             </Panel>
 
             {/* It comes up under the ball's shot, settled before the ball lands. */}

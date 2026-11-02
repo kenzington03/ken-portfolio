@@ -1,6 +1,6 @@
 // Q2: who Ken is, then what he does. First the way he works, in his own
-// words, big: he cannot leave a design alone. Under it, what he plays and
-// why. Then the three things he specialises in, each in a line. It all
+// words, big: he questions every design he sees. Under it, what he plays
+// and why. Then the four things he specialises in, each in a line. It all
 // writes itself in with the scroll (so it plays back when scrolling up),
 // each word rising into place out of a blur, then the three in turn. Under
 // a fine pointer the letters thicken and lift as it passes over them.
@@ -10,12 +10,13 @@ import { useMotionValueEvent } from 'framer-motion';
 import styles from './MePanel.module.css';
 
 // The statement, a line per array, broken where it reads aloud.
-const STATEMENT = [["I", "can't", 'look', 'at', 'a', 'design'], ['without', 'asking', 'how'], ['it', 'could', 'be', 'better.']];
+export const STATEMENT = [['Always', 'questioning'], ['every', 'design', 'I', 'see.']];
 // Under it, what he plays, and why.
-const ASIDE = 'Design, basketball, chess. Same obsession: the next good move.';
+export const ASIDE = 'Design, basketball, chess. Same obsession: the next good move.';
 // What he specialises in: each in a line, what it covers.
-const PILLARS = [
+export const PILLARS = [
   { name: 'Brands', line: 'Identities, logos and guidelines that hold up wherever the brand goes.' },
+  { name: 'Social', line: 'Posts, reels, ads and launch campaigns that keep a brand showing up.' },
   { name: 'Videos', line: 'Shoots, edits and motion graphics, from the idea to the final cut.' },
   { name: 'Products', line: 'Websites and app interfaces that people find easy to use.' },
 ];
@@ -63,6 +64,33 @@ function Letters({ text }) {
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
+
+/** The writing, from the scroll: --w (how many beats are written) and --e
+ *  (how far the section still has to travel in) on `rootRef`, for `total`
+ *  beats. Shared by every version of the section. */
+export function useWrite(rootRef, { progress, span, arrive, instant, total }) {
+  const write = (v) => {
+    const root = rootRef.current;
+    if (!root) return;
+    const t = instant ? 1 : within(v, span[0], span[1]);
+    const e = instant ? 1 : within(v, arrive[0], arrive[1]);
+    root.style.setProperty('--e', (1 - e).toFixed(4));
+    root.style.setProperty('--w', (t * (total + 2)).toFixed(3));
+  };
+  useMotionValueEvent(progress, 'change', write);
+  useEffect(() => write(progress.get()));
+}
+
+/** Loads a stylesheet (a version's own fonts) while it is on the page. */
+export function useStylesheet(href) {
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+    return () => link.remove();
+  }, [href]);
+}
 
 // The pointer over the statement: letters within REACH px of it swell from
 // the line's weight to the face's heaviest and lift a touch, and ease back as

@@ -27,7 +27,7 @@
 
 .statement {
   margin: 0;
-  font: 800 clamp(36px, min(5.8vw, 10vh), 116px) / 0.92 var(--display);
+  font: 800 clamp(40px, min(7.4vw, 12vh), 150px) / 0.9 var(--display);
   font-variation-settings: 'wght' 720, 'opsz' 72;
   text-transform: uppercase;
   letter-spacing: 0.005em;
@@ -72,7 +72,7 @@
   right: var(--gut);
   bottom: 20vh;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(20px, 3vw, 48px);
   margin: 0;
   padding: 0;
@@ -99,15 +99,15 @@
 }
 
 .pillarName {
-  font: 800 clamp(30px, min(3.4vw, 6vh), 58px) / 0.95 var(--display);
+  font: 800 clamp(26px, min(2.9vw, 5.2vh), 50px) / 0.95 var(--display);
   font-variation-settings: 'opsz' 72;
   text-transform: uppercase;
   letter-spacing: 0.005em;
 }
 
 .pillarLine {
-  max-width: 32ch;
-  font: 400 clamp(14px, 1.05vw, 16px) / 1.45 var(--text);
+  max-width: 28ch;
+  font: 400 clamp(13px, 0.98vw, 15px) / 1.45 var(--text);
   color: color-mix(in srgb, var(--ink, #121214) 66%, transparent);
 }
 
