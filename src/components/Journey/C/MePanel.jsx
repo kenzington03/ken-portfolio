@@ -1,14 +1,24 @@
-// Q2: who Ken is, in one sentence, set big in the middle of the page. It
-// writes itself in with the scroll (so it plays back when scrolling up), each
-// word rising into place out of a blur. Under a fine pointer the letters
-// thicken and lift as it passes over them.
+// Q2: who Ken is, then what he does. First the way he works, in his own
+// words, big: he cannot leave a design alone. Under it, what he plays and
+// why. Then the three things he specialises in, each in a line. It all
+// writes itself in with the scroll (so it plays back when scrolling up),
+// each word rising into place out of a blur, then the three in turn. Under
+// a fine pointer the letters thicken and lift as it passes over them.
 
 import { Fragment, useEffect, useMemo, useRef } from 'react';
 import { useMotionValueEvent } from 'framer-motion';
 import styles from './MePanel.module.css';
 
 // The statement, a line per array, broken where it reads aloud.
-const STATEMENT = [['Ten', 'years', 'designing'], ['brands', 'and', 'campaigns'], ['for', 'products', 'that', 'are'], ['hard', 'to', 'explain.']];
+const STATEMENT = [["I", "can't", 'look', 'at', 'a', 'design'], ['without', 'asking', 'how'], ['it', 'could', 'be', 'better.']];
+// Under it, what he plays, and why.
+const ASIDE = 'Design, basketball, chess. Same obsession: the next good move.';
+// What he specialises in: each in a line, what it covers.
+const PILLARS = [
+  { name: 'Brands', line: 'Identities, logos and guidelines that hold up wherever the brand goes.' },
+  { name: 'Videos', line: 'Shoots, edits and motion graphics, from the idea to the final cut.' },
+  { name: 'Products', line: 'Websites and app interfaces that people find easy to use.' },
+];
 
 // The longer story, told on the phone page. A string is plain words;
 // { hl } is a highlighted claim.
@@ -32,12 +42,24 @@ export const COLLAGE = [
   { id: 'acdc', alt: 'AC/DC, event artwork', caption: 'AC/DC', cue: 'explain.', x: 66, y: 49, w: 33, r: -10, z: 4 },
 ];
 
-// Every word in order: each gets its turn as the scroll writes.
+// Every word in order: each gets its turn as the scroll writes; then the
+// aside, then the three, a beat apart.
 const build = () => {
   let n = 0;
   const lines = STATEMENT.map((line) => line.map((w) => ({ w, i: n++ })));
-  return { lines, total: n };
+  const aside = n + 0.5;
+  const pillars = PILLARS.map((p, k) => ({ ...p, i: n + 1.5 + k * 1.2 }));
+  return { lines, aside, pillars, total: n + 1.5 + PILLARS.length * 1.2 };
 };
+
+/** A word set in letters (each letter's weight follows the pointer). */
+function Letters({ text }) {
+  return [...text].map((c, j) => (
+    <span key={j} className={styles.l} data-l="">
+      {c}
+    </span>
+  ));
+}
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const within = (v, a, b) => clamp01((v - a) / (b - a));
@@ -126,7 +148,7 @@ function useLetterWeight(storyRef) {
 export default function MePanel({ progress, span, arrive, instant, wide }) {
   const rootRef = useRef(null);
   const storyRef = useRef(null);
-  const { lines, total } = useMemo(build, []);
+  const { lines, aside, pillars, total } = useMemo(build, []);
   useLetterWeight(storyRef);
 
   const write = (v) => {
@@ -152,18 +174,28 @@ export default function MePanel({ progress, span, arrive, instant, wide }) {
                 <Fragment key={k}>
                   {k > 0 && ' '}
                   <span className={styles.word} style={{ '--i': x.i }} aria-hidden>
-                    {[...x.w].map((c, j) => (
-                      <span key={j} className={styles.l} data-l="">
-                        {c}
-                      </span>
-                    ))}
+                    <Letters text={x.w} />
                   </span>
                 </Fragment>
               ))}
             </span>
           ))}
         </h2>
+        <p className={styles.aside} style={{ '--i': aside }}>
+          {ASIDE}
+        </p>
       </div>
+
+      {/* What he specialises in. */}
+      <ol className={styles.pillars} aria-label="What I specialise in">
+        {pillars.map((p, k) => (
+          <li key={p.name} className={styles.pillar} style={{ '--i': p.i }}>
+            <span className={styles.pillarNum}>{String(k + 1).padStart(2, '0')}</span>
+            <span className={styles.pillarName}>{p.name}</span>
+            <span className={styles.pillarLine}>{p.line}</span>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

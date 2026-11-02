@@ -20,15 +20,14 @@
   position: absolute;
   left: var(--gut);
   right: var(--gut);
-  top: 46%;
-  text-align: center;
+  top: clamp(96px, 14vh, 140px);
   /* Comes up a little behind its panel, for depth (--e 1..0 as it arrives). */
-  translate: 0 calc(-50% + var(--e, 0) * 16vh);
+  translate: 0 calc(var(--e, 0) * 16vh);
 }
 
 .statement {
   margin: 0;
-  font: 800 clamp(36px, min(6.8vw, 10.5vh), 132px) / 0.92 var(--display);
+  font: 800 clamp(36px, min(5.8vw, 10vh), 116px) / 0.92 var(--display);
   font-variation-settings: 'wght' 720, 'opsz' 72;
   text-transform: uppercase;
   letter-spacing: 0.005em;
@@ -50,6 +49,66 @@
   filter: blur(calc((1 - var(--k)) * 6px));
   transform: translate3d(0, calc((1 - var(--k)) * 0.5em), 0) rotate(calc((1 - var(--k)) * 4deg));
   transform-origin: 0 100%;
+}
+
+/* Under it, smaller, what he plays and why. */
+.aside {
+  --k: clamp(0, calc(var(--w) - var(--i)), 1);
+  margin: clamp(18px, 3vh, 30px) 0 0;
+  font: 500 clamp(15px, 1.25vw, 19px) / 1.4 var(--text);
+  letter-spacing: -0.005em;
+  color: color-mix(in srgb, var(--ink, #121214) 62%, transparent);
+  opacity: var(--k);
+  transform: translate3d(0, calc((1 - var(--k)) * 10px), 0);
+}
+
+/* ---------- What he specialises in ----------
+   Three columns along the foot of the page, each on a hairline: a number,
+   the word, what it covers. Clear above the ball (it rests at the foot,
+   right of the middle). */
+.pillars {
+  position: absolute;
+  left: var(--gut);
+  right: var(--gut);
+  bottom: 20vh;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 48px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  translate: 0 calc(var(--e, 0) * 9vh);
+}
+
+.pillar {
+  --k: clamp(0, calc((var(--w) - var(--i)) * 1.4), 1);
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--ink, #121214) 16%, transparent);
+  opacity: var(--k);
+  transform: translate3d(0, calc((1 - var(--k)) * 18px), 0);
+}
+
+.pillarNum {
+  font: 600 11px/1 var(--text);
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--ink, #121214) 45%, transparent);
+}
+
+.pillarName {
+  font: 800 clamp(30px, min(3.4vw, 6vh), 58px) / 0.95 var(--display);
+  font-variation-settings: 'opsz' 72;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+}
+
+.pillarLine {
+  max-width: 32ch;
+  font: 400 clamp(14px, 1.05vw, 16px) / 1.45 var(--text);
+  color: color-mix(in srgb, var(--ink, #121214) 66%, transparent);
 }
 
 .srOnly {
