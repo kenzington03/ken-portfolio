@@ -155,7 +155,9 @@ export default function MacRoom({
       }
 
       const c = roomColor(p);
-      if (glowRef.current) {
+      // (No chapters, no chapter glow: the laptop stands in its own light.)
+      if (glowRef.current && !words) glowRef.current.style.opacity = '0';
+      else if (glowRef.current) {
         glowRef.current.style.setProperty('--room', `${Math.round(c.r * 255)} ${Math.round(c.g * 255)} ${Math.round(c.b * 255)}`);
         glowRef.current.style.opacity = String(ramp(p, 0.0, 0.08) * (1 - ramp(p, 0.75, 0.87)));
       }
@@ -198,7 +200,7 @@ export default function MacRoom({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [active, mode, onReachScreen, use3D, runwayRef, sceneFadeFrom, sceneFadeTo, liveFrom, alwaysLive, onFrame, arrive]);
+  }, [active, mode, onReachScreen, use3D, runwayRef, sceneFadeFrom, sceneFadeTo, liveFrom, alwaysLive, onFrame, arrive, words]);
 
   // Shut Down: start dived-in and glide back to the top.
   useEffect(() => {

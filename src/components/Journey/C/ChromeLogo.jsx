@@ -122,12 +122,29 @@ function glyphField(path, box) {
 const FRAG = /* glsl */ `
 precision highp float;
 uniform sampler2D uSdf;
-uniform float uR, uMorph, uSpin, uTilt, uInk, uPx, uTime, uIdle;
+uniform float uR, uMorph, uSpin, uTilt, uInk, uPx, uTime, uIdle, uFlat, uSoft;
 uniform vec4 uBall;
 uniform vec2 uHalf;
 uniform vec3 uPaint;
 varying vec2 vUv;
 ${CHROME_GLSL}
+
+// Once it has formed, it is lit like a real polished inlay: a soft room, a
+// bright sky falling to a dark floor, and one soft light that drifts slowly
+// across it, rather than a busy room of windows.
+vec3 soft(vec3 d, float sweep) {
+  float y = d.y;
+  float az = atan(d.x, d.z);
+  vec3 col = mix(vec3(0.07, 0.072, 0.08), vec3(0.86, 0.875, 0.9), smoothstep(-0.45, 0.6, y));
+  col += vec3(1.0) * exp(-pow((az - sweep) * 3.2, 2.0)) * smoothstep(-0.3, 0.5, y) * 0.75;
+  return col;
+}
+vec3 polished(vec3 v, vec3 n, float sweep) {
+  vec3 r = reflect(v, n);
+  vec3 c = soft(r, sweep) * vec3(0.94, 0.95, 0.965);
+  c = 1.0 - exp(-c * 1.25);
+  return pow(c, vec3(1.0 / 2.2));
+}
 
 const float THICK = 0.03;   // half the slab's thickness at its edge
 const float DOME = 0.085;   // how much fuller it is in the middle (so the
@@ -141,9 +158,10 @@ float sdLogo(vec3 p) {
   vec2 uv = p.xy / (2.0 * uR) + 0.5;
   vec2 q = abs(p.xy) - (uR - 0.004);
   float d2 = texture2D(uSdf, clamp(uv, 0.0, 1.0)).r + length(max(q, 0.0));
-  // Domed: fuller toward the middle of each shape, like a pressed badge.
+  // Domed while it is still the ball's metal flowing; flat, like a real
+  // inlay, once it has formed (uFlat).
   float k = clamp(-d2 / 0.2, 0.0, 1.0);
-  float h = THICK + DOME * k * (2.0 - k);
+  float h = THICK + DOME * (1.0 - uFlat) * k * (2.0 - k);
   vec2 w = vec2(d2 + BEVEL, abs(p.z) - h + BEVEL);
   return min(max(w.x, w.y), 0.0) + length(max(w, 0.0)) - BEVEL;
 }
@@ -163,8 +181,13 @@ vec3 normalAt(vec3 p) {
 }
 
 void main() {
-  vec3 ro = vec3((vUv - 0.5) * 2.0 * uHalf, 1.2);
-  vec3 rd = vec3(0.0, 0.0, -1.0);
+  vec2 q = (vUv - 0.5) * 2.0 * uHalf;
+  // A touch of perspective in the rays (not in the shape: they start a
+  // little inward, so each meets the logo's plane exactly at q), so a flat
+  // face still catches a gradient across it, as a real one does.
+  const float SPREAD = 0.32;
+  vec3 ro = vec3(q * (1.0 - SPREAD * 1.2), 1.2);
+  vec3 rd = normalize(vec3(q * SPREAD, -1.0));
   float t = 0.0;
   float best = 1e9;
   float bestT = 0.0;
@@ -181,7 +204,8 @@ void main() {
   if (a <= 0.0) discard;
   vec3 p = ro + rd * (hit ? t : bestT);
   vec3 n = normalAt(p);
-  vec3 col = chrome(rd, n);
+  float sweep = -0.9 + 1.8 * fract(uTime * 0.08) * uIdle + (1.0 - uIdle) * 0.35;
+  vec3 col = mix(chrome(rd, n), polished(rd, n, sweep), uSoft);
   // The lid's own paint, at the very end.
   col = mix(col, uPaint, uInk);
   gl_FragColor = vec4(col * a, a);
@@ -224,6 +248,8 @@ export default function ChromeLogo({ apiRef, path, box, className, maxScale = 2 
         uIdle: { value: 0 },
         uTime: { value: 0 },
         uInk: { value: 0 },
+        uFlat: { value: 0 },
+        uSoft: { value: 0 },
         uPaint: { value: new THREE.Color('#090a0e') },
       },
       vertexShader: /* glsl */ `
@@ -239,7 +265,9 @@ export default function ChromeLogo({ apiRef, path, box, className, maxScale = 2 
     let dirty = true;
     const u = mat.uniforms;
     apiRef.current = {
-      set({ morph, ball, spin, tilt, idle, ink }) {
+      set({ morph, ball, spin, tilt, idle, ink, flat = 0, soft = 0 }) {
+        u.uFlat.value = flat;
+        u.uSoft.value = soft;
         u.uMorph.value = morph;
         u.uBall.value.set(ball[0], ball[1], 0, ball[2]);
         u.uSpin.value = spin;

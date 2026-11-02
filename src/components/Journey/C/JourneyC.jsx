@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
 import BriefSheet from '../../Brief/BriefSheet.jsx';
 import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../Intro/shared.jsx';
 import { tintChapters } from '../../Intro3/timeline.js';
@@ -38,12 +38,17 @@ const MODEL_SRC = '/models/macbook-rigged.glb';
 // logo upside down (as on a real MacBook; the chrome logo's spin lands it
 // so). The camera never turns or tilts: opening it, it only eases in a
 // little, then the dive goes into the screen.
-const OVERHEAD = { yaw: 0, pitch: 0.95, radius: 13.5, target: new THREE.Vector3(0, 0, 0) };
-const OVERHEAD_IN = { yaw: 0, pitch: 0.95, radius: 12, target: new THREE.Vector3(0, 0.25, -0.35) };
-const FLOW_POSES = { hero: OVERHEAD, front: OVERHEAD_IN };
-// The runway after the deck (MacRoom's progress): the lid opens over the
-// words, the screen wakes, the camera dives in.
-const MAC_BEATS = { orbit: [0, 0.5], lid: [0.02, 0.42], wake: [0.26, 0.5], dive: [0.52, 0.95] };
+// Beat 2 starts close on the lid's logo (the 3D scene points this pose at
+// the lid once it has loaded, see World's LogoAnchor) and pulls straight
+// back, along the same line, to the closed laptop overhead.
+const CLOSE_ON_LOGO = { yaw: 0, pitch: 0.95, radius: 3.6, target: new THREE.Vector3(0, 0, 0), onLid: true };
+// (Aimed a little behind the logo, toward the hinge, so the laptop rests
+// low on the screen, under the words.)
+const OVERHEAD = { yaw: 0, pitch: 0.95, radius: 12.5, target: new THREE.Vector3(0, 0, 0), fromLid: [0, 0, -0.6] };
+const FLOW_POSES = { hero: CLOSE_ON_LOGO, front: OVERHEAD };
+// The runway after the deck (MacRoom's progress): the pull-back reveal, then
+// (beat 3) the lid opens over the words, the screen wakes, the camera dives in.
+const MAC_BEATS = { orbit: [0, 0.34], lid: [0.46, 0.74], wake: [0.58, 0.78], dive: [0.8, 0.97] };
 
 // HERO ART: Ken, drawn from his own photos (flat shapes, print grain), on a
 // transparent background. `aspect` is the file's width / height.
@@ -974,29 +979,6 @@ const sineOut = (t) => Math.sin((Math.PI * t) / 2);
 const smooth01 = (t) => t * t * (3 - 2 * t);
 const within = (v, [a, b]) => clamp01((v - a) / (b - a));
 
-/** One thing on the Mac, with what it is; rises in after the one before as
- *  `t` goes 0..1. `cue`: the closing nudge to open it instead. */
-function InsideItem({ item, index, t, cue = false }) {
-  const k = useTransform(t, (v) => smooth01(clamp01(v * (INSIDE.length + 2) - index)));
-  const y = useTransform(k, (v) => `${((1 - v) * 10).toFixed(2)}px`);
-  if (cue) {
-    return (
-      <motion.p className={styles.openCue} style={{ opacity: k, y }}>
-        Scroll or click to open it
-        <svg viewBox="0 0 16 16" aria-hidden>
-          <path d="M8 3v10M4 9l4 4 4-4" />
-        </svg>
-      </motion.p>
-    );
-  }
-  return (
-    <motion.li className={styles.insideItem} style={{ opacity: k, y }}>
-      <b>{item.name}</b>
-      <span>{item.what}</span>
-    </motion.li>
-  );
-}
-
 /** Words that rise out of a blur one after another as `reveal` goes 0..1. */
 function RiseWords({ text, reveal, className }) {
   const words = text.split(' ');
@@ -1068,9 +1050,9 @@ const APPLE_PATH =
 
 // How tall the logo stands, big in the middle, as a share of the viewport
 // height; and where its centre sits then.
-const LOGO_VH = 0.26;
+const LOGO_VH = 0.24;
 const LOGO_VH_PHONE = 0.18;
-const LOGO_AT = 0.6;
+const LOGO_AT = 0.52;
 // The middle of the apple's body (in the glyph's units): solid all round for
 // a radius of about 5, so a dot there grows as a plain circle before the bite
 // and the leaf show. The ball becomes the logo here.
@@ -1080,35 +1062,35 @@ const HEART_CLIP = `${(((APPLE_HEART.x - APPLE_BOX.x) / APPLE_BOX.w) * 100).toFi
 const HEART_DX = ((APPLE_HEART.x - (APPLE_BOX.x + APPLE_BOX.w / 2)) * LOGO_EL_W) / APPLE_BOX.w;
 const HEART_DY = ((APPLE_HEART.y - (APPLE_BOX.y + APPLE_BOX.h / 2)) * LOGO_EL_W) / APPLE_BOX.w;
 const BALL_R = TIP_R; // the timeline's ball, in px
-// When (as shares of "now"): the words step back, the line winds into the
-// chrome ball, the ball opens into the logo (big), the logo comes to the
-// middle; the words about the Mac; then it spins down onto the lid.
-const CLEAR = [0, 0.05];
-const REWIND = [0.02, 0.12];
-const OPEN = [0.12, 0.26];
-const CENTER = [0.2, 0.32];
-const TELL = [0.28, 0.42];
-const LAND = [0.48, 0.8];
+// Beat 1, one swipe from Now (as shares of "now"): the words step back, the
+// line winds into the chrome ball, the ball melts into the logo, the logo
+// comes to the middle and rests there, on the night.
+const CLEAR = [0, 0.08];
+const REWIND = [0.04, 0.24];
+const OPEN = [0.22, 0.7];
+const CENTER = [0.5, 0.84];
+// Beat 2, the next swipe (as shares of the Mac's runway): the camera, right
+// on the closed lid's logo, pulls back and light comes up round it: the
+// logo was on the MacBook all along. Our logo is locked onto the lid's from
+// the moment the lid can be seen, and hands over to it once it is still.
+const LOCK = [0, 0.2]; // our logo onto the lid's
+const LIGHT = [0.14, 0.3]; // the aluminium comes up out of the dark
+const HAND = [0.28, 0.4]; // our logo takes on the lid's finish, then goes
+const SAY = [0.24, 0.38]; // the line about the Mac
+const REVEAL_END = 0.42; // where it rests, closed, waiting to be opened
 // The heart to the farthest point of the glyph (the leaf's tip), in its units.
 const HEART_REACH = 13.6;
-// What the logo says as it arrives: the Mac is the portfolio, and what is in
-// it. "|" breaks the line.
-const STORY_LINE = 'This Mac is | my portfolio.';
-const STORY_SUB = 'Ten years of work, laid out like macOS. Open it and look around.';
-const INSIDE = [
-  { name: 'Portfolio', what: 'every project, sorted' },
-  { name: 'Resume', what: 'one click' },
-  { name: 'Games', what: 'I built them, they work' },
-  { name: "Let's talk", what: 'tell me what you need' },
-];
-// From here (as a share of "now"), a click anywhere goes in.
-const END_FROM = 0.3;
+// What the closed Mac says, once it has been revealed. "|" breaks the line.
+const STORY_LINE = "Everything I've made | is on this Mac.";
+const STORY_SUB = 'Click anything. It works like any computer.';
+// From here (as a share of "now"), a click anywhere opens it and goes in.
+const END_FROM = 0.84;
 
 // The timeline playing on by itself: how long it rests on each role once it
 // has landed and opened, and on the whole journey before it pulls back to the logo.
 const AUTO_REST = 1500;
 const AUTO_REST_NOW = 500; // a beat on Now before the ball becomes the logo
-const AUTO_REST_LOGO = 4200; // time to read about the Mac before the logo lands on it
+const AUTO_REST_LOGO = 4200; // (unused: from the logo on, every beat waits for its swipe)
 // The Mac's drift: each line to the next, continuous, long enough to read.
 const DRIFT_MS = 3600;
 // Opening the Mac: the lid comes up over the words, the screen wakes, in.
@@ -1441,12 +1423,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const r = r0 + ((HEART_REACH * LOGO_EL_W) / APPLE_BOX.w - r0) * e;
     return `circle(${r.toFixed(2)}px at ${HEART_CLIP})`;
   });
-  // The words about the Mac, under the top bar, a beat after the logo.
-  const lineReveal = useTransform(nowT, (t) => within(t, [TELL[0], TELL[0] + 0.08]));
-  const subOpacity = useTransform(nowT, (t) => within(t, [TELL[0] + 0.05, TELL[0] + 0.1]));
-  const subY = useTransform(nowT, (t) => `${((1 - within(t, [TELL[0] + 0.05, TELL[0] + 0.1])) * 8).toFixed(2)}px`);
-  const insideT = useTransform(nowT, (t) => within(t, [TELL[0] + 0.07, TELL[1]]));
-  const lineOpacity = useTransform(nowT, (t) => (t > 0 ? 1 : 0));
   // Where the logo ends: the 3D scene reports the lid's place and angle on
   // screen (logoRef). Until it has loaded, and on phones (no lid), a stand-in.
   const finalLogo = () => {
@@ -1462,77 +1438,108 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (phone) return { ...phoneLogoPoint(), m: [k, 0, 0, k] };
     return { x: vw / 2, y: vh * 0.638, m: [-k, 0, 0, -k * 0.857] };
   };
-  const logoTransform = useTransform(nowT, (t) => {
+  // How far into the Mac's runway (MacRoom's own, eased, progress): beat 2
+  // and 3 run on it. Written by MacRoom every frame (see onMacFrame).
+  const macP = useRef(0);
+  // The line about the Mac: 0..1 as it comes in (driven from MacRoom's frame).
+  const sayT = useMotionValue(0);
+  const subOpacity = useTransform(sayT, (k) => within(k, [0.45, 1]));
+  const subY = useTransform(sayT, (k) => `${((1 - within(k, [0.45, 1])) * 8).toFixed(2)}px`);
+  const cueOpacity = useTransform(sayT, (k) => within(k, [0.75, 1]));
+  const use3DRef = useRef(use3D);
+  use3DRef.current = use3D;
+  // The logo, every frame: born on the ball (the apple's heart where the
+  // ball was), to the middle; then, as the camera pulls back from the lid,
+  // locked onto the lid's own logo (wherever the camera puts it), turning
+  // the half turn a closed lid's logo has from the front; it takes on the
+  // lid's finish, and is gone, leaving the lid's own.
+  const logoElRef = useRef(null);
+  const logoState = () => {
+    const t = nowT.get();
+    const rp = macP.current;
     const big = logoBig();
-    // Born where the ball wound in (the apple's heart on it), then to the
-    // middle of the screen.
     const c = smooth01(within(t, CENTER));
     const hx = tg.vw / 2 - HEART_DX * big;
     const hy = tg.rulerY - HEART_DY * big;
     const x0 = hx + (tg.vw / 2 - hx) * c;
     const y0 = hy + (tg.vh * LOGO_AT - hy) * c;
-    // Then it spins (a full turn about its upright, like a coin) as it
-    // shrinks and turns down onto the lid's own logo.
-    const settle = smooth01(within(t, LAND));
-    const place = smooth01(within(t, [LAND[0], LAND[0] + (LAND[1] - LAND[0]) * 0.7]));
+    const w = hasLid() ? inOut(within(rp, LOCK)) : 0;
     const f = finalLogo();
-    const [a, b, cc, d] = f.m;
+    // A hair larger than the lid's own, so it covers it until it hands over.
+    const [a, b, cc, d] = f.m.map((v) => v * 1.035);
     // Final matrix as rotate(theta) x [[sx, sk], [0, sy]], so it can be eased.
     let theta = Math.atan2(b, a);
     if (theta < -0.01) theta += Math.PI * 2; // always turn the same way
     const sx = Math.hypot(a, b);
     const sk = Math.cos(theta) * cc + Math.sin(theta) * d;
     const sy = -Math.sin(theta) * cc + Math.cos(theta) * d;
-    const th = theta * settle;
-    // (Without WebGL the flat logo spins by narrowing, like a coin seen edge on.)
-    const spin = chromeOk ? 1 : Math.cos(2 * Math.PI * inOut(within(settle, [0, 0.8])));
-    const ssx = (big + (sx - big) * settle) * spin;
-    const ssy = big + (sy - big) * settle;
-    const ssk = sk * settle;
+    const th = theta * w;
+    const ssx = big + (sx - big) * w;
+    const ssy = big + (sy - big) * w;
+    const ssk = sk * w;
     const cos = Math.cos(th);
     const sin = Math.sin(th);
-    const x = x0 + (f.x - x0) * place;
-    const y = y0 + (f.y - y0) * place;
-    return `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`;
-  });
-  // Chrome from the ball on. On the lid it dims into the lid's own painted
-  // mark as it settles, so the laptop stops on one crisp logo.
+    const x = x0 + (f.x - x0) * w;
+    const y = y0 + (f.y - y0) * w;
+    const shown = (t >= REWIND[1] ? 1 : 0) * (flatRef.current || !hasLid() ? 1 : 1 - within(rp, [HAND[1] - 0.02, HAND[1]]));
+    return {
+      transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`,
+      shown,
+      t,
+      rp,
+    };
+  };
+  const logoTransform = useTransform(nowT, () => logoState().transform);
+  const logoOpacity = useTransform(nowT, () => logoState().shown);
+  // The flat fallback (no WebGL) still uses these.
   const inkOpacity = useTransform(nowT, (t) => within(t, OPEN));
-  const whiteOpacity = useTransform(nowT, (t) => (hasLid() ? 1 - within(t, [LAND[1] - 0.06, LAND[1]]) : 1));
-  // It takes over from the ball the moment the line is wound in (the ball
-  // goes at the same moment: same dot, same place), and hands over to the
-  // lid's painted logo once it has settled.
-  const logoOpacity = useTransform(nowT, (t) => (t >= REWIND[1] ? 1 : 0) * (flatRef.current || !hasLid() ? 1 : 1 - within(t, [LAND[1], LAND[1] + 0.06])));
+  const whiteOpacity = useTransform(nowT, () => 1);
   const gridOpacity = useTransform(nowT, (t) => 1 - within(t, [0, 0.1]));
 
-  // The chrome logo (WebGL): the ball melting into it, its turns, and the
-  // lid's paint it takes on at the end, all from the same scroll.
+  // The chrome logo (WebGL): the ball melting into it, then a polished,
+  // flat inlay with a slow light across it while it waits, then the lid's
+  // own finish as it hands over.
   const chromeRef = useRef(null);
-  const driveChrome = (t) => {
+  const driveChrome = (t, rp) => {
     const api = chromeRef.current;
     if (!api) return;
     const morph = inOut(within(t, OPEN));
     // Born the ball's exact size at the apple's heart; it swells as it flows.
     const r0 = BALL_R / (logoBig() * LOGO_EL_H);
     const r = r0 + (0.3 - r0) * smooth01(within(morph, [0, 0.55]));
-    const settle = smooth01(within(t, LAND));
     api.set({
       morph,
       ball: [HEART_DX / LOGO_EL_H, -HEART_DY / LOGO_EL_H, r],
-      // One whole turn, like a coin, on its way down onto the lid.
-      spin: 2 * Math.PI * inOut(within(settle, [0, 0.85])),
-      // Big in the middle it leans back a touch (so it reads as a solid
-      // thing) and sways while it waits; it lies flat to land.
-      tilt: 0.22 * smooth01(within(t, [OPEN[1] - 0.04, CENTER[1]])) * (1 - smooth01(within(t, [LAND[0], LAND[0] + 0.1]))),
-      idle: smooth01(within(t, [CENTER[0], CENTER[1]])) * (1 - smooth01(within(t, [LAND[0], LAND[0] + 0.08]))),
-      ink: hasLid() ? within(t, [LAND[1] - 0.08, LAND[1]]) : 0,
+      spin: 0,
+      tilt: 0,
+      // Flat, like a real inlay, once it has formed; lit softly, like one.
+      flat: smooth01(within(t, [OPEN[1] - 0.12, CENTER[1]])),
+      soft: smooth01(within(t, [OPEN[0] + 0.08, OPEN[1]])),
+      // The light drifting across it, while it is big and waiting.
+      idle: smooth01(within(t, [CENTER[0], CENTER[1]])) * (1 - smooth01(within(rp, LOCK))),
+      ink: hasLid() ? smooth01(within(rp, HAND)) : 0,
     });
   };
-  useMotionValueEvent(nowT, 'change', driveChrome);
+  // Every frame while the logo is about (it follows the camera as it pulls
+  // back, which scrolling alone does not report).
   useEffect(() => {
-    // Once it exists, catch it up (the scroll may already be past the start).
-    const id = requestAnimationFrame(() => driveChrome(nowT.get()));
-    return () => cancelAnimationFrame(id);
+    let raf = 0;
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+      const el = logoElRef.current;
+      const st = logoState();
+      if (st.t <= 0 || st.rp > HAND[1] + 0.05) {
+        if (el && el.style.opacity !== '0') el.style.opacity = '0';
+        return;
+      }
+      if (el) {
+        el.style.transform = st.transform;
+        el.style.opacity = st.shown.toFixed(3);
+      }
+      driveChrome(st.t, st.rp);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   });
 
   useMotionValueEvent(progress, 'change', (v) => {
@@ -1659,10 +1666,12 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         { id: 'now', y: spanAt(SPAN.tl, 1), ms: 1700 },
         // Then it pulls back until the whole career is the Apple logo, and
         // the line rises; from there it drifts on into the Mac.
-        { id: 'logo', y: spanAt(SPAN.now, TELL[1] + 0.02), ms: 3600 },
-        // The logo lands on the closed laptop; it waits for them to open it.
-        { id: 'mac', y: spanAt(SPAN.now, 0.96), ms: 3800 },
+        // Beat 1: the ball becomes the logo, which rests in the middle.
+        { id: 'logo', y: spanAt(SPAN.now, 1), ms: 4400 },
       ];
+      // Beat 2: the pull-back that shows the logo was on the closed Mac. It
+      // rests there, waiting to be opened (beat 3: one scroll or a click).
+      if (runwayRef.current && !phone && use3DRef.current) list.push({ id: 'mac', y: runAt(REVEAL_END), ms: 3200 });
       // Phones: the iPhone ending's own stops. The Mac has none: from the
       // closed laptop, one scroll (or a click) opens it and goes in.
       if (runwayRef.current && phone) PHONE_STOPS.forEach((t, i) => list.push({ id: `chapter${i}`, y: runAt(t), ms: 1300 }));
@@ -1771,7 +1780,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     // Stops the journey plays on from by itself: Now (on to the logo), and
     // from the logo on, the Mac: it keeps drifting slowly through the words
     // and in, until a scroll moves it on faster.
-    const drifts = (id) => id === 'logo' || id?.startsWith('chapter');
+    // (From the logo on, nothing plays by itself: each beat waits for its swipe.)
+    const drifts = (id) => id?.startsWith('chapter');
     const playsOn = (id) => id === 'now' || drifts(id);
     const playOn = () => {
       clearTimeout(autoTimer);
@@ -2030,8 +2040,23 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         e.preventDefault();
         return;
       }
-      // In the career, the page scrolls itself (see freeAt).
+      // In the career, the page scrolls itself (see freeAt). But never past
+      // Now: a swipe's momentum would race through everything after it.
+      // It stops on Now, and what comes next waits for a swipe of its own.
       if (!sideways && freeAt(window.scrollY, Math.sign(delta))) {
+        const z = zoneOf();
+        const px = delta * (e.deltaMode === 1 ? 16 : 1);
+        if (delta > 0 && z && window.scrollY + px >= z[1] - 1) {
+          e.preventDefault();
+          window.scrollTo(0, Math.round(z[1]));
+          lastY = Math.round(z[1]);
+          step = stops().findIndex((x) => x.id === 'now');
+          autoRef.current = false;
+          clearTimeout(autoTimer);
+          gestureSpent = true;
+          steppedAt = t;
+          return;
+        }
         step = -1;
         autoRef.current = false;
         clearTimeout(autoTimer);
@@ -2144,7 +2169,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // tap anywhere goes in.
   const [endOn, setEndOn] = useState(false);
   useMotionValueEvent(nowT, 'change', (t) => {
-    const on = t >= END_FROM && t < 1;
+    const on = t >= END_FROM;
     setEndOn((cur) => (cur === on ? cur : on));
   });
   const enter = useCallback(() => {
@@ -2169,11 +2194,18 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const travel = deck.offsetHeight - window.innerHeight;
     return deck.offsetTop + travel * (SPAN.now[0] + (SPAN.now[1] - SPAN.now[0]) * t);
   }, []);
-  const sceneFadeFrom = useCallback(() => nowY(LAND[0] + 0.02), [nowY]);
-  // The 3D renders only from here on: the logo starts heading for the lid at
-  // 0.33. Before that it would draw every frame, unseen, under the timeline.
-  const liveFrom = useCallback(() => nowY(TELL[0]), [nowY]);
-  const sceneFadeTo = useCallback(() => nowY(LAND[0] + 0.24), [nowY]);
+  // On the Mac's runway, at a share of it.
+  const runY = useCallback((f) => {
+    const r = runwayRef.current;
+    if (!r) return nowY(1);
+    return r.offsetTop + (maxScroll() - r.offsetTop) * f;
+  }, [nowY]);
+  // The aluminium comes up out of the dark round the logo as the camera
+  // pulls back (by then our logo sits exactly on the lid's).
+  const sceneFadeFrom = useCallback(() => runY(LIGHT[0]), [runY]);
+  // The 3D renders from beat 1 on (warm, so beat 2 starts on its first frame).
+  const liveFrom = useCallback(() => nowY(0.5), [nowY]);
+  const sceneFadeTo = useCallback(() => runY(LIGHT[1]), [runY]);
 
   const flat = !use3D && !phone;
 
@@ -2190,30 +2222,38 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // the laptop, so the lid comes up over it as it opens (and it fades as the
   // lid passes).
   const introOuterRef = useRef(null);
+  const [revealed, setRevealed] = useState(false);
   const onMacFrame = useCallback((y, p) => {
+    macP.current = p;
+    // The line comes in once the Mac is there, and goes as the lid comes up
+    // over it.
+    sayT.set(smooth01(within(p, SAY)));
     const el = introOuterRef.current;
-    if (el) el.style.opacity = (1 - smooth01(within(p, [0.16, 0.34]))).toFixed(3);
+    if (el) el.style.opacity = (1 - smooth01(within(p, [MAC_BEATS.lid[0] + 0.01, MAC_BEATS.lid[0] + 0.12]))).toFixed(3);
+    const r = p > LOCK[1];
+    setRevealed((cur) => (cur === r ? cur : r));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const macIntro = (
     <div ref={introOuterRef} className={styles.storyOuter}>
-      <motion.div className={styles.storyLineWrap} style={{ opacity: lineOpacity }}>
-        <RiseWords text={STORY_LINE} reveal={lineReveal} className={styles.bridgeLine} />
+      <div className={styles.storyLineWrap}>
+        <RiseWords text={STORY_LINE} reveal={sayT} className={styles.bridgeLine} />
         <motion.p className={styles.bridgeSub} style={{ opacity: subOpacity, y: subY }}>
           {STORY_SUB}
         </motion.p>
-        <ul className={styles.inside} aria-label="What is on the Mac">
-          {INSIDE.map((x, i) => (
-            <InsideItem key={x.name} item={x} index={i} t={insideT} />
-          ))}
-        </ul>
         {flat ? (
           <button type="button" className={styles.btnLight} onClick={() => onReachScreen?.()}>
             See my work
           </button>
         ) : (
-          <InsideItem cue t={insideT} index={INSIDE.length} />
+          <motion.p className={styles.openCue} style={{ opacity: cueOpacity }}>
+            Scroll to open
+            <svg viewBox="0 0 16 16" aria-hidden>
+              <path d="M8 3v10M4 9l4 4 4-4" />
+            </svg>
+          </motion.p>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 
@@ -2257,6 +2297,40 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       >
         {use3D && macIntro}
       </MacRoom>
+
+      {/* The logo: its own fixed layer, over the 3D Mac and the page, so it
+          stays on the lid's logo as the page moves on into the Mac's
+          runway (the deck scrolls away there). */}
+      <div className={styles.logoLayer} aria-hidden>
+        {/* Ten years wound into one dot, which opens into the lid's own
+            Apple logo and settles onto it as the MacBook comes up. */}
+        {chromeOk ? (
+          <div ref={logoElRef} className={styles.logo} style={{ width: LOGO_EL_W, height: LOGO_EL_H, opacity: 0 }} aria-hidden>
+            <ChromeLogo apiRef={chromeRef} path={APPLE_PATH} box={APPLE_BOX} className={styles.logoCanvas} maxScale={2} />
+          </div>
+        ) : (
+        <motion.svg
+          className={styles.logo}
+          viewBox={`${APPLE_BOX.x} ${APPLE_BOX.y} ${APPLE_BOX.w} ${APPLE_BOX.h}`}
+          style={{ width: LOGO_EL_W, height: LOGO_EL_H, transform: logoTransform, opacity: logoOpacity, clipPath: logoClip }}
+          aria-hidden
+        >
+          <defs>
+            <linearGradient id="kenChrome" x1="0" y1="0" x2="0.35" y2="1">
+              <stop offset="0" stopColor="#ffffff" />
+              <stop offset="0.46" stopColor="#e4e6ea" />
+              <stop offset="0.54" stopColor="#a9aeb6" />
+              <stop offset="1" stopColor="#f4f5f7" />
+            </linearGradient>
+          </defs>
+          {/* The lid's own colour, under the chrome: it comes in with the
+              chrome (so the ball, not a dark dot, is what opens) and is
+              what is left when the chrome dims onto the lid. */}
+          <motion.path fill={LID_LOGO_FILL} d={APPLE_PATH} style={{ opacity: inkOpacity }} />
+          <motion.path fill="url(#kenChrome)" d={APPLE_PATH} style={{ opacity: whiteOpacity }} />
+        </motion.svg>
+        )}
+      </div>
 
       {/* The Mac room is drawn for the eye only; what Ken does, for everyone. */}
       <ul className={styles.srOnly} aria-label="What I do">
@@ -2346,34 +2420,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             {/* No 3D Mac (phones, the flat fallback): the words sit on the page. */}
             {!use3D && macIntro}
 
-            {/* Ten years wound into one dot, which opens into the lid's own
-                Apple logo and settles onto it as the MacBook comes up. */}
-            {chromeOk ? (
-              <motion.div className={styles.logo} style={{ width: LOGO_EL_W, height: LOGO_EL_H, transform: logoTransform, opacity: logoOpacity }} aria-hidden>
-                <ChromeLogo apiRef={chromeRef} path={APPLE_PATH} box={APPLE_BOX} className={styles.logoCanvas} maxScale={2} />
-              </motion.div>
-            ) : (
-            <motion.svg
-              className={styles.logo}
-              viewBox={`${APPLE_BOX.x} ${APPLE_BOX.y} ${APPLE_BOX.w} ${APPLE_BOX.h}`}
-              style={{ width: LOGO_EL_W, height: LOGO_EL_H, transform: logoTransform, opacity: logoOpacity, clipPath: logoClip }}
-              aria-hidden
-            >
-              <defs>
-                <linearGradient id="kenChrome" x1="0" y1="0" x2="0.35" y2="1">
-                  <stop offset="0" stopColor="#ffffff" />
-                  <stop offset="0.46" stopColor="#e4e6ea" />
-                  <stop offset="0.54" stopColor="#a9aeb6" />
-                  <stop offset="1" stopColor="#f4f5f7" />
-                </linearGradient>
-              </defs>
-              {/* The lid's own colour, under the chrome: it comes in with the
-                  chrome (so the ball, not a dark dot, is what opens) and is
-                  what is left when the chrome dims onto the lid. */}
-              <motion.path fill={LID_LOGO_FILL} d={APPLE_PATH} style={{ opacity: inkOpacity }} />
-              <motion.path fill="url(#kenChrome)" d={APPLE_PATH} style={{ opacity: whiteOpacity }} />
-            </motion.svg>
-            )}
 
             {endOn && (
               <button type="button" className={styles.enter} onClick={enter} aria-label="See my work" />
@@ -2385,7 +2431,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       </div>
 
       {/* At the end of the story only: the ball does the asking before that. */}
-      <div className={`${styles.idleHint} ${idle && endOn && !contactOpen ? styles.idleHintOn : ''}`} aria-hidden>
+      <div className={`${styles.idleHint} ${idle && endOn && !revealed && !contactOpen ? styles.idleHintOn : ''}`} aria-hidden>
         <span>{phone ? 'Swipe up' : 'Scroll down'}</span>
         <i />
       </div>

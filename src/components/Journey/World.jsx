@@ -64,7 +64,7 @@ function TopAnchor({ anchorRef }) {
  * along the lid's width (x) and depth (z) lands on screen there, in CSS px.
  * The lid's width (world units) sizes the logo.
  */
-function LogoAnchor({ logoRef }) {
+function LogoAnchor({ logoRef, poses }) {
   const { scene, camera, size } = useThree();
   const tmp = useMemo(() => ({ box: new THREE.Box3(), c: new THREE.Vector3(), p: new THREE.Vector3() }), []);
   const lid = useRef(null);
@@ -74,6 +74,17 @@ function LogoAnchor({ logoRef }) {
     const { box, c, p } = tmp;
     box.setFromObject(lid.current);
     box.getCenter(c);
+    // A pose that starts close on the lid's logo (`onLid`) is aimed at it:
+    // the same point this reports as the logo, followed every frame (the
+    // pose only counts while the lid is shut, before it opens).
+    if (poses?.hero?.onLid) {
+      poses.hero.target.set(c.x, c.y, c.z + 0.0059 * (box.max.x - box.min.x));
+      // A pose that ends on the laptop (`fromLid`, an offset) stays aimed
+      // past the same point, so the camera pulls straight back along one
+      // line and the logo glides steadily to where it rests.
+      const o = poses.front?.fromLid;
+      if (o) poses.front.target.set(poses.hero.target.x + o[0], poses.hero.target.y + o[1], poses.hero.target.z + o[2]);
+    }
     const toScreen = (v) => [(v.x * 0.5 + 0.5) * size.width, (1 - (v.y * 0.5 + 0.5)) * size.height];
     const D = 0.05;
     const [cx, cy] = toScreen(p.copy(c).project(camera));
@@ -110,7 +121,7 @@ export default function World({ progressRef, screenOnRef, swayRef, onReady, live
       <Lights progressRef={progressRef} />
       <MacbookLighting preset="studio-dark" />
       {anchorRef && <TopAnchor anchorRef={anchorRef} />}
-      {logoRef && <LogoAnchor logoRef={logoRef} />}
+      {logoRef && <LogoAnchor logoRef={logoRef} poses={poses} />}
       <Suspense fallback={null}>
         <Rig progressRef={progressRef} screenOnRef={screenOnRef} onReady={onReady} beats={beats} poses={poses} sway={swayRef} />
       </Suspense>
