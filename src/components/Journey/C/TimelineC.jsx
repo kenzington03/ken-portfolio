@@ -477,7 +477,8 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
         <h2 className={styles.title}>My career, 2015 to now.</h2>
       </motion.div>
 
-      <div className={styles.chart}>
+      {/* The line and its marks fade with the words at Now. */}
+      <motion.div className={styles.chart} style={{ opacity: ink }}>
         <span className={styles.ruler} style={{ '--a': at(START), '--w': g.right - g.left }} aria-hidden />
 
         {/* Each role's span, drawn in its colour once the ball reaches it
@@ -512,7 +513,7 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
           <span key={keyOf(r)} className={`${styles.start} ${r.internship ? styles.intern : ''} ${states[i] !== 'ahead' ? styles.startOn : ''}`} style={{ '--a': at(r.from) }} aria-hidden />
         ))}
 
-      </div>
+      </motion.div>
       {/* The knob is the journey's own basketball (JourneyC's Cast). */}
 
       {/* Each role, at its own dot: written out large above the ball while

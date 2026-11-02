@@ -6,8 +6,13 @@ import styles from './Screensaver.module.css';
 const IDLE_MS = 90000;
 const DISPLAY = "'Big Shoulders', 'Cabinet Grotesk', sans-serif";
 
-// Two screensavers, picked with ?saver=print or ?saver=particles (remembered
-// on that browser); ?saver-now shows it at once, to try it.
+// The screensaver (Ken's pick): Latte vs Roast. Two others can still be tried
+// with ?saver=print or ?saver=particles (remembered on that browser);
+// ?saver=coffee goes back; ?saver-now shows it at once, to try it.
+//   coffee     two teams fight over a board: each ball flips the other
+//              team's squares to its own as it bounces into them, so the
+//              border between latte and roast keeps shifting. The latte ball
+//              is a little black hole; a bomb now and then takes a bite.
 //   print      the bouncing logo, as a print run: Ken's name bounces and
 //              leaves an ink stamp, two inks a hair off, at every wall it
 //              hits, so a poster builds up behind it as it goes. Landing in
@@ -15,8 +20,8 @@ const DISPLAY = "'Big Shoulders', 'Cabinet Grotesk', sans-serif";
 //   particles  the time, written in a few thousand points of light that
 //              flow apart and gather into Ken's name, then what he does,
 //              then the time again.
-const SAVERS = ['particles', 'print'];
-const SAVER_KEY = 'ken:saver';
+const SAVERS = ['coffee', 'particles', 'print'];
+const SAVER_KEY = 'ken:saver-v2'; // (v2: the coffee one is the default now)
 const pickSaver = () => {
   try {
     const q = new URLSearchParams(window.location.search).get('saver');
@@ -294,6 +299,178 @@ function Particles({ reduced }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Latte vs Roast                                                      */
+/* ------------------------------------------------------------------ */
+
+const BREW = {
+  latte: '#f5ebd3',
+  roast: '#5a3519',
+  hole: '#2a1608', // the latte team's ball: a black hole, drawn on latte
+  bean: '#e6c873', // the roast team's ball, drawn on roast
+  clay: '#d9785e', // the bombs
+};
+const CELL = 30; // px a square
+const BALL_R = 11;
+const BREW_SPEED = 330; // px per second
+const BOMB_EVERY = 9000; // ms between bombs (one on the board at a time)
+
+function Coffee({ reduced }) {
+  const canvasRef = useRef(null);
+  const latteRef = useRef(null);
+  const roastRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const ctx = canvas.getContext('2d');
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    // The board: as big as fits under the title and over the score.
+    const cols = Math.max(12, Math.floor(Math.min(window.innerWidth * 0.64, (window.innerHeight - 250) * 1.5) / CELL));
+    const rows = Math.max(10, Math.floor(Math.min(window.innerHeight - 250, window.innerWidth * 0.5) / CELL));
+    const W = cols * CELL;
+    const H = rows * CELL;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = `${W}px`;
+    canvas.style.height = `${H}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // 0 latte, 1 roast: latte on the left, roast on the right.
+    const grid = new Uint8Array(cols * rows);
+    for (let r = 0; r < rows; r += 1) for (let c = 0; c < cols; c += 1) grid[r * cols + c] = c < cols / 2 ? 0 : 1;
+    const angle = () => (Math.random() * 0.5 + 0.25) * (Math.random() < 0.5 ? 1 : -1);
+    const balls = [
+      { team: 0, x: W * 0.25, y: H * 0.5, a: Math.PI * 0.25 + angle() },
+      { team: 1, x: W * 0.75, y: H * 0.5, a: Math.PI * 1.25 + angle() },
+    ].map((b) => ({ ...b, vx: Math.cos(b.a) * BREW_SPEED, vy: Math.sin(b.a) * BREW_SPEED }));
+    let bomb = null;
+    let nextBomb = performance.now() + BOMB_EVERY;
+    const flip = (c, r, team) => {
+      if (c < 0 || r < 0 || c >= cols || r >= rows) return false;
+      const i = r * cols + c;
+      if (grid[i] === team) return false;
+      grid[i] = team;
+      return true;
+    };
+    let raf = 0;
+    let last = performance.now();
+    const step = (now) => {
+      raf = requestAnimationFrame(step);
+      const dt = reduced ? 0 : Math.min(0.03, (now - last) / 1000);
+      last = now;
+      if (!bomb && now > nextBomb) {
+        bomb = { c: 2 + Math.floor(Math.random() * (cols - 4)), r: 2 + Math.floor(Math.random() * (rows - 4)) };
+      }
+      balls.forEach((b) => {
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        // The walls.
+        if (b.x < BALL_R || b.x > W - BALL_R) {
+          b.vx = -b.vx;
+          b.x = Math.max(BALL_R, Math.min(W - BALL_R, b.x));
+        }
+        if (b.y < BALL_R || b.y > H - BALL_R) {
+          b.vy = -b.vy;
+          b.y = Math.max(BALL_R, Math.min(H - BALL_R, b.y));
+        }
+        // The other team's squares: flip the first one it touches, bounce off.
+        for (let k = 0; k < 8; k += 1) {
+          const t = (k / 8) * Math.PI * 2;
+          const px = b.x + Math.cos(t) * BALL_R;
+          const py = b.y + Math.sin(t) * BALL_R;
+          if (flip(Math.floor(px / CELL), Math.floor(py / CELL), b.team)) {
+            if (Math.abs(Math.cos(t)) > Math.abs(Math.sin(t))) b.vx = -b.vx;
+            else b.vy = -b.vy;
+            break;
+          }
+        }
+        // A touch of drift, so it never settles into a loop.
+        const sp = Math.hypot(b.vx, b.vy);
+        const turn = (Math.random() - 0.5) * 0.02;
+        const a = Math.atan2(b.vy, b.vx) + turn;
+        b.vx = Math.cos(a) * sp;
+        b.vy = Math.sin(a) * sp;
+        // A bomb: the ball that reaches it takes a bite of the board.
+        if (bomb && Math.abs(b.x - (bomb.c + 0.5) * CELL) < CELL * 0.8 && Math.abs(b.y - (bomb.r + 0.5) * CELL) < CELL * 0.8) {
+          for (let dr = -2; dr <= 2; dr += 1) for (let dc = -2; dc <= 2; dc += 1) if (dr * dr + dc * dc <= 5) flip(bomb.c + dc, bomb.r + dr, b.team);
+          bomb = null;
+          nextBomb = now + BOMB_EVERY;
+        }
+      });
+
+      // The board.
+      for (let r = 0; r < rows; r += 1) {
+        for (let c = 0; c < cols; c += 1) {
+          ctx.fillStyle = grid[r * cols + c] ? BREW.roast : BREW.latte;
+          ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+        }
+      }
+      if (bomb) {
+        const x = bomb.c * CELL;
+        const y = bomb.r * CELL;
+        ctx.fillStyle = BREW.clay;
+        ctx.fillRect(x + 2, y + 2, CELL - 4, CELL - 4);
+        ctx.fillStyle = BREW.latte;
+        ctx.beginPath();
+        ctx.arc(x + CELL / 2, y + CELL / 2 + 2, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(x + CELL / 2 + 2, y + 6, 2, 5);
+      }
+      // The latte ball: a black hole, specks swirling into it.
+      const h = balls[0];
+      const t = now / 1000;
+      ctx.fillStyle = BREW.hole;
+      for (let k = 0; k < 16; k += 1) {
+        const ring = 15 + ((k * 7) % 11);
+        const a = t * (2.4 - ring * 0.04) + k * 2.4;
+        ctx.globalAlpha = 0.35 + 0.5 * ((k % 3) / 2);
+        ctx.fillRect(h.x + Math.cos(a) * ring - 1.5, h.y + Math.sin(a) * ring * 0.75 - 1, 3, 2);
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(h.x, h.y, BALL_R, 0, Math.PI * 2);
+      ctx.fill();
+      // The roast ball: a golden bean.
+      const g = balls[1];
+      ctx.fillStyle = BREW.bean;
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, BALL_R, 0, Math.PI * 2);
+      ctx.fill();
+
+      // The score, as two bars.
+      let roast = 0;
+      for (let i = 0; i < grid.length; i += 1) roast += grid[i];
+      const share = roast / grid.length;
+      if (latteRef.current) latteRef.current.style.transform = `scaleX(${(1 - share).toFixed(4)})`;
+      if (roastRef.current) roastRef.current.style.transform = `scaleX(${share.toFixed(4)})`;
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [reduced]);
+
+  return (
+    <div className={styles.coffee}>
+      <div className={styles.brewFrame}>
+        <p className={styles.brewTitle}>Latte vs Roast</p>
+        <canvas ref={canvasRef} className={styles.brewBoard} />
+        <div className={styles.brewScore}>
+          <span className={styles.brewLabel}>
+            Latte <i style={{ background: BREW.hole }} />
+          </span>
+          <span className={styles.brewBar}>
+            <span ref={latteRef} style={{ background: BREW.latte }} />
+          </span>
+          <span className={styles.brewLabel}>
+            Roast <i style={{ background: BREW.bean }} />
+          </span>
+          <span className={styles.brewBar}>
+            <span ref={roastRef} style={{ background: BREW.roast }} />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Screensaver() {
   const { screensaverActive, setScreensaverActive, unlock } = useOS();
   const [saver] = useState(pickSaver);
@@ -357,8 +534,8 @@ export default function Screensaver() {
 
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   return (
-    <div className={`${styles.screensaver} ${saver === 'print' ? styles.light : ''}`} onMouseMove={dismiss} onClick={dismiss} role="presentation">
-      {saver === 'print' ? <PrintRun reduced={reduced} /> : <Particles reduced={reduced} />}
+    <div className={`${styles.screensaver} ${saver === 'print' ? styles.light : ''} ${saver === 'coffee' ? styles.brew : ''}`} onMouseMove={dismiss} onClick={dismiss} role="presentation">
+      {saver === 'coffee' ? <Coffee reduced={reduced} /> : saver === 'print' ? <PrintRun reduced={reduced} /> : <Particles reduced={reduced} />}
       {saver === 'print' && <div className={styles.clock}>{time}</div>}
       <p className={styles.hint}>Move the mouse or press a key to wake</p>
     </div>

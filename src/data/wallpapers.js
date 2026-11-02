@@ -2,40 +2,36 @@
 export const WALLPAPER_STORAGE_KEY = 'kenneth-os-wallpaper-v5';
 export const DESKTOP_BG_STORAGE_KEY = 'kenneth-os-desktop-bg-index';
 
-/** Image files in public/assets/backgrounds/, Apple's own macOS 26 "Tahoe"
-    default wallpapers (light + dark Liquid Glass renders, plus the Lake
-    Tahoe photo). These are Apple's copyrighted images, used here at the
-    user's explicit direction overriding this project's earlier "don't
-    reuse Apple wallpapers" note, a real licensing risk on a public site,
-    accepted knowingly rather than silently. */
+/** Image files in public/assets/backgrounds/: Apple's own macOS default
+    wallpapers, Tahoe back to Big Sur (Ken, Nov 2 2026: "Apple styled
+    wallpapers only, whatever a MacBook uses"; the older ones from Stephen
+    Hackett's 512pixels.net archive, resized to 2880px). These are Apple's
+    copyrighted images, used at the user's explicit direction overriding
+    this project's earlier "don't reuse Apple wallpapers" note, a real
+    licensing risk on a public site, accepted knowingly rather than
+    silently. */
 export const DESKTOP_BACKGROUNDS = [
   { id: 'tahoe-light', label: 'Tahoe (Light)', src: '/assets/backgrounds/tahoe-light.jpg' },
   { id: 'tahoe-dark', label: 'Tahoe (Dark)', src: '/assets/backgrounds/tahoe-dark.jpg' },
   { id: 'tahoe-beach', label: 'Tahoe (Beach)', src: '/assets/backgrounds/tahoe-beach-day.jpg' },
+  { id: 'sequoia-light', label: 'Sequoia (Light)', src: '/assets/backgrounds/sequoia-light.jpg' },
+  { id: 'sequoia-dark', label: 'Sequoia (Dark)', src: '/assets/backgrounds/sequoia-dark.jpg' },
+  { id: 'sonoma-light', label: 'Sonoma (Light)', src: '/assets/backgrounds/sonoma-light.jpg' },
+  { id: 'sonoma-dark', label: 'Sonoma (Dark)', src: '/assets/backgrounds/sonoma-dark.jpg' },
+  { id: 'ventura-light', label: 'Ventura (Light)', src: '/assets/backgrounds/ventura-light.jpg' },
+  { id: 'ventura-dark', label: 'Ventura (Dark)', src: '/assets/backgrounds/ventura-dark.jpg' },
+  { id: 'monterey-light', label: 'Monterey (Light)', src: '/assets/backgrounds/monterey-light.jpg' },
+  { id: 'monterey-dark', label: 'Monterey (Dark)', src: '/assets/backgrounds/monterey-dark.jpg' },
+  { id: 'big-sur', label: 'Big Sur', src: '/assets/backgrounds/big-sur.jpg' },
 ];
 
-export const WALLPAPER_OPTIONS = [
-  // Ken's own (pick in System Preferences):
-  //   Studio Light: warm paper with soft light falling across it.
-  //   Poster: his name from the hero, printed huge in the poster's inks.
-  { id: 'studio', label: 'Studio Light', type: 'css', cssClass: 'studio' },
-  { id: 'poster', label: 'Poster', type: 'poster', cssClass: 'poster' },
-  ...DESKTOP_BACKGROUNDS.map((bg) => ({
-    id: bg.id,
-    label: bg.label,
-    type: 'image',
-    src: bg.src,
-  })),
-  { id: 'default', label: 'Default Dark', type: 'css', cssClass: 'default' },
-  { id: 'aurora', label: 'Aurora', type: 'css', cssClass: 'aurora' },
-  {
-    id: 'tubes',
-    label: 'Tubes',
-    type: 'image',
-    src: '/assets/ui/wallpaper-tubes.jpg',
-    optional: true,
-  },
-];
+// Apple's only (Ken's call): what a MacBook ships with.
+export const WALLPAPER_OPTIONS = DESKTOP_BACKGROUNDS.map((bg) => ({
+  id: bg.id,
+  label: bg.label,
+  type: 'image',
+  src: bg.src,
+}));
 
 export function getWallpaperById(id) {
   return WALLPAPER_OPTIONS.find((w) => w.id === id) ?? WALLPAPER_OPTIONS[0];

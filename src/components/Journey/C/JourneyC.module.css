@@ -1736,7 +1736,9 @@
 
 .storyLineWrap {
   position: absolute;
-  inset: clamp(72px, 9vh, 104px) 0 auto;
+  inset: 25vh 0 auto;
+  /* Lifts as the laptop comes in under it (--lift 0..1, from the Mac). */
+  transform: translate3d(0, calc(var(--lift, 0) * -12vh), 0);
   z-index: 3;
   display: grid;
   justify-items: center;

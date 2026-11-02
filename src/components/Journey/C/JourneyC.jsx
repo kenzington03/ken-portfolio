@@ -41,10 +41,10 @@ const MODEL_SRC = '/models/macbook-rigged.glb';
 // Beat 2 starts close on the lid's logo (the 3D scene points this pose at
 // the lid once it has loaded, see World's LogoAnchor) and pulls straight
 // back, along the same line, to the closed laptop overhead.
-const CLOSE_ON_LOGO = { yaw: 0, pitch: 0.95, radius: 3.6, target: new THREE.Vector3(0, 0, 0), onLid: true };
+const CLOSE_ON_LOGO = { yaw: 0, pitch: 0.95, radius: 7.2, target: new THREE.Vector3(0, 0, 0), onLid: true };
 // (Aimed a little behind the logo, toward the hinge, so the laptop rests
 // low on the screen, under the words.)
-const OVERHEAD = { yaw: 0, pitch: 0.95, radius: 12.5, target: new THREE.Vector3(0, 0, 0), fromLid: [0, 0, -0.6] };
+const OVERHEAD = { yaw: 0, pitch: 0.95, radius: 13.5, target: new THREE.Vector3(0, 0, 0), fromLid: [0, 0, -1.15] };
 const FLOW_POSES = { hero: CLOSE_ON_LOGO, front: OVERHEAD };
 // The runway after the deck (MacRoom's progress): the pull-back reveal, then
 // (beat 3) the lid opens over the words, the screen wakes, the camera dives in.
@@ -714,7 +714,7 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
           rz += s.air * 7;
         }
         if (v >= SPAN.tl[0]) {
-          const rr = v >= SPAN.now[0] ? within(within(v, SPAN.now), REWIND) ** 1.6 : 0;
+          const rr = 0;
           const pp = v >= SPAN.now[0] ? TIMELINE_NOW : within(v, SPAN.tl) * TIMELINE_NOW;
           rz -= (((timelineSpinAt(tg, pp) - timelineSpinAt(tg, 0)) * Math.PI) / 180) * ROLL_K + rr * 3;
           // Wound in, it becomes the logo: the logo is born as this same
@@ -1050,9 +1050,9 @@ const APPLE_PATH =
 
 // How tall the logo stands, big in the middle, as a share of the viewport
 // height; and where its centre sits then.
-const LOGO_VH = 0.24;
+const LOGO_VH = 0.12;
 const LOGO_VH_PHONE = 0.18;
-const LOGO_AT = 0.52;
+const LOGO_AT = 0.56;
 // The middle of the apple's body (in the glyph's units): solid all round for
 // a radius of about 5, so a dot there grows as a plain circle before the bite
 // and the leaf show. The ball becomes the logo here.
@@ -1076,7 +1076,7 @@ const CENTER = [0.5, 0.84];
 const LOCK = [0, 0.2]; // our logo onto the lid's
 const LIGHT = [0.14, 0.3]; // the aluminium comes up out of the dark
 const HAND = [0.28, 0.4]; // our logo takes on the lid's finish, then goes
-const SAY = [0.24, 0.38]; // the line about the Mac
+const SAY = [0.6, 0.92]; // the line about the Mac (in beat 1, with the logo, as shares of "now")
 const REVEAL_END = 0.42; // where it rests, closed, waiting to be opened
 // The heart to the farthest point of the glyph (the leaf's tip), in its units.
 const HEART_REACH = 13.6;
@@ -1408,9 +1408,11 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const paperOpacity = useTransform(nowT, (t) => 1 - smooth01(within(t, DISSOLVE)));
   // The deck's grain takes over from the hero's own as the hero leaves.
   const paperGrain = useTransform([progress, nowT], ([v, t]) => 0.5 * within(v, SPAN['hero>ab']) * (1 - within(t, DISSOLVE)));
-  const tlFade = useTransform(nowT, (t) => within(t, CLEAR));
-  // Winding in speeds up as it goes, like a tape measure, and lands hard.
-  const rewind = useTransform(nowT, (t) => within(t, REWIND) ** 1.6);
+  // At Now the timeline fades where it is (it does not wind back: after
+  // rolling forward all career, a line sliding backward reads as a glitch);
+  // the ball, still on its spot, is all that is left.
+  const tlFade = useTransform(nowT, (t) => smooth01(within(t, [0, REWIND[1] - 0.04])));
+  const rewind = useTransform(nowT, () => 0);
   // The logo's scale when big in the middle.
   const logoBig = () => (window.innerHeight * (phone ? LOGO_VH_PHONE : LOGO_VH)) / LOGO_EL_H;
   // The opening: a circle at the apple's heart, from the ball's size to the
@@ -2223,12 +2225,14 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // lid passes).
   const introOuterRef = useRef(null);
   const [revealed, setRevealed] = useState(false);
+  // The line comes in with the logo, so the logo is never without a reason.
+  useMotionValueEvent(nowT, 'change', (t) => sayT.set(smooth01(within(t, SAY))));
   const onMacFrame = useCallback((y, p) => {
     macP.current = p;
-    // The line comes in once the Mac is there, and goes as the lid comes up
-    // over it.
-    sayT.set(smooth01(within(p, SAY)));
+    // It rises out of the laptop's way as the camera pulls back, and goes as
+    // the lid comes up.
     const el = introOuterRef.current;
+    if (el) el.style.setProperty('--lift', smooth01(within(p, [0.1, 0.32])).toFixed(3));
     if (el) el.style.opacity = (1 - smooth01(within(p, [MAC_BEATS.lid[0] + 0.01, MAC_BEATS.lid[0] + 0.12]))).toFixed(3);
     const r = p > LOCK[1];
     setRevealed((cur) => (cur === r ? cur : r));
@@ -2246,7 +2250,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             See my work
           </button>
         ) : (
-          <motion.p className={styles.openCue} style={{ opacity: cueOpacity }}>
+          // (Only once there is a Mac to open.)
+          <motion.p className={styles.openCue} style={{ opacity: revealed ? cueOpacity : 0, transition: 'opacity 400ms ease' }}>
             Scroll to open
             <svg viewBox="0 0 16 16" aria-hidden>
               <path d="M8 3v10M4 9l4 4 4-4" />
@@ -2294,14 +2299,14 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         logoRef={logoRef}
         className={dark ? '' : styles.roomPaper}
         onFrame={use3D ? onMacFrame : undefined}
-      >
-        {use3D && macIntro}
-      </MacRoom>
+      />
 
       {/* The logo: its own fixed layer, over the 3D Mac and the page, so it
           stays on the lid's logo as the page moves on into the Mac's
           runway (the deck scrolls away there). */}
-      <div className={styles.logoLayer} aria-hidden>
+      <div className={styles.logoLayer}>
+        {/* What the logo means, over everything (the lid never covers it). */}
+        {use3D && macIntro}
         {/* Ten years wound into one dot, which opens into the lid's own
             Apple logo and settles onto it as the MacBook comes up. */}
         {chromeOk ? (
