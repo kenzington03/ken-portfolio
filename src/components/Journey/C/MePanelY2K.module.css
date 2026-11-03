@@ -1,129 +1,107 @@
-/* Q2, Y2K: iridescent sky, chrome bubble type on a glossy window, a pixel
-   ticker, aqua chips. --w / --e come from the scroll (see useWrite). */
+/* Q2, Y2K: an early-2000s tech catalogue. Deep ice-blue night, a fine grid,
+   wide brushed-chrome capitals, spec-sheet mono, a wireframe globe, thin
+   glass panels. --w / --e come from the scroll (see useWrite); each piece
+   has its turn (--i). */
 
 .y2k {
   --w: 999;
-  --chrome: linear-gradient(180deg, #ffffff 0%, #e9eeff 28%, #8f9cc8 50%, #ffffff 54%, #c3d0f5 78%, #ffffff 100%);
-  --bubble: 'Bagel Fat One', 'Big Shoulders', system-ui, sans-serif;
-  --pixel: 'Silkscreen', ui-monospace, monospace;
+  --ice: #cfe0ff;
+  --line: rgb(176 200 255 / 0.22);
+  --chrome: linear-gradient(180deg, #ffffff 0%, #dfe7f6 30%, #8a97b4 49%, #3b4660 51%, #a9b7d6 66%, #f4f7ff 86%, #c3cde2 100%);
+  --wide: 'Michroma', 'Big Shoulders', system-ui, sans-serif;
+  --mono: 'Space Mono', ui-monospace, monospace;
   --text: 'Instrument Sans', -apple-system, sans-serif;
   --gut: max(var(--gutter, 24px), 3.5vw);
   position: absolute;
   inset: 0;
   overflow: hidden;
-  color: #2b1d6b;
+  color: var(--ice);
   font-family: var(--text);
+  background: #04060c;
 }
 
-/* The sky: soft pools of pink, lilac and aqua over pearl. */
+/* Night, with an ice-blue haze rising from below and a cold glow top right. */
 .sky {
   position: absolute;
-  inset: -10%;
+  inset: 0;
   background:
-    radial-gradient(40% 45% at 18% 22%, #ffc9ef 0%, transparent 70%),
-    radial-gradient(38% 42% at 82% 26%, #b9f3ff 0%, transparent 70%),
-    radial-gradient(46% 50% at 55% 92%, #d8c6ff 0%, transparent 70%),
-    radial-gradient(30% 30% at 92% 86%, #ffe6a8 0%, transparent 70%),
-    #f6f2ff;
-  animation: drift 22s ease-in-out infinite alternate;
+    radial-gradient(60% 50% at 50% 118%, rgb(92 140 255 / 0.55), transparent 70%),
+    radial-gradient(40% 40% at 86% 18%, rgb(120 170 255 / 0.18), transparent 70%),
+    linear-gradient(180deg, #04060c 0%, #08101f 60%, #0d1a36 100%);
 }
 
-@keyframes drift {
-  to {
-    transform: translate3d(-3%, 2%, 0) scale(1.04);
-  }
-}
-
-.sparkle {
+/* A fine blueprint grid, fading out towards the top. */
+.grid {
   position: absolute;
-  font-size: var(--s);
-  line-height: 1;
-  color: #fff;
-  text-shadow: 0 0 8px #ff7ad9, 0 0 2px #7b5cff;
-  animation: twinkle 2.6s ease-in-out var(--d) infinite;
+  inset: 0;
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 64px 64px;
+  opacity: 0.35;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 55%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 55%);
 }
 
-@keyframes twinkle {
-  50% {
-    opacity: 0.25;
-    transform: scale(0.6) rotate(20deg);
-  }
+/* Each piece comes in on its turn: out of a blur, the letters closing up. */
+.word,
+.aside,
+.globe,
+.globeTag,
+.panel {
+  --k: clamp(0, calc((var(--w) - var(--i)) * 1.3), 1);
+  opacity: var(--k);
 }
 
-/* A chrome star, slowly turning, top right. */
-.star {
-  position: absolute;
-  right: 7%;
-  top: 14%;
-  width: clamp(80px, 9vw, 150px);
-  aspect-ratio: 1;
-  background: var(--chrome);
-  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  filter: drop-shadow(0 6px 10px rgb(90 50 200 / 0.35));
-  animation: spin 14s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* The window: a glossy title bar, a pearly body. */
-.window {
+.meta {
   position: absolute;
   left: var(--gut);
-  top: clamp(92px, 13vh, 130px);
-  width: min(64vw, 980px);
-  border-radius: 18px;
-  background: rgb(255 255 255 / 0.55);
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #b8a8ff, 0 24px 60px -24px rgb(70 40 160 / 0.45);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
+  right: var(--gut);
+  top: clamp(76px, 10vh, 100px);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(207 224 255 / 0.6);
+}
+
+.metaMid {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6cf0ff;
+  box-shadow: 0 0 8px #6cf0ff;
+  animation: blink 1.6s steps(2, jump-none) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.copy {
+  position: absolute;
+  left: var(--gut);
+  top: calc(clamp(76px, 10vh, 100px) + 48px);
+  width: min(62vw, 1000px);
   translate: 0 calc(var(--e, 0) * 14vh);
 }
 
-.titleBar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 34px;
-  padding: 0 14px;
-  background: linear-gradient(180deg, #a98bff 0%, #6d4dff 50%, #5a37f0 51%, #8f6dff 100%);
-  color: #fff;
-  font: 400 12px/1 var(--pixel);
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 0 rgb(0 0 0 / 0.3);
-}
-
-.titleDots {
-  display: flex;
-  gap: 6px;
-}
-
-.titleDots i {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff 0 18%, #ff8ad8 45%, #e0369f 100%);
-  box-shadow: inset 0 -1px 2px rgb(0 0 0 / 0.25);
-}
-
-.titleDots i + i {
-  background: radial-gradient(circle at 35% 30%, #fff 0 18%, #ffe17a 45%, #e3a90f 100%);
-}
-
-.titleDots i + i + i {
-  background: radial-gradient(circle at 35% 30%, #fff 0 18%, #8af0ff 45%, #12a9d8 100%);
-}
-
-/* The statement: bubbly chrome, a hot-pink shadow under it. */
+/* The statement: wide capitals in brushed chrome, a cold rim of light. */
 .statement {
   margin: 0;
-  padding: clamp(18px, 3vh, 34px) clamp(20px, 3vw, 44px) 6px;
-  font: 400 clamp(40px, min(6.6vw, 11vh), 132px) / 0.98 var(--bubble);
-  letter-spacing: 0.01em;
+  font: 400 clamp(28px, min(4.3vw, 8vh), 76px) / 1.18 var(--wide);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 .line {
@@ -131,85 +109,146 @@
 }
 
 .word {
-  --k: clamp(0, calc(var(--w) - var(--i)), 1);
   display: inline-block;
   background: var(--chrome);
+  background-size: 100% 1.18em;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  -webkit-text-stroke: 1.5px #5a37f0;
-  filter: drop-shadow(0 4px 0 #ff5fd2) drop-shadow(0 10px 12px rgb(90 50 200 / 0.3));
-  opacity: var(--k);
-  transform: translate3d(0, calc((1 - var(--k)) * 0.4em), 0) scale(calc(0.8 + var(--k) * 0.2));
-  transform-origin: 50% 100%;
+  filter: drop-shadow(0 0 18px rgb(120 170 255 / 0.25)) blur(calc((1 - var(--k)) * 8px));
+  letter-spacing: calc((1 - var(--k)) * 0.3em);
 }
 
-/* What he plays, on a pixel ticker. */
-.ticker {
-  --k: clamp(0, calc(var(--w) - var(--i)), 1);
-  margin: 14px 0 0;
-  padding: 10px 0;
-  border-top: 2px dashed #c9b8ff;
-  overflow: hidden;
-  white-space: nowrap;
-  font: 400 clamp(12px, 1vw, 15px) / 1 var(--pixel);
-  color: #5a37f0;
-  opacity: var(--k);
+.aside {
+  max-width: 52ch;
+  margin: clamp(18px, 3vh, 30px) 0 0;
+  font: 400 clamp(12px, 0.95vw, 14px) / 1.6 var(--mono);
+  color: rgb(207 224 255 / 0.75);
 }
 
-.ticker span {
-  display: inline-block;
-  padding-left: 100%;
-  animation: tick 26s linear infinite;
+.aside span {
+  color: #6cf0ff;
 }
 
-@keyframes tick {
-  to {
-    transform: translateX(-100%);
+/* The globe: parallels still, meridians turning (each a flattened circle
+   going round), on its own axis. */
+.globe {
+  position: absolute;
+  right: 6vw;
+  top: 22vh;
+  width: clamp(180px, 22vw, 340px);
+  overflow: visible;
+  fill: none;
+  stroke: rgb(176 210 255 / 0.55);
+  stroke-width: 0.6;
+  transform: scale(calc(0.92 + var(--k) * 0.08)) rotate(-18deg);
+  translate: 0 calc(var(--e, 0) * 9vh);
+}
+
+.rim {
+  stroke: rgb(207 230 255 / 0.9);
+  stroke-width: 0.9;
+}
+
+.axis {
+  stroke: rgb(108 240 255 / 0.5);
+  stroke-dasharray: 2 3;
+  transform: rotate(90deg);
+}
+
+.meridian {
+  animation: turn 14s linear infinite;
+  animation-delay: calc(var(--d) * -14s);
+}
+
+/* scaleX through cos: 1, 0, -1, 0, 1, easing like a sine at each quarter. */
+@keyframes turn {
+  0% {
+    transform: scaleX(1);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  50% {
+    transform: scaleX(-1);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  100% {
+    transform: scaleX(1);
   }
 }
 
-/* The four, as glossy aqua chips along the foot. */
-.chips {
+.globeTag {
+  position: absolute;
+  right: 6vw;
+  top: calc(22vh - 34px);
+  width: clamp(180px, 22vw, 340px);
+  font: 400 10px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgb(207 224 255 / 0.5);
+  translate: 0 calc(var(--e, 0) * 9vh);
+}
+
+/* The four, as thin glass panels with a bright top edge. */
+.panels {
   position: absolute;
   left: var(--gut);
   right: var(--gut);
-  bottom: 20vh;
+  bottom: 22vh;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(12px, 1.6vw, 24px);
+  gap: clamp(10px, 1.2vw, 18px);
   margin: 0;
   padding: 0;
   list-style: none;
   translate: 0 calc(var(--e, 0) * 9vh);
 }
 
-.chip {
-  --k: clamp(0, calc((var(--w) - var(--i)) * 1.4), 1);
-  position: relative;
+.panel {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   padding: 16px 18px 18px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.95) 0%, rgb(214 246 255 / 0.9) 48%, rgb(150 222 255 / 0.9) 52%, rgb(206 243 255 / 0.95) 100%);
-  box-shadow: inset 0 -3px 6px rgb(0 120 180 / 0.18), 0 0 0 2px #fff, 0 14px 30px -16px rgb(30 90 160 / 0.5);
-  opacity: var(--k);
-  transform: translate3d(0, calc((1 - var(--k)) * 22px), 0) rotate(calc((1 - var(--k)) * -3deg));
+  border: 1px solid var(--line);
+  border-top-color: rgb(207 230 255 / 0.7);
+  background: linear-gradient(180deg, rgb(160 190 255 / 0.1), rgb(160 190 255 / 0.02));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transform: translate3d(0, calc((1 - var(--k)) * 16px), 0);
 }
 
-.chipNum {
-  font: 400 11px/1 var(--pixel);
-  color: #5a37f0;
+.panelNum {
+  font: 400 11px/1 var(--mono);
+  color: #6cf0ff;
 }
 
-.chipName {
-  font: 400 clamp(24px, 2.4vw, 38px) / 1 var(--bubble);
-  color: #2b1d6b;
+.panelName {
+  font: 400 clamp(14px, 1.3vw, 20px) / 1.1 var(--wide);
+  text-transform: uppercase;
+  color: #fff;
 }
 
-.chipLine {
-  font: 500 clamp(12px, 0.9vw, 14px) / 1.4 var(--text);
-  color: rgb(43 29 107 / 0.75);
+.panelLine {
+  font: 400 clamp(12px, 0.9vw, 14px) / 1.45 var(--text);
+  color: rgb(207 224 255 / 0.7);
+}
+
+.foot {
+  position: absolute;
+  right: var(--gut);
+  bottom: calc(22vh - 44px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 400 10px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(207 224 255 / 0.45);
+}
+
+.barcode {
+  width: 72px;
+  height: 14px;
+  background: repeating-linear-gradient(90deg, rgb(207 224 255 / 0.55) 0 1px, transparent 1px 3px, rgb(207 224 255 / 0.55) 3px 5px, transparent 5px 6px, rgb(207 224 255 / 0.55) 6px 7px, transparent 7px 10px);
 }
 
 .srOnly {
@@ -222,10 +261,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sky,
-  .sparkle,
-  .star,
-  .ticker span {
+  .meridian,
+  .live {
     animation: none;
   }
 }

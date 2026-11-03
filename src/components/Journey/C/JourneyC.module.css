@@ -156,7 +156,8 @@
   transition: color 400ms ease;
 }
 
-.journey[data-dark] .bar {
+.journey[data-dark] .bar,
+.journey[data-night] .bar {
   color: #ececea;
 }
 

@@ -1336,6 +1336,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const [loaded, setLoaded] = useState(() => closing || seenBefore());
   const [lines, setLines] = useState([false, false]);
   const [dark, setDark] = useState(closing);
+  // The Y2K About is night: the bar's links go light over it.
+  const [night, setNight] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [idle, setIdle] = useState(false);
   const deckRef = useRef(null);
@@ -1559,6 +1561,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     // About types itself as it arrives; back on the hero it resets, so the
     // next visit types again.
     const arrive = within(v, SPAN['hero>ab']);
+    const n = ABOUT_LOOK === 'y2k' && arrive > 0.5 && v < SPAN.tl[0];
+    setNight((cur) => (cur === n ? cur : n));
     if (arrive > 0.55) setLines((cur) => (cur[0] ? cur : [true, cur[1]]));
     else if (arrive <= 0) setLines((cur) => (cur[0] || cur[1] ? [false, false] : cur));
   });
@@ -2292,6 +2296,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       className={styles.journey}
       style={paletteStyle(palette)}
       data-dark={dark ? 'true' : undefined}
+      data-night={night ? 'true' : undefined}
       aria-label="Introduction"
     >
       <MacRoom
