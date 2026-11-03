@@ -82,14 +82,93 @@
 }
 
 .pillar {
-  --k: clamp(0, calc((var(--w) - var(--i)) * 1.4), 1);
   display: grid;
   align-content: start;
   gap: 8px;
   padding-top: 14px;
   border-top: 1px solid color-mix(in srgb, var(--ink, #121214) 16%, transparent);
-  opacity: var(--k);
-  transform: translate3d(0, calc((1 - var(--k)) * 18px), 0);
+  opacity: 0;
+  transform-origin: 50% 0;
+  /* The ball's hits on Videos (written by JourneyC's Cast). */
+  translate: 0 calc(var(--hit, 0) * 1px);
+}
+
+/* Each drops in on its turn and lands like something with weight: a squash
+   as it hits, a bounce, a smaller one, settled. Its lines follow a beat
+   behind (follow-through), so it reads as one thing landing, not a block. */
+.pillar[data-in] {
+  opacity: 1;
+  animation: pillarDrop 1050ms both;
+}
+
+.pillar[data-in] .pillarName,
+.pillar[data-in] .pillarLine {
+  animation: pillarFollow 1050ms both;
+}
+
+.pillar[data-in] .pillarLine {
+  animation-delay: 50ms;
+}
+
+@keyframes pillarDrop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -90px, 0) scale(0.97, 1.06);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  12% {
+    opacity: 1;
+  }
+  30% {
+    transform: translate3d(0, 0, 0) scale(1.04, 0.9);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  46% {
+    transform: translate3d(0, -22px, 0) scale(0.99, 1.03);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.6);
+  }
+  60% {
+    transform: translate3d(0, 0, 0) scale(1.02, 0.96);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  71% {
+    transform: translate3d(0, -7px, 0) scale(1, 1.01);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.6);
+  }
+  81% {
+    transform: translate3d(0, 0, 0) scale(1.008, 0.99);
+  }
+  90% {
+    transform: translate3d(0, -1.5px, 0) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The follow-through: the words keep falling a moment after the hairline
+   has landed, then catch up. */
+@keyframes pillarFollow {
+  0%,
+  26% {
+    transform: none;
+  }
+  36% {
+    transform: translate3d(0, 9px, 0);
+  }
+  52% {
+    transform: translate3d(0, -4px, 0);
+  }
+  66% {
+    transform: translate3d(0, 2.5px, 0);
+  }
+  80% {
+    transform: translate3d(0, -1px, 0);
+  }
+  100% {
+    transform: none;
+  }
 }
 
 .pillarNum {
@@ -128,6 +207,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .pillar[data-in],
+  .pillar[data-in] .pillarName,
+  .pillar[data-in] .pillarLine {
+    animation: none;
+  }
+
   .word {
     filter: none;
     transform: none;

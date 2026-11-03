@@ -175,7 +175,18 @@ export default function MePanel({ progress, span, arrive, instant, wide }) {
     const e = instant ? 1 : within(v, arrive[0], arrive[1]);
     root.style.setProperty('--e', (1 - e).toFixed(4));
     // How many words are written (with a soft edge of two words).
-    root.style.setProperty('--w', (t * (total + 2)).toFixed(3));
+    const w = t * (total + 2);
+    root.style.setProperty('--w', w.toFixed(3));
+    // The four drop in on their turn, each on its own clock (a spring with
+    // follow-through, see .pillar[data-in]); back up the page, they reset.
+    let all = true;
+    root.querySelectorAll('[data-pillar]').forEach((li) => {
+      const on = w > Number(li.dataset.pillar);
+      if (on !== li.hasAttribute('data-in')) li.toggleAttribute('data-in', on);
+      all = all && on;
+    });
+    // All in: the ball may land (JourneyC's Cast waits for this).
+    if (all !== root.hasAttribute('data-pillars-in')) root.toggleAttribute('data-pillars-in', all);
   };
   useMotionValueEvent(progress, 'change', write);
   useEffect(() => write(progress.get()));
@@ -206,7 +217,14 @@ export default function MePanel({ progress, span, arrive, instant, wide }) {
       {/* What he specialises in. */}
       <ol className={styles.pillars} aria-label="What I specialise in">
         {pillars.map((p, k) => (
-          <li key={p.name} className={styles.pillar} style={{ '--i': p.i }}>
+          <li
+            key={p.name}
+            className={styles.pillar}
+            style={{ '--i': p.i }}
+            data-pillar={p.i}
+            // The ball lands on Videos.
+            data-ball-spot={p.name === 'Videos' ? '' : undefined}
+          >
             <span className={styles.pillarNum}>{String(k + 1).padStart(2, '0')}</span>
             <span className={styles.pillarName}>{p.name}</span>
             <span className={styles.pillarLine}>{p.line}</span>

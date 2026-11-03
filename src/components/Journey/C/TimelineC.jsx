@@ -312,7 +312,7 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
     const L = layout.current;
     if (!q?.big || !q.m || !L) return;
     // The first role rises in as the ball lands on it (the shot's end).
-    const u = i === 0 ? within(handoff.get(), 0.64, 0.92) : within(p, ...ARRIVE[i]);
+    const u = i === 0 ? within(handoff.get(), 0.74, 0.95) : within(p, ...ARRIVE[i]);
     const t = within(p, ...LEAVE[i]);
     const { m } = q;
     const [from] = spanOf(r);
@@ -450,7 +450,7 @@ export default function TimelineC({ progress, fade, retract, handoff }) {
   const ink = useTransform(fade, (f) => 1 - f);
   // The line slides in under the ball (the panel's own move); the year and
   // the title come up as it settles.
-  const headInk = useTransform([fade, handoff], ([f, h]) => (1 - f) * smooth(within(h, 0.45, 0.8)));
+  const headInk = useTransform([fade, handoff], ([f, h]) => (1 - f) * smooth(within(h, 0.62, 0.85)));
   // The knob is the basketball: it turns as it rolls (distance over radius).
 
   const [states, setStates] = useState(() => statesAt(progress.get()));

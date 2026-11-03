@@ -19,7 +19,7 @@ import BriefSheet from '../../Brief/BriefSheet.jsx';
 import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../Intro/shared.jsx';
 import { tintChapters } from '../../Intro3/timeline.js';
 import { SERVICES } from '../../../data/services.js';
-import { preloadShutter } from './sfx.js';
+import { playSwish, preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
@@ -305,99 +305,125 @@ function castLayout(phone) {
 
 const PUSH = 0.07;
 // The ball. In the hero it rolls out from behind his legs and comes to rest
-// just past his right shoe. Into Me it drops back onto the same spot, the
-// same size (dropAt); into the career it is shot through a hoop onto the
-// career's line (shotAt). BALL is its size in units of his height in the hero.
+// just past his right shoe. Into About it leaves with the hero's page, then
+// drops in from above onto Videos once the four are in (spotDropAt); into
+// the career it is shot through a hoop onto the career's line (hoopShotAt).
+// BALL is its size in units of his height in the hero.
 // ROLL_K: how much it turns for the ground covered (a quarter of a true
 // roll, so it rolls without whirling).
 const BALL = 0.115;
 const BALL_IN = { delay: 2500, ms: 1900 };
 const BALL_REST_Y = 0.977; // its base on his floor, in units of his height
 const ROLL_K = 0.25;
-// The ball's size in the air on the shot into the career, as it nears the
-// hoop (a share of the viewport height).
-const BALL_FLY = 0.05;
 
-// Hero to Me (`a` 0..1 over the beat; its glide is linear, so `a` is time).
-// The hero's floor rises with its page and carries the ball up; at `release`
-// it lets go (the ball keeps the floor's speed), the ball falls back to the
-// same spot on screen (Me's floor) at `land`, and bounces, each `e` of the
-// last. Returns its height over the floor in px, and the squash of a hit.
-const DROP = { release: 0.2, land: 0.52, e: 0.42 };
-function dropAt(a, vh) {
-  const R = DROP.release;
-  if (a <= R) return { lift: smooth01(a) * vh, squash: 0 };
-  const lift0 = smooth01(R) * vh;
-  const v0 = 6 * R * (1 - R) * vh; // the page's speed as it lets go
-  const T = DROP.land - R;
-  const g = (2 * (lift0 + v0 * T)) / (T * T);
-  if (a < DROP.land) {
-    const t = a - R;
-    return { lift: lift0 + v0 * t - (g * t * t) / 2, squash: 0 };
-  }
-  let lift = 0;
-  let squash = 0;
-  let at = DROP.land;
-  let speed = g * T - v0;
-  let hit = 1;
-  for (let n = 0; n <= BOUNCES; n += 1) {
-    if (a >= at) squash = Math.max(squash, hit * Math.max(0, 1 - (a - at) / 0.035));
-    speed *= DROP.e;
-    hit *= DROP.e;
-    const d = (2 * speed) / g;
-    const t = a - at;
-    if (n < BOUNCES && t >= 0 && t < d) lift = speed * t - (g * t * t) / 2;
-    at += d;
-  }
-  return { lift, squash };
-}
-// The hoop's drawing, as a share of the viewport's height (it is square).
-const HOOP_H = 0.15;
-
-// The shot into the career. `b` runs 0..1 over the beat; its glide is
-// linear, so `b` is time. One gravity throughout, in screen px: up from the
-// floor under About to the apex, down through the rim (the net takes its
-// sideways speed) onto the line, then bounces, each `e` of the last. As
-// shares of the viewport's height: the apex and the rim. As shares of the
-// beat: when it leaves the floor and when it first lands.
-const SHOT = { from: 0.03, land: 0.5, e: 0.48, apex: 0.06, rim: 0.2 };
+// The bounces on the line, after the shot into the career.
 const BOUNCES = 3;
 
-function shotAt(b, { x0, y0, cx, rimY, apexY, yL }) {
-  const flight = SHOT.land - SHOT.from;
+// Onto About's four: once they have all dropped in, the ball falls in from
+// above onto Videos' hairline and bounces to rest, each bounce `e` of the
+// last, squashing as it hits and stretching as it falls. In seconds (it
+// keeps its own clock, like the four).
+const SPOT_DROP = { wait: 0.3, fall: 0.62, e: 0.55, bounces: 4 };
+function spotDropAt(t, fallPx) {
+  if (t < 0) return { lift: fallPx, squash: 0, landed: false, hit: -1, since: 0 };
+  const T = SPOT_DROP.fall;
+  const g = (2 * fallPx) / (T * T);
+  if (t < T) {
+    const speed = g * t;
+    // Stretched along the fall, more the faster it goes.
+    return { lift: fallPx - (g * t * t) / 2, squash: -0.16 * smooth01(speed / (g * T)), landed: false, hit: -1, since: 0 };
+  }
+  let at = T;
+  let speed = g * T;
+  for (let n = 0; n <= SPOT_DROP.bounces; n += 1) {
+    const since = t - at;
+    // A squash where it hits, gone within a moment.
+    const squash = SPOT_DROP.e ** n * Math.max(0, 1 - since / 0.07);
+    speed *= SPOT_DROP.e;
+    const d = (2 * speed) / g;
+    if (n === SPOT_DROP.bounces || since < d) {
+      const lift = n === SPOT_DROP.bounces ? 0 : Math.max(0, speed * since - (g * since * since) / 2);
+      return { lift, squash, landed: true, hit: n, since };
+    }
+    at += d;
+  }
+  return { lift: 0, squash: 0, landed: true, hit: -1, since: 1 };
+}
+
+// About to the career, as shares of its beat. The camera pans right (About
+// out to the left, the hoop in from the right) as the ball takes a long,
+// low shot from Videos, growing as it comes; it drops through the net
+// (a swish), the net lets it go, and the camera tilts down after it (the
+// hoop up and away, the timeline up from below) until it lands on the line
+// and bounces, turning to chrome. Each thing has the stage to itself.
+const HOOP_SHOT = {
+  launch: 0.04, // it leaves Videos
+  pan: [0, 0.3], // About out, the hoop in
+  rim: 0.36, // through the rim
+  netOut: 0.44, // out of the net's foot
+  tilt: [0.44, 0.7], // the hoop away, the timeline in
+  land: 0.72, // on the line
+  apex: 0.14, // the top of the arc, a share of vh (clear of the top bar)
+  rimY: 0.26, // the rim, a share of vh
+  grow: 1.35, // its size at the rim, times its size on Videos
+  e: 0.32, // each bounce on the line, of the last
+};
+const HOOP_STAGE = 0.3; // the hoop's size, a share of vh
+const NET_FOOT = 46 / 120; // the net's foot below the rim, a share of the hoop
+
+function hoopShotAt(b, { x0, y0, cx, vw, vh, yL }) {
+  const S = HOOP_SHOT;
+  const rimY = vh * S.rimY;
+  const apexY = vh * S.apex;
+  const netY = rimY + vh * HOOP_STAGE * NET_FOOT;
+  const pan = smooth01(within(b, S.pan));
+  const tilt = smooth01(within(b, S.tilt)) * vh;
+  const T = S.rim - S.launch;
   const k1 = Math.sqrt(Math.max(1, y0 - apexY));
-  const k2 = Math.sqrt(Math.max(1, yL - apexY));
-  const tUp = (flight * k1) / (k1 + k2);
-  const tDown = flight - tUp;
-  const g = (2 * (yL - apexY)) / (tDown * tDown);
-  const rimT = SHOT.from + tUp + Math.sqrt((2 * Math.max(0, rimY - apexY)) / g);
-  const air = within(b, [SHOT.from, SHOT.land]);
-  const landed = within(b, [SHOT.land, SHOT.land + 0.05]);
-  if (b <= SHOT.from) return { x: x0, y: y0, air: 0, down: 0, squash: 0, hits: 0, rimT };
-  if (b < SHOT.land) {
-    const t = b - SHOT.from;
-    const x = x0 + (cx - x0) * Math.min(1, t / (rimT - SHOT.from));
-    return { x, y: y0 - g * tUp * t + (g * t * t) / 2, air, down: 0, squash: 0, hits: 0, rimT };
+  const k2 = Math.sqrt(Math.max(1, rimY - apexY));
+  const g = (2 * (k1 + k2) ** 2) / (T * T);
+  const tUp = (T * k1) / (k1 + k2);
+  const base = { pan, tilt, rimT: S.rim, squash: 0, hits: 0, down: 0 };
+  if (b <= S.launch) return { ...base, x: x0 - pan * vw, y: y0, air: 0, grow: 0 };
+  if (b < S.rim) {
+    // In the world it flies a whole screen to the right; the camera pans
+    // with it, so on screen it comes down in the middle.
+    const t = b - S.launch;
+    const xw = x0 + (cx + vw - x0) * (t / T);
+    return { ...base, x: xw - pan * vw, y: y0 - g * tUp * t + (g * t * t) / 2, air: t / T, grow: smooth01(t / T) };
+  }
+  if (b < S.netOut) {
+    // The net takes its speed: it sinks through to the net's foot.
+    return { ...base, x: cx, y: rimY + (netY - rimY) * outQuad(within(b, [S.rim, S.netOut])), air: 1, grow: 1 };
+  }
+  // Let go, it falls (the same gravity) while the camera tilts down after
+  // it, so on screen it comes down gently onto the line.
+  const T3 = S.land - S.netOut;
+  const fall = yL + vh - netY; // the line is a screen below, in the world
+  const g3 = (2 * fall) / (T3 * T3);
+  const shrink = smooth01(within(b, [S.netOut, S.land]));
+  if (b < S.land) {
+    const t = b - S.netOut;
+    return { ...base, x: cx, y: netY + (g3 * t * t) / 2 - tilt, air: 1, grow: 1 - shrink, down: shrink };
   }
   // On the line: each bounce leaves at `e` of the speed it came in with.
   let y = yL;
   let squash = 0;
-  let hits = 0; // the hits so far, each eased in over a moment
-  let at = SHOT.land;
-  let speed = g * tDown;
+  let hits = 0;
+  let at = S.land;
+  let speed = g3 * T3;
   let hit = 1;
   for (let n = 0; n <= BOUNCES; n += 1) {
-    // A squash where it hits, gone within a moment.
-    if (b >= at) squash = Math.max(squash, hit * Math.max(0, 1 - (b - at) / 0.03));
-    if (n < BOUNCES) hits += smooth01(within(b, [at, at + 0.04]));
-    speed *= SHOT.e;
-    hit *= SHOT.e;
-    const d = (2 * speed) / g;
+    if (b >= at) squash = Math.max(squash, hit * Math.max(0, 1 - (b - at) / 0.025));
+    if (n < BOUNCES) hits += smooth01(within(b, [at, at + 0.03]));
+    speed *= S.e;
+    hit *= S.e;
+    const d = (2 * speed) / g3;
     const t = b - at;
-    if (n < BOUNCES && t >= 0 && t < d) y = yL - (speed * t - (g * t * t) / 2);
+    if (n < BOUNCES && t >= 0 && t < d) y = yL - (speed * t - (g3 * t * t) / 2);
     at += d;
   }
-  return { x: cx, y, air: 1, down: landed, squash, hits, rimT };
+  return { ...base, x: cx, y, air: 1, grow: 0, down: 1, squash, hits };
 }
 
 // The net as the ball drops through it: it stretches down, then shivers back.
@@ -581,6 +607,9 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
   }, [reduced]);
 
   const startRef = useRef(null);
+  // The ball's drop onto About's four (its own clock, started once they are
+  // all in), where it rests (its spot), and the shot's progress last frame.
+  const dropRef = useRef({ start: null, spot: null, b: 0 });
   useEffect(() => {
     if (go && startRef.current == null) startRef.current = performance.now();
   }, [go]);
@@ -671,7 +700,6 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
       if (ball) {
         const h0 = camAt(0);
         const heroD = H * BALL * h0.S;
-        const flyD = Math.round(vh * BALL_FLY);
         const knobD = TIP_R * 2;
         const startX = h0.left + (w * h0.S) / 2; // behind his legs
         const heroX = h0.left + w * h0.S * 0.9 + heroD / 2; // just past his right shoe
@@ -690,31 +718,56 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
         let seams = 1;
         let squash = 0;
         let seen = t0 != null && enter > 0;
-        // Me's floor is the hero's: the ball keeps its size and its place
-        // (right of the middle, so the shot into the career has an arc).
-        const meX = heroX;
-        const meY = floorY;
-        if (a > 0 && !reduced) {
-          // Into Me: the hero's floor carries it up a little as the page
-          // rises, then lets it go: it drops back to the same spot and
-          // bounces to rest.
-          const d = dropAt(within(v, SPAN['hero>ab']), vh);
-          y = floorY - d.lift;
-          squash = d.squash;
-          rz += d.lift / (heroD / 2) * 0.3;
+        // About's spot for it: Videos' hairline (the collage look has none:
+        // there it is the floor, under About).
+        const st = dropRef.current;
+        const b = a >= 1 ? within(v, SPAN['ab>tl']) : 0;
+        const spotEl = a > 0.5 ? document.querySelector('[data-ball-spot]') : null;
+        if (b <= 0) {
+          if (spotEl) {
+            const r = spotEl.getBoundingClientRect();
+            st.spot = { x: r.left + Math.min(r.width * 0.42, 150), y: r.top - heroD / 2 };
+          } else {
+            st.spot = { x: heroX, y: floorY };
+          }
         }
-        if (a >= 1) {
-          // Reduced motion: no shot; it is on the floor, then on the line.
+        const spot = st.spot ?? { x: heroX, y: floorY };
+        if (a < 1) st.start = null;
+        if (a > 0 && a < 1 && !reduced) {
+          // Into About: it rides up and away with the hero's page.
+          y = floorY - a * vh;
+        }
+        if (a >= 1 && b <= 0) {
+          // About: once its four have dropped in, the ball falls in from
+          // above onto Videos and bounces to rest; Videos gives a little
+          // under each hit.
+          const ready = !spotEl || spotEl.closest('[data-pillars-in]');
+          if (!ready) st.start = null;
+          else if (st.start == null) st.start = now + (reduced || instant ? -1e5 : SPOT_DROP.wait * 1000);
+          const tt = st.start == null ? -1 : (now - st.start) / 1000;
+          const d = reduced ? { lift: 0, squash: 0, landed: true, hit: -1, since: 1 } : spotDropAt(tt, spot.y + heroD);
+          x = spot.x;
+          y = spot.y - d.lift;
+          squash = d.squash;
+          seen = st.start != null && tt >= 0;
+          if (spotEl) {
+            const dip = d.hit >= 0 && d.since < 0.18 ? 7 * SPOT_DROP.e ** d.hit * Math.sin(Math.PI * (d.since / 0.18)) : 0;
+            put(spotEl, 'hit', '--hit', dip.toFixed(2));
+          }
+        }
+        if (b > 0) {
+          // Into the career: the long shot, through the hoop, onto the line.
           const s = reduced
-            ? within(v, SPAN['ab>tl']) < 0.5
-              ? { x: meX, y: meY, air: 0, down: 0, squash: 0, hits: 0, rimT: 1 }
-              : { x: cx, y: cy, air: 1, down: 1, squash: 0, hits: BOUNCES, rimT: 1 }
-            : shotAt(within(v, SPAN['ab>tl']), { x0: meX, y0: meY, cx, rimY: vh * SHOT.rim, apexY: vh * SHOT.apex, yL: cy });
+            ? b < 0.5
+              ? { x: spot.x, y: spot.y, air: 0, grow: 0, down: 0, squash: 0, hits: 0, rimT: 1 }
+              : { x: cx, y: cy, air: 1, grow: 0, down: 1, squash: 0, hits: BOUNCES, rimT: 1 }
+            : hoopShotAt(b, { x0: spot.x, y0: spot.y, cx, vw, vh, yL: cy });
           x = s.x;
           y = s.y;
           rimT = s.rimT;
-          // Smaller as it flies off toward the hoop, then the knob's size as it lands.
-          size = heroD + (flyD - heroD) * smooth01(s.air) + (knobD - flyD) * smooth01(s.down);
+          // Bigger as it comes at the hoop, then the knob's size as it lands.
+          const bigD = heroD * (1 + (HOOP_SHOT.grow - 1) * s.grow);
+          size = bigD * (1 - s.down) + knobD * s.down;
           floor = 1 - smooth01(s.air * 4);
           // Orange to chrome, a step with every bounce.
           chrome = s.hits / BOUNCES;
@@ -722,6 +775,9 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
           // Backspin on the way up and over.
           rz += s.air * 7;
         }
+        // Nothing but net.
+        if (!reduced && st.b < HOOP_SHOT.rim && b >= HOOP_SHOT.rim && b - st.b < 0.2) playSwish();
+        st.b = b;
         if (v >= SPAN.tl[0]) {
           const rr = 0;
           const pp = v >= SPAN.now[0] ? TIMELINE_NOW : within(v, SPAN.tl) * TIMELINE_NOW;
@@ -737,8 +793,9 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
         put(ball, 'bop', 'opacity', seen ? fade.toFixed(3) : '0');
         if (seen) {
           const r = size / 2;
-          // Squashed flat for a moment where it hits the line.
-          const sq = squash > 0.001 ? ` scale(${(1 + 0.22 * squash).toFixed(3)}, ${(1 - 0.22 * squash).toFixed(3)})` : '';
+          // Squashed flat for a moment where it hits; stretched (squash < 0)
+          // as it falls fast.
+          const sq = Math.abs(squash) > 0.001 ? ` scale(${(1 + 0.22 * squash).toFixed(3)}, ${(1 - 0.22 * squash).toFixed(3)})` : '';
           put(ball, 'btf', 'transform', `translate3d(${(x - r).toFixed(1)}px, ${(y - r).toFixed(1)}px, 0)${sq}`);
           put(ball, 'bw', 'width', `${size.toFixed(1)}px`);
           put(ball, 'bh', 'height', `${size.toFixed(1)}px`);
@@ -754,14 +811,18 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
       const hb = hoopBackRef.current;
       const hf = hoopFrontRef.current;
       if (hb && hf) {
+        // The hoop, on a stage of its own: in from the right as the camera
+        // pans, away over the top as it tilts down after the ball.
         const b2 = a >= 1 && !reduced ? within(v, SPAN['ab>tl']) : 0;
-        const k = b2 > 0 ? smooth01(within(b2, [0.22, 0.34])) * (1 - smooth01(within(b2, [SHOT.land + 0.01, SHOT.land + 0.12]))) : 0;
-        put(hb, 'hop', 'opacity', k.toFixed(3));
-        put(hf, 'hop2', 'opacity', k.toFixed(3));
+        const k = b2 > 0 && b2 < HOOP_SHOT.tilt[1] ? 1 : 0;
+        put(hb, 'hop', 'opacity', String(k));
+        put(hf, 'hop2', 'opacity', String(k));
         if (k > 0) {
           // The rim (y 30 of the drawing's 120) on the shot's rim line.
-          const hs = vh * HOOP_H;
-          const tf = `translate3d(${(vw / 2 - hs / 2).toFixed(1)}px, ${(vh * SHOT.rim - hs * 0.25).toFixed(1)}px, 0)`;
+          const hs = vh * HOOP_STAGE;
+          const pan = smooth01(within(b2, HOOP_SHOT.pan));
+          const tilt = smooth01(within(b2, HOOP_SHOT.tilt)) * vh;
+          const tf = `translate3d(${(vw / 2 + (1 - pan) * vw - hs / 2).toFixed(1)}px, ${(vh * HOOP_SHOT.rimY - hs * 0.25 - tilt).toFixed(1)}px, 0)`;
           put(hb, 'htf', 'transform', tf);
           put(hf, 'htf2', 'transform', tf);
           put(hb, 'hsz', 'width', `${hs.toFixed(1)}px`);
@@ -957,7 +1018,7 @@ const BEATS = [
   ['hero', 6], // short: the first scroll sets Ken walking at once
   ['hero>ab', 60], // the page moves down: the hero rises away with Ken, About comes up from below
   ['about', 40], // the statement writes itself, the polaroids land
-  ['ab>tl', 80], // the shot: About rises away, the timeline comes up, the ball drops through the net onto the line
+  ['ab>tl', 110], // the shot: About pans away, the ball goes through the hoop, the timeline comes up under it
 
   // The career is scrolled through like a page (see freeAt): it gets room, so
   // one swipe moves on a role or so, not the whole career.
@@ -977,9 +1038,11 @@ const SPAN = (() => {
 
 // A stretch of a beat: [f0, f1] as shares of it.
 const part = ([a, b], f0, f1) => [a + (b - a) * f0, a + (b - a) * f1];
-// Into the career, the page itself moves in the first half of the beat; the
-// ball's shot, swish and bounces take the whole of it (see shotAt).
-const SHOT_CAM = part(SPAN['ab>tl'], 0, 0.45);
+// Into the career: About pans out to the left as the hoop comes in; later
+// the camera tilts down, and the timeline comes up from below (see
+// hoopShotAt).
+const ABOUT_OUT = part(SPAN['ab>tl'], ...HOOP_SHOT.pan);
+const TL_IN = part(SPAN['ab>tl'], ...HOOP_SHOT.tilt);
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const inOut =(t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -1129,7 +1192,7 @@ function careerSpeed(p) {
   return base * (u < 0.5 ? waveAt(u) : (1 + WAVE) * Math.max(0.3, 1 - 0.75 * smooth01((u - 0.5) / 0.5)));
 }
 // The shot into the career, in ms. Its glide is linear (see shotAt).
-const SHOT_MS = 2600;
+const SHOT_MS = 4200;
 const linear = (t) => t;
 // A speed profile turned into a position curve (0..1 over a glide).
 const profile = (w) => {
@@ -2394,7 +2457,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
               <Hero on={loaded || closing} />
             </Panel>
 
-            <Panel progress={progress} enter="hero>ab" enterAxis="y" exit={SHOT_CAM} exitAxis="y" reduced={reduced} className={`${styles.aboutPanel} ${wide ? styles.aboutWide : ''}`} aria-label="About">
+            <Panel progress={progress} enter="hero>ab" enterAxis="y" exit={ABOUT_OUT} exitAxis="x" reduced={reduced} className={`${styles.aboutPanel} ${wide ? styles.aboutWide : ''}`} aria-label="About">
               {ABOUT_LOOK === 'fleur' ? (
                 <MePanelFleur progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} onSeeWork={seeWork} />
               ) : (
@@ -2403,7 +2466,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             </Panel>
 
             {/* It comes up under the ball's shot, settled before the ball lands. */}
-            <Panel progress={progress} enter={SHOT_CAM} enterAxis="y" reduced={reduced} className={styles.timelinePanel} aria-label="Career timeline">
+            <Panel progress={progress} enter={TL_IN} enterAxis="y" reduced={reduced} className={styles.timelinePanel} aria-label="Career timeline">
               <TimelineC progress={tlProgress} fade={tlFade} retract={rewind} handoff={handoff} />
               <AnimatePresence>
                 {inCareer && (
