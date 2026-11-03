@@ -232,7 +232,7 @@ export default function Desktop() {
                 data-tour={index === 0 ? 'desktop-icon' : undefined}
                 data-icon={item.id}
               >
-                <span className={styles.iconGraphic} data-animation-origin>
+                <span className={styles.iconGraphic} data-animation-origin data-cat-surface>
                   <DesktopIcon src={item.src} label={item.label} />
                 </span>
                 <span className={styles.iconLabel}>{item.label}</span>

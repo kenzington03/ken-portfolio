@@ -32,7 +32,7 @@ export default function FunZone() {
             onClick={(e) => handleClick(item, e)}
           >
             {showNudge && <span className={styles.nudgeTooltip}>{NUDGE_TEXT}</span>}
-            <span className={styles.iconGraphic} data-animation-origin>
+            <span className={styles.iconGraphic} data-animation-origin data-cat-surface>
               <DesktopIcon src={item.src} label={item.label} icon={item.icon} bg={item.bg} />
             </span>
             <span className={styles.iconLabel}>{item.label}</span>
