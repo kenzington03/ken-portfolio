@@ -22,8 +22,8 @@ const APP_REGISTRY = {
   finder: { title: 'Portfolio', component: Finder, size: { width: 920, height: 580 }, roomy: true },
   terminal: { title: 'Terminal', component: Terminal, size: { width: 640, height: 420 } },
   minesweeper: { title: 'Minesweeper', component: Minesweeper, size: { width: 520, height: 580 } },
-  pdfviewer: { title: 'Resume', component: PDFViewer, size: { width: 680, height: 560 } },
-  projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 920, height: 720 }, roomy: true },
+  pdfviewer: { title: 'Resume', component: PDFViewer, size: { width: 680, height: 560 }, fill: true },
+  projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 920, height: 720 }, fill: true },
   trash: { title: 'Trash', component: Trash, size: { width: 520, height: 380 } },
   claude: { title: 'Ask about Ken', component: ClaudeFaq, size: { width: 720, height: 560 } },
   flappybird: { title: 'Flappy Bird', component: FlappyBird, size: { width: 400, height: 580 } },
@@ -46,6 +46,17 @@ function roomySize(fallback) {
   return {
     width: Math.max(Math.min(fallback.width, maxW), Math.min(1480, maxW)),
     height: Math.max(Math.min(fallback.height, maxH), Math.min(980, maxH)),
+  };
+}
+
+/** The resume and the projects open filling the screen, from under the menu
+    bar to just above the Dock, still a window (it can be sized down). */
+const FILL_GAP = 12;
+function fillFrame() {
+  const top = 24 + FILL_GAP;
+  return {
+    size: { width: window.innerWidth - FILL_GAP * 2, height: window.innerHeight - top - 104 },
+    position: { x: FILL_GAP, y: top },
   };
 }
 
@@ -76,13 +87,14 @@ export function useAppLauncher(windowManager, achievements) {
         }
       }
 
-      const size = options.size ?? (config.roomy ? roomySize(config.size) : config.size);
+      const fill = config.fill && !options.size && typeof window !== 'undefined' ? fillFrame() : null;
+      const size = fill?.size ?? options.size ?? (config.roomy ? roomySize(config.size) : config.size);
       const id = openWindow({
         appId,
         title,
         component: config.component,
         size,
-        position: config.roomy ? getCenteredWindowPosition(size) : options.position,
+        position: fill?.position ?? (config.roomy ? getCenteredWindowPosition(size) : options.position),
         data,
         animationOrigin: options.animationOrigin ?? null,
       });

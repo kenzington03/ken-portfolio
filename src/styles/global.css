@@ -44,6 +44,26 @@
   --glass-blur: blur(28px) saturate(180%);
 }
 
+/* Light appearance (Control Center): Apple's light system palette. */
+html[data-appearance='light'] {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f2f2f4;
+  --bg-elevated: #ffffff;
+  --accent: #007aff;
+  --accent-hover: #0062cc;
+  --accent-muted: rgba(0, 122, 255, 0.14);
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #8e8e93;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.15);
+  --shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+  --glass-bg: rgba(246, 246, 248, 0.72);
+  --glass-bg-strong: rgba(250, 250, 252, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.1);
+}
+
 *,
 *::before,
 *::after {

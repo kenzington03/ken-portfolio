@@ -1805,21 +1805,6 @@
 }
 
 /* The end of the story: the whole screen opens the Mac. */
-.enter {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.enter:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -6px;
-}
-
 .storyLineWrap .bridgeLine {
   max-width: none;
   color: inherit;

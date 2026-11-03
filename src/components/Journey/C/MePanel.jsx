@@ -10,9 +10,9 @@ import { useMotionValueEvent } from 'framer-motion';
 import styles from './MePanel.module.css';
 
 // The statement, a line per array, broken where it reads aloud.
-export const STATEMENT = [['Always', 'questioning'], ['every', 'design', 'I', 'see.']];
-// Under it, what he plays, and why.
-export const ASIDE = 'Design, basketball, chess. Same obsession: the next good move.';
+export const STATEMENT = [['I', "don't", 'scroll', 'past', 'design.'], ['I', 'take', 'it', 'apart.']];
+// Under it, what he does, what he plays, and how he uses AI.
+export const ASIDE = 'I design for a living, play basketball to switch off and dabble in chess. AI makes me faster. The ideas stay mine.';
 // What he specialises in: each in a line, what it covers.
 export const PILLARS = [
   { name: 'Brands', line: 'Identities, logos and guidelines that hold up wherever the brand goes.' },

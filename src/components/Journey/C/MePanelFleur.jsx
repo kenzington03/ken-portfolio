@@ -11,7 +11,7 @@ import { ASIDE, PILLARS, STATEMENT, useWrite } from './MePanel.jsx';
 import styles from './MePanelFleur.module.css';
 
 // Each statement line, and the word the highlighter loops.
-const LOOPED = 'questioning';
+const LOOPED = 'apart.';
 
 export default function MePanelFleur({ progress, span, arrive, instant, onSeeWork }) {
   const rootRef = useRef(null);

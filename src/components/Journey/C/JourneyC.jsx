@@ -19,7 +19,7 @@ import BriefSheet from '../../Brief/BriefSheet.jsx';
 import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../Intro/shared.jsx';
 import { tintChapters } from '../../Intro3/timeline.js';
 import { SERVICES } from '../../../data/services.js';
-import { playShutter, preloadShutter } from './sfx.js';
+import { preloadShutter } from './sfx.js';
 import MacRoom from '../MacRoom.jsx';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
@@ -1086,21 +1086,22 @@ const CENTER = [0.5, 0.84];
 const LOCK = [0, 0.2]; // our logo onto the lid's
 const LIGHT = [0.14, 0.3]; // the aluminium comes up out of the dark
 const HAND = [0.28, 0.4]; // our logo takes on the lid's finish, then goes
-const SAY = [0.6, 0.92]; // the line about the Mac (in beat 1, with the logo, as shares of "now")
+const SAY = [0.6, 0.92]; // without the 3D Mac: the line comes with the logo (as shares of "now")
+const SAY_ON_MAC = [0.26, 0.42]; // with it: once the lid is in view (as shares of the runway)
 const REVEAL_END = 0.42; // where it rests, closed, waiting to be opened
 // The heart to the farthest point of the glyph (the leaf's tip), in its units.
 const HEART_REACH = 13.6;
 // What the closed Mac says, once it has been revealed. "|" breaks the line.
-const STORY_LINE = "Everything I've made | is on this Mac.";
-const STORY_SUB = 'Click anything. It works like any computer.';
-// From here (as a share of "now"), a click anywhere opens it and goes in.
+const STORY_LINE = "My portfolio isn't a page. | It's my Mac.";
+const STORY_SUB = "Open the lid. The work is in folders, the resume's on the desktop, the games are in the dock.";
+// From here (as a share of "now"), the story is at its end (the idle hint).
 const END_FROM = 0.84;
 
 // The timeline playing on by itself: how long it rests on each role once it
 // has landed and opened, and on the whole journey before it pulls back to the logo.
 const AUTO_REST = 1500;
 const AUTO_REST_NOW = 500; // a beat on Now before the ball becomes the logo
-const AUTO_REST_LOGO = 4200; // (unused: from the logo on, every beat waits for its swipe)
+const AUTO_REST_LOGO = 700; // a breath on the finished logo, then on to the Mac by itself
 // The Mac's drift: each line to the next, continuous, long enough to read.
 const DRIFT_MS = 3600;
 // Opening the Mac: the lid comes up over the words, the screen wakes, in.
@@ -1792,9 +1793,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     // Stops the journey plays on from by itself: Now (on to the logo), and
     // from the logo on, the Mac: it keeps drifting slowly through the words
     // and in, until a scroll moves it on faster.
-    // (From the logo on, nothing plays by itself: each beat waits for its swipe.)
+    // The logo plays on by itself too, onto the closed Mac (it never just
+    // stops on the logo); the closed Mac waits for its scroll.
     const drifts = (id) => id?.startsWith('chapter');
-    const playsOn = (id) => id === 'now' || drifts(id);
+    const playsOn = (id) => id === 'now' || (id === 'logo' && stops().some((x) => x.id === 'mac')) || drifts(id);
     const playOn = () => {
       clearTimeout(autoTimer);
       autoGlide = false;
@@ -1879,10 +1881,13 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       // 'in': all the way into the Mac (or the iPhone).
       const s = stops();
       const i = id === 'in' ? s.length : s.findIndex((x) => x.id === id);
-      if (i < 0) return;
+      if (i < 0) return false;
       const from = step >= 0 ? step : nearest(s, window.scrollY);
+      // Forward onto a stop that plays on (the logo): it plays on from there.
+      autoRef.current = i > from && i < s.length && playsOn(s[i].id);
       if (i < s.length && (opts.cut || Math.abs(i - from) > 1)) cut(i);
       else goTo(i, ms);
+      return true;
     };
 
     // The career is scrubbed, not stepped: from Me to Now the page scrolls
@@ -2177,21 +2182,18 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     };
   }, [loaded, closing, active]);
 
-  // The end of the story (the logo and its line, then the laptop): a click or
-  // tap anywhere goes in.
+  // The end of the story (the logo and its line, then the laptop). It opens
+  // with a scroll, never a click.
   const [endOn, setEndOn] = useState(false);
   useMotionValueEvent(nowT, 'change', (t) => {
     const on = t >= END_FROM;
     setEndOn((cur) => (cur === on ? cur : on));
   });
-  const enter = useCallback(() => {
-    playShutter({ level: 0.5 });
-    if (!use3D && !phone) {
-      onReachScreen?.();
-      return;
-    }
-    goToIdRef.current?.('in', OPEN_MS);
-  }, [use3D, onReachScreen, phone]);
+  // "See the work": to the closed Mac and what it is (so nobody lands on a
+  // desktop without knowing why); with no Mac to show, straight in.
+  const seeWork = useCallback(() => {
+    if (!goToIdRef.current?.('mac', undefined, { cut: true })) onSkip?.();
+  }, [onSkip]);
 
   // The hero's Scroll button: on to About, like a scroll.
   const scrollToAbout = useCallback(() => {
@@ -2235,8 +2237,11 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // lid passes).
   const introOuterRef = useRef(null);
   const [revealed, setRevealed] = useState(false);
-  // The line comes in with the logo, so the logo is never without a reason.
-  useMotionValueEvent(nowT, 'change', (t) => sayT.set(smooth01(within(t, SAY))));
+  // The line comes in once the closed Mac is in view (with no 3D Mac, with
+  // the logo).
+  useMotionValueEvent(nowT, 'change', (t) => {
+    if (!use3D || phone) sayT.set(smooth01(within(t, SAY)));
+  });
   const onMacFrame = useCallback((y, p) => {
     macP.current = p;
     // It rises out of the laptop's way as the camera pulls back, and goes as
@@ -2246,6 +2251,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     if (el) el.style.opacity = (1 - smooth01(within(p, [MAC_BEATS.lid[0] + 0.01, MAC_BEATS.lid[0] + 0.12]))).toFixed(3);
     const r = p > LOCK[1];
     setRevealed((cur) => (cur === r ? cur : r));
+    sayT.set(smooth01(within(p, SAY_ON_MAC)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const macIntro = (
@@ -2359,7 +2365,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       <header className={styles.bar}>
         <nav className={styles.barLinks} aria-label="Quick links">
           {/* Straight to the work, for anyone who wants proof first. */}
-          <button type="button" className={styles.barLink} onClick={onSkip}>
+          <button type="button" className={styles.barLink} onClick={seeWork}>
             See the work
           </button>
           <button type="button" className={styles.hire} onClick={() => setContactOpen(true)}>
@@ -2393,7 +2399,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
               {ABOUT_LOOK === 'y2k' ? (
                 <MePanelY2K progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} />
               ) : ABOUT_LOOK === 'fleur' ? (
-                <MePanelFleur progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} onSeeWork={onSkip} />
+                <MePanelFleur progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} onSeeWork={seeWork} />
               ) : (
                 <MePanel progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} wide={wide} />
               )}
@@ -2442,9 +2448,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             {!use3D && macIntro}
 
 
-            {endOn && (
-              <button type="button" className={styles.enter} onClick={enter} aria-label="See my work" />
-            )}
 
           </div>
         </div>
@@ -2513,7 +2516,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       <div ref={cutRef} className={styles.cut} aria-hidden />
 
       {!loaded && <Loader reduced={reduced} onDone={onLoaded} withModel={use3D} />}
-      <BriefSheet open={contactOpen} onClose={() => setContactOpen(false)} onSeeWork={enter} style={paletteStyle(palette)} />
+      <BriefSheet open={contactOpen} onClose={() => setContactOpen(false)} onSeeWork={seeWork} style={paletteStyle(palette)} />
     </section>
   );
 }

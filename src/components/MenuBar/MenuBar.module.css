@@ -156,6 +156,33 @@
   height: 10px;
 }
 
+.wifiOff {
+  opacity: 0.35;
+}
+
+/* Control Center's button: highlighted while it is open. */
+.ccButton {
+  display: grid;
+  place-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  cursor: default;
+}
+
+.ccButton:hover,
+.ccButtonOn {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.ccButton:focus-visible {
+  outline: 2px solid #0a84ff;
+  outline-offset: 1px;
+}
+
 .battery {
   display: flex;
   align-items: center;
@@ -247,4 +274,44 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   font-size: 13px;
+}
+
+/* ---------- Light appearance (Control Center) ---------- */
+:global(html[data-appearance='light']) .menuBar {
+  background: rgba(246, 246, 248, 0.62);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-appearance='light']) .wifiBar,
+:global(html[data-appearance='light']) .batteryCap {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+:global(html[data-appearance='light']) .batteryBody {
+  border-color: rgba(0, 0, 0, 0.7);
+}
+
+:global(html[data-appearance='light']) .logoActive,
+:global(html[data-appearance='light']) .ccButton:hover,
+:global(html[data-appearance='light']) .ccButtonOn {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+:global(html[data-appearance='light']) .appleMenu {
+  background: rgba(240, 240, 242, 0.78);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.6), 0 0 0 0.5px rgba(0, 0, 0, 0.18), 0 12px 36px rgba(0, 0, 0, 0.22);
+}
+
+:global(html[data-appearance='light']) .appleMenu button {
+  color: rgba(0, 0, 0, 0.88);
+}
+
+:global(html[data-appearance='light']) .appleMenu button:hover,
+:global(html[data-appearance='light']) .appleMenu button:focus-visible {
+  color: #fff;
+}
+
+:global(html[data-appearance='light']) .sep {
+  background: rgba(0, 0, 0, 0.1);
 }

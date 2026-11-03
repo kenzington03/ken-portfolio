@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
+import { useSystemSettings } from '../../hooks/useSystemSettings.js';
+import ControlCenter, { ControlCenterGlyph } from './ControlCenter.jsx';
 import styles from './MenuBar.module.css';
 
 const APP_LABELS = {
@@ -20,6 +22,9 @@ export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }
   const [now, setNow] = useState(() => new Date());
   const [appleOpen, setAppleOpen] = useState(false);
   const appleRef = useRef(null);
+  const [ccOpen, setCcOpen] = useState(false);
+  const ccRef = useRef(null);
+  const sys = useSystemSettings();
 
   useEffect(() => {
     if (!appleOpen) return undefined;
@@ -100,7 +105,7 @@ export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }
             Work with me
           </button>
         )}
-        <span className={styles.wifi} title="Wi-Fi" aria-hidden>
+        <span className={`${styles.wifi} ${sys.wifi ? '' : styles.wifiOff}`} title={sys.wifi ? 'Wi-Fi' : 'Wi-Fi: Off'} aria-hidden>
           <span className={styles.wifiBar} />
           <span className={styles.wifiBar} />
           <span className={styles.wifiBar} />
@@ -123,10 +128,21 @@ export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }
             🏆
           </button>
         )}
+        <button
+          ref={ccRef}
+          type="button"
+          className={`${styles.ccButton} ${ccOpen ? styles.ccButtonOn : ''}`}
+          aria-label="Control Center"
+          aria-expanded={ccOpen}
+          onClick={() => setCcOpen((o) => !o)}
+        >
+          <ControlCenterGlyph />
+        </button>
         <time className={styles.dateTime} dateTime={now.toISOString()}>
           {dateTime}
         </time>
       </div>
+      <ControlCenter open={ccOpen} onClose={() => setCcOpen(false)} anchorRef={ccRef} />
     </header>
   );
 }

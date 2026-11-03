@@ -3,6 +3,7 @@ import { useOS } from '../../context/OSContext.jsx';
 import { getOriginFromEvent } from '../../utils/animationOrigin.js';
 import { PORTFOLIO_ICON_SRC } from '../../data/funZone.jsx';
 import { MUSIC_PLAYER_ENABLED } from '../../hooks/useMusicPlayer.js';
+import { setSystem, useSystemSettings } from '../../hooks/useSystemSettings.js';
 import Wallpaper from './Wallpaper.jsx';
 import WindowLayer from '../Window/WindowLayer.jsx';
 import DesktopIcon from './DesktopIcon.jsx';
@@ -23,6 +24,23 @@ const DESKTOP_ICONS = [
   // Back to the hero, the start of the journey (App's IntroFlow listens).
   { id: 'start', label: 'Back to start', action: 'start', src: '/assets/icons/desktop-start.svg' },
 ];
+
+// The right-click menu's glyphs (SF Symbols-like, drawn on a 16 grid).
+const MENU_GLYPHS = {
+  folder: 'M1.5 4.5A1.5 1.5 0 0 1 3 3h3.2l1.5 1.5H13a1.5 1.5 0 0 1 1.5 1.5v5.5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5zM10.5 7v4M8.5 9h4',
+  info: 'M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5zM8 7.2v4M8 4.9v.1',
+  tidy: 'M2.5 3h3v3h-3zM6.5 3h3v3h-3zM10.5 3h3v3h-3zM2.5 7.5h3v3h-3zM6.5 7.5h3v3h-3z',
+  moon: 'M10 2.2A6 6 0 1 0 13.8 10 4.8 4.8 0 0 1 10 2.2z',
+  start: 'M3 8a5 5 0 1 0 1.5-3.6M3 2.5V5h2.5',
+};
+
+function MenuGlyph({ name }) {
+  return (
+    <svg className={styles.contextGlyph} viewBox="0 0 16 16" aria-hidden>
+      <path d={MENU_GLYPHS[name]} />
+    </svg>
+  );
+}
 
 const ICON_W = 88;
 const ICON_H = 92;
@@ -54,6 +72,9 @@ export default function Desktop() {
   const [selected, setSelected] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [positions, setPositions] = useState(loadStoredPositions);
+  // Folders made from the right-click menu (this visit only).
+  const [folders, setFolders] = useState([]);
+  const sys = useSystemSettings();
 
   const getDefaultPosition = useCallback((index) => {
     const width = surfaceRef.current?.clientWidth ?? window.innerWidth;
@@ -153,15 +174,33 @@ export default function Desktop() {
     setSelected(item.id);
   };
 
-  const openSettingsFromContext = () => {
-    launchApp('systempreferences');
+  // The right-click menu: each item does what it says.
+  const fromMenu = (fn) => () => {
     setContextMenu(null);
+    fn();
+  };
+  const newFolder = () => {
+    const surface = surfaceRef.current?.getBoundingClientRect();
+    const n = folders.length + 1;
+    const id = `folder-${Date.now()}`;
+    const x = Math.max(0, contextMenu.x - (surface?.left ?? 0) - ICON_W / 2);
+    const y = Math.max(0, contextMenu.y - (surface?.top ?? 0) - ICON_H / 3);
+    setFolders((f) => [...f, { id, label: n === 1 ? 'untitled folder' : `untitled folder ${n}`, appId: 'finder', src: '/assets/icons/desktop-folder.png' }]);
+    setPositions((prev) => ({ ...prev, [id]: { x, y } }));
+    setSelected(id);
+  };
+  const cleanUp = () => {
+    setPositions({});
+    saveStoredPositions({});
   };
 
   const onContextMenu = (e) => {
     if (e.target.closest('button')) return;
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
+    // Kept on screen, like the Mac's own.
+    const x = Math.min(e.clientX, window.innerWidth - 248);
+    const y = Math.min(e.clientY, window.innerHeight - 240);
+    setContextMenu({ x, y });
   };
 
   return (
@@ -181,7 +220,7 @@ export default function Desktop() {
         <SocialProof />
         <FunZone />
         <div className={styles.icons} onClick={(e) => e.stopPropagation()}>
-          {DESKTOP_ICONS.map((item, index) => {
+          {[...DESKTOP_ICONS, ...folders].map((item, index) => {
             const pos = getPosition(item, index);
             return (
               <button
@@ -210,8 +249,37 @@ export default function Desktop() {
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <button type="button" className={styles.contextItem} onClick={openSettingsFromContext}>
-            Change Wallpaper
+          <button type="button" className={styles.contextItem} onClick={fromMenu(newFolder)}>
+            <MenuGlyph name="folder" />
+            New Folder
+          </button>
+          <div className={styles.contextSep} />
+          <button type="button" className={styles.contextItem} onClick={fromMenu(() => launchApp('about'))}>
+            <MenuGlyph name="info" />
+            Get Info
+          </button>
+          <button type="button" className={styles.contextItem} onClick={fromMenu(() => launchApp('systempreferences'))}>
+            <span className={styles.contextGlyph} />
+            Change Wallpaper…
+          </button>
+          <div className={styles.contextSep} />
+          <button type="button" className={styles.contextItem} onClick={fromMenu(cleanUp)}>
+            <MenuGlyph name="tidy" />
+            Clean Up
+          </button>
+          <button
+            type="button"
+            className={styles.contextItem}
+            onClick={fromMenu(() => setSystem({ appearance: sys.appearance === 'dark' ? 'light' : 'dark' }))}
+          >
+            <span className={styles.contextCheck}>{sys.appearance === 'dark' ? '✓' : ''}</span>
+            <MenuGlyph name="moon" />
+            Dark Mode
+          </button>
+          <div className={styles.contextSep} />
+          <button type="button" className={styles.contextItem} onClick={fromMenu(() => window.dispatchEvent(new CustomEvent('ken:back-to-start')))}>
+            <MenuGlyph name="start" />
+            Back to Start
           </button>
         </div>
       )}
