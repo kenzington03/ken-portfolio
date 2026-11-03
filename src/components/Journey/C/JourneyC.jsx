@@ -371,6 +371,12 @@ const HOOP_SHOT = {
   e: 0.36, // each bounce on the line, of the last
 };
 const HOOP_STAGE = 0.3; // the hoop's size, a share of vh
+// The bounces on the line: [how long, how high (a share of vh)] each.
+const LINE_BOUNCES = [
+  [0.055, 0.05],
+  [0.035, 0.018],
+  [0.02, 0.006],
+];
 const NET_FOOT = 46 / 120; // the net's foot below the rim, a share of the hoop
 
 function hoopShotAt(b, { x0, y0, cx, vh, yL }) {
@@ -408,22 +414,19 @@ function hoopShotAt(b, { x0, y0, cx, vh, yL }) {
     const t = b - S.netOut;
     return { ...base, x: cx, y: netY + (g3 * t * t) / 2 - tilt, air: 1, down: shrink };
   }
+  // On the line: three bounces, each lower and quicker, all done well
+  // before the beat ends (so the ball is never left in the air on the line).
   let y = yL;
   let squash = 0;
   let hits = 0;
   let at = S.land;
-  let speed = g3 * T3;
-  let hit = 1;
-  for (let n = 0; n <= BOUNCES; n += 1) {
-    if (b >= at) squash = Math.max(squash, hit * Math.max(0, 1 - (b - at) / 0.02));
-    if (n < BOUNCES) hits += smooth01(within(b, [at, at + 0.025]));
-    speed *= S.e;
-    hit *= S.e;
-    const d = (2 * speed) / g3;
+  LINE_BOUNCES.forEach(([d, h], n) => {
     const t = b - at;
-    if (n < BOUNCES && t >= 0 && t < d) y = yL - (speed * t - (g3 * t * t) / 2);
+    if (t >= 0) squash = Math.max(squash, S.e ** n * Math.max(0, 1 - t / 0.02));
+    hits += smooth01(within(b, [at, at + 0.025]));
+    if (t >= 0 && t < d) y = yL - 4 * h * vh * (t / d) * (1 - t / d);
     at += d;
-  }
+  });
   return { ...base, x: cx, y, air: 1, down: 1, squash, hits };
 }
 
