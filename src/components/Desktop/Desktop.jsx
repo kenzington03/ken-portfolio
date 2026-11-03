@@ -10,7 +10,7 @@ import WindowLayer from '../Window/WindowLayer.jsx';
 import DesktopIcon from './DesktopIcon.jsx';
 import MusicPlayer from './MusicPlayer.jsx';
 import FunZone from './FunZone.jsx';
-import OnekoPet from './OnekoPet.jsx';
+import KerningCat from './KerningCat.jsx';
 import SocialProof from './SocialProof.jsx';
 import styles from './Desktop.module.css';
 
@@ -67,7 +67,6 @@ function saveStoredPositions(positions) {
 
 export default function Desktop() {
   const { launchApp, wallpaper, setWallpaper } = useOS();
-  const petMountRef = useRef(null);
   const surfaceRef = useRef(null);
   const dragRef = useRef(null);
   const [selected, setSelected] = useState(null);
@@ -216,8 +215,6 @@ export default function Desktop() {
       <Wallpaper />
       {MUSIC_PLAYER_ENABLED && <MusicPlayer />}
       <div className={styles.surface} ref={surfaceRef}>
-        <div ref={petMountRef} className={styles.petMount} aria-hidden />
-        <OnekoPet mountRef={petMountRef} />
         <SocialProof />
         <FunZone />
         <div className={styles.icons} onClick={(e) => e.stopPropagation()}>
@@ -291,6 +288,7 @@ export default function Desktop() {
       <div className={styles.windows}>
         <WindowLayer />
       </div>
+      <KerningCat />
     </div>
   );
 }

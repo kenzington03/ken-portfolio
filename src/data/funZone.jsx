@@ -1,16 +1,17 @@
 import { BubbleGlyph, PacManGlyph, TetrisGlyph } from '../components/icons/GameGlyphs.jsx';
 
-/** Cute flat-illustration cat face for Buddy, pointed ears, whiskers,
-    closed happy eyes, same style family as About Ken's cat icon. */
+/** Kerning's face: the tuxedo cat who lives on the desktop. */
 const CatGlyph = () => (
-  <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-    <path d="M4 12L9 3L13 12Z" fill="#3a3a3c" />
-    <path d="M26 12L21 3L17 12Z" fill="#3a3a3c" />
-    <ellipse cx="15" cy="17" rx="11" ry="9.5" fill="#3a3a3c" />
-    <path d="M9.5 14.5Q11 16 12.5 14.5" stroke="#F5D971" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-    <path d="M17.5 14.5Q19 16 20.5 14.5" stroke="#F5D971" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-    <path d="M14 18.5L16 18.5L15 19.8Z" fill="#E8A0A0" />
-    <path d="M2 18H8M2 21H7.5M22 18H28M22.5 21H28" stroke="#8e8e93" strokeWidth="0.8" strokeLinecap="round" />
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+    <path d="M6 12 7.5 3l6 5.5zM26 12 24.5 3l-6 5.5z" fill="#141416" />
+    <path d="M8 9.5 8.8 5l3 3zM24 9.5 23.2 5l-3 3z" fill="#f2a1a8" />
+    <ellipse cx="16" cy="17" rx="11" ry="10" fill="#141416" />
+    <path d="M16 15.5c-2 2.8-6 4-6 7.3 0 2 3 3.4 6 3.4s6-1.4 6-3.4c0-3.3-4-4.5-6-7.3z" fill="#f6f4ef" />
+    <ellipse cx="11.2" cy="15.6" rx="2.5" ry="2.8" fill="#c9e05a" />
+    <ellipse cx="20.8" cy="15.6" rx="2.5" ry="2.8" fill="#c9e05a" />
+    <ellipse cx="11.2" cy="15.8" rx="0.9" ry="2.3" fill="#111" />
+    <ellipse cx="20.8" cy="15.8" rx="0.9" ry="2.3" fill="#111" />
+    <path d="M15 20.2h2L16 21.4z" fill="#f2a1a8" />
   </svg>
 );
 
@@ -69,9 +70,9 @@ export const FUN_ZONE_ITEMS = [
   },
   {
     id: 'pet',
-    label: 'Buddy',
+    label: 'Kerning',
     icon: <CatGlyph />,
-    bg: 'linear-gradient(135deg, #ffd60a 0%, #d9a406 100%)',
+    bg: 'linear-gradient(135deg, #e9e6df 0%, #bdb8ae 100%)',
     action: 'pet',
   },
   {

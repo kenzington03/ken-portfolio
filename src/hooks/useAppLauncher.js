@@ -15,6 +15,8 @@ import TumbleBlocks from '../components/apps/TumbleBlocks/TumbleBlocks.jsx';
 import MazeMuncher from '../components/apps/MazeMuncher/MazeMuncher.jsx';
 import BubbleShooter from '../components/apps/BubbleShooter/BubbleShooter.jsx';
 import EmptyFolder from '../components/apps/EmptyFolder/EmptyFolder.jsx';
+import AdobeApp from '../components/apps/AdobeApp/AdobeApp.jsx';
+import GetInfo from '../components/apps/GetInfo/GetInfo.jsx';
 import { getProjectById } from '../data/projects.js';
 import { RIGHT_DOCK_RESERVE, getCenteredWindowPosition } from '../utils/animationOrigin.js';
 
@@ -26,12 +28,15 @@ const APP_REGISTRY = {
   minesweeper: { title: 'Minesweeper', component: Minesweeper, size: { width: 520, height: 580 } },
   pdfviewer: { title: 'Resume', component: PDFViewer, size: { width: 680, height: 560 }, fill: { maxWidth: 900 } },
   projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 920, height: 720 }, fill: true },
-  trash: { title: 'Trash', component: Trash, size: { width: 520, height: 380 } },
+  trash: { title: 'Trash', component: Trash, size: { width: 760, height: 460 } },
   claude: { title: 'Ask about Ken', component: ClaudeFaq, size: { width: 720, height: 560 } },
   flappybird: { title: 'Flappy Bird', component: FlappyBird, size: { width: 400, height: 580 } },
   chromedino: { title: 'New Tab', component: ChromeDino, size: { width: 680, height: 320 } },
   tumbleblocks: { title: 'Tetris', component: TumbleBlocks, size: { width: 460, height: 500 } },
   mazemuncher: { title: 'Pac-Man', component: MazeMuncher, size: { width: 420, height: 420 } },
+  photoshop: { title: 'Adobe Photoshop 2026', component: AdobeApp, size: { width: 1100, height: 700 }, fill: true, data: { app: 'photoshop' } },
+  illustrator: { title: 'Adobe Illustrator 2026', component: AdobeApp, size: { width: 1100, height: 700 }, fill: true, data: { app: 'illustrator' } },
+  getinfo: { title: 'Info', component: GetInfo, size: { width: 300, height: 330 } },
   folder: { title: 'untitled folder', component: EmptyFolder, size: { width: 560, height: 360 } },
   bubbleshooter: { title: 'Bubble Shooter', component: BubbleShooter, size: { width: 480, height: 640 } },
   systempreferences: {
@@ -83,7 +88,7 @@ export function useAppLauncher(windowManager, achievements) {
       }
 
       let title = options.title ?? config.title;
-      let data = options.data ?? null;
+      let data = options.data ?? config.data ?? null;
 
       if (appId === 'projectviewer' && options.projectId) {
         const project = getProjectById(options.projectId);

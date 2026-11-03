@@ -171,3 +171,70 @@
 :global(html[data-appearance='light']) .running {
   background: rgba(0, 0, 0, 0.6);
 }
+
+/* The icon's menu: above it, the Mac's menu material. */
+.menu {
+  position: fixed;
+  z-index: 10005;
+  min-width: 180px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  background: rgba(38, 38, 40, 0.78);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.6), 0 12px 36px rgba(0, 0, 0, 0.45);
+  transform: translate(-50%, -100%);
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.menuTitle {
+  padding: 3px 10px 5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.menu button {
+  height: 22px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.menu button:hover {
+  background: #0a84ff;
+  color: #fff;
+}
+
+.menuSep {
+  height: 1px;
+  margin: 5px 10px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global(html[data-appearance='light']) .menu {
+  background: rgba(240, 240, 242, 0.82);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.6), 0 0 0 0.5px rgba(0, 0, 0, 0.18), 0 12px 36px rgba(0, 0, 0, 0.22);
+}
+
+:global(html[data-appearance='light']) .menu button {
+  color: rgba(0, 0, 0, 0.88);
+}
+
+:global(html[data-appearance='light']) .menu button:hover {
+  color: #fff;
+}
+
+:global(html[data-appearance='light']) .menuTitle {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+:global(html[data-appearance='light']) .menuSep {
+  background: rgba(0, 0, 0, 0.1);
+}

@@ -1,25 +1,23 @@
 import { useEffect, useState } from 'react';
 import styles from './AdobeSplashOverlay.module.css';
 
-const OPEN_DELAY_MS = 480;
-const ERROR_DELAY_MS = 30_000;
+const OPEN_DELAY_MS = 200;
+const LAUNCH_MS = 1700; // the splash, then the app opens
 
-export default function AdobeSplashOverlay({ label, imageSrc, onClose }) {
+// The app's splash for a moment, then the app itself.
+export default function AdobeSplashOverlay({ label, imageSrc, onOpen }) {
   const [visible, setVisible] = useState(false);
-  const [showError, setShowError] = useState(false);
 
   useEffect(() => {
     const openTimer = setTimeout(() => setVisible(true), OPEN_DELAY_MS);
-    return () => clearTimeout(openTimer);
+    const launch = setTimeout(() => onOpen?.(), LAUNCH_MS);
+    return () => {
+      clearTimeout(openTimer);
+      clearTimeout(launch);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!visible) return undefined;
-    const errorTimer = setTimeout(() => setShowError(true), ERROR_DELAY_MS);
-    return () => clearTimeout(errorTimer);
-  }, [visible]);
-
-  const close = () => onClose();
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-label={`${label} splash`}>
@@ -28,22 +26,6 @@ export default function AdobeSplashOverlay({ label, imageSrc, onClose }) {
           <img src={imageSrc} alt={`${label} splash screen`} className={styles.splashImage} draggable={false} />
         </div>
 
-        {showError && (
-          <div className={styles.errorDialog}>
-            <p className={styles.errorTitle}>Unable to open</p>
-            <p className={styles.errorMessage}>
-              {label} could not be launched. The application may be unavailable on this system.
-            </p>
-            <div className={styles.errorActions}>
-              <button type="button" className={styles.errorPrimary} onClick={close}>
-                Submit Report
-              </button>
-              <button type="button" className={styles.errorSecondary} onClick={close}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

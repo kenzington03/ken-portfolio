@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 
 export function usePetState() {
-  const [petVisible, setPetVisible] = useState(false);
+  // Kerning, the desktop cat, is home when you arrive.
+  const [petVisible, setPetVisible] = useState(true);
   const [petCharacter, setPetCharacter] = useState('cat');
 
   const togglePet = useCallback(() => {

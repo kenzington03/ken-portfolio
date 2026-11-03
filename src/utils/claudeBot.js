@@ -177,6 +177,21 @@ function tryCoinOrDice(text) {
 
 // Plain answers about Ken. No character voice: the visitor is here to learn
 // about him quickly. Facts only; anything not known is not invented.
+// The basics, the things anyone might ask first. Personal details stop at
+// what Ken is happy to share; AGE and PRONOUNS are his to fill in.
+const AGE = null; // e.g. 29
+const PRONOUNS = null; // e.g. 'he/him'
+const BASICS = {
+  name: "Kenneth Nathanael. Most people call him Ken.",
+  age: AGE ? `He's ${AGE}.` : "He's been designing professionally since 2015, so about ten years in.",
+  gender: PRONOUNS ? `Ken uses ${PRONOUNS}.` : "Best to ask Ken directly; he's easy to reach (kennethnathanael@gmail.com).",
+  education: "An Advanced Diploma in Animation and VFX from Wings Creation College of Animation and Media, Bangalore (2018). He's also finishing a B.Com at Sunrise College, expected 2027.",
+  years: "About ten years, since 2015: brand, campaigns, video, motion and events.",
+  languages: "He works in English.",
+  remote: "Yes. He's based in Hyderabad and open to remote work and relocation.",
+  title: "Design Lead at Milestone Technologies, where he runs the in-house creative studio.",
+};
+
 const ABOUT = {
   who: "Kenneth Nathanael (Ken) is a designer based in India with about 10 years of experience across brand identity, motion, UI/UX and video. Right now he leads brand and campaign design at a global IT services company.",
   role: "In his current role Ken leads brand campaigns, presentations, social, events and day-to-day design operations for a global IT services company.",
@@ -184,12 +199,12 @@ const ABOUT = {
   bestWork: "Start with the Work folder on this desktop: Fluid AI (rebrand), enterprise campaigns including Momentum 2026, Marriott and Aloft, and the LeBron James concept (a personal project).",
   brands: "Brand work includes Fluid AI, Truearte, Step-Set-Go and Sampoorna, plus enterprise campaigns and hospitality work for Marriott and Aloft.",
   motion: "Yes. Motion graphics and video are a core part of his work: event films, campaign visuals and social motion. Open the Motion folder to see it.",
-  tools: "Adobe CC (Illustrator, Photoshop, After Effects, Premiere), Figma, Canva and PowerPoint, plus AI tools such as Midjourney, Firefly, Runway and ElevenLabs.",
+  tools: "Adobe Creative Cloud (Illustrator, Photoshop, After Effects, Premiere Pro, InDesign), Figma and PowerPoint. For AI: Claude, ChatGPT, Cursor, Higgsfield, Magnific, Runway, Kling, ElevenLabs and Power Automate.",
   strengths: "Brand identity, motion graphics, UI/UX, video production, campaigns and print. He leads the idea and stays hands-on through delivery.",
   process: "He starts with the idea and the audience, sketches directions fast, then refines details: type, motion timing and layout. Colleagues often mention speed and follow-through.",
   hire: "Yes. Ken is open to senior design roles and freelance projects, especially where he can build and lead a team.",
   freelance: "He takes select freelance projects. Email him with the scope and timeline.",
-  location: "India.",
+  location: "Hyderabad, India. He's open to remote work and to relocating.",
   contact: "Email kennethnathanael@gmail.com or LinkedIn: linkedin.com/in/kenneth-n-576134103. Email is fastest.",
   resume: "Open Resume on the desktop, or the About app, for the full history.",
   social: "Instagram: @nathanaelkenneth. The full portfolio is right here, on kennethnathanael.com.",
@@ -241,6 +256,15 @@ export const CLAUDE_TOPICS = [
 ];
 
 const RULES = [
+  // The basics first, so "where did he study" is not read as "where is he".
+  { keywords: ['how old', 'his age', "ken's age", 'age?', 'born', 'birthday', 'years old'], response: BASICS.age },
+  { keywords: ['gender', 'pronoun', 'male', 'female', 'is ken a man', 'is ken a woman', 'he or she'], response: BASICS.gender },
+  { keywords: ['study', 'studied', 'degree', 'college', 'education', 'school', 'university', 'diploma', 'qualification'], response: BASICS.education },
+  { keywords: ['how many years', 'how long has he', 'years of experience', 'how experienced'], response: BASICS.years },
+  { keywords: ['full name', 'his name', 'what is he called', 'what do i call'], response: BASICS.name },
+  { keywords: ['language', 'speak'], response: BASICS.languages },
+  { keywords: ['remote', 'relocat', 'move to', 'visa', 'work from'], response: BASICS.remote },
+  { keywords: ['job title', 'his title', 'what is his role', 'designation', 'position'], response: BASICS.title },
   { keywords: ['instagram', 'showcase', 'social'], response: ABOUT.social },
   { keywords: ['resume', 'cv'], response: ABOUT.resume },
   { keywords: ['lebron', 'lakers', 'basketball', 'nba', 'chess', 'rocket league', 'fortnite', 'gaming', 'sneaker', 'motorcycle', 'enfield', 'hobby', 'hobbies', 'interests'], response: ABOUT.interests },

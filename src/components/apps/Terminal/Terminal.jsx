@@ -58,8 +58,8 @@ const findProject = (raw) => {
 
 const lastLogin = () => {
   const d = new Date(Date.now() - 1000 * 60 * 47);
-  const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  return `Last login: ${day} ${d.toLocaleTimeString('en-GB')} on ttys001`;
+  const [wd, mo, dd] = d.toDateString().split(' ');
+  return `Last login: ${wd} ${mo} ${String(Number(dd)).padStart(2, ' ')} ${d.toLocaleTimeString('en-GB')} on ttys001`;
 };
 
 export default function Terminal({ windowId }) {

@@ -1,0 +1,368 @@
+/* Kerning: placed every frame by translate (his feet on the surface). */
+.cat {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 64px;
+  height: 64px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  filter: drop-shadow(0 3px 2px rgb(0 0 0 / 0.25));
+}
+
+.cat:active {
+  cursor: grabbing;
+}
+
+.flip {
+  width: 100%;
+  height: 100%;
+  transform: scaleX(var(--dir, 1));
+  transform-origin: 50% 100%;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.black {
+  fill: #141416;
+}
+
+.white {
+  fill: #f6f4ef;
+}
+
+.pink {
+  fill: #f2a1a8;
+}
+
+.iris {
+  fill: #c9e05a;
+}
+
+.pupil {
+  fill: #111;
+}
+
+.lid,
+.line {
+  fill: none;
+  stroke: #f6f4ef;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.line {
+  stroke: #141416;
+  stroke-width: 0.9;
+}
+
+.whisker {
+  fill: none;
+  stroke: rgb(246 244 239 / 0.7);
+  stroke-width: 0.6;
+  stroke-linecap: round;
+}
+
+.tail {
+  fill: none;
+  stroke: #141416;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  animation: sway 2.4s ease-in-out infinite;
+}
+
+@keyframes sway {
+  50% {
+    transform: rotate(-12deg);
+  }
+}
+
+/* Sitting: he breathes and blinks. */
+.sit .head,
+.groom .head {
+  transform-origin: 32px 30px;
+  animation: look 6s ease-in-out infinite;
+}
+
+@keyframes look {
+  40%,
+  60% {
+    transform: rotate(-5deg);
+  }
+}
+
+.sit .eyes {
+  transform-origin: 32px 17px;
+  animation: blink 4.5s infinite;
+}
+
+@keyframes blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  97% {
+    transform: scaleY(0.1);
+  }
+}
+
+/* Grooming: the head dips to the chest and back. */
+.groom .head {
+  animation: lick 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes lick {
+  to {
+    transform: translateY(4px) rotate(8deg);
+  }
+}
+
+/* Asleep: a loaf, breathing slow. */
+.sleep .flip {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  50% {
+    transform: scaleX(var(--dir, 1)) scaleY(0.94);
+  }
+}
+
+/* Purring: a happy wiggle. */
+.purr .flip {
+  animation: purr 0.18s linear infinite alternate;
+}
+
+@keyframes purr {
+  to {
+    transform: scaleX(var(--dir, 1)) translateX(0.6px) scaleY(1.01);
+  }
+}
+
+/* Walking and running: the legs, in pairs. */
+.walk .legA,
+.run .legA {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: stepA 0.42s linear infinite;
+}
+
+.walk .legB,
+.run .legB {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: stepA 0.42s linear infinite reverse;
+}
+
+.run .legA,
+.run .legB {
+  animation-duration: 0.2s;
+}
+
+@keyframes stepA {
+  0%,
+  100% {
+    transform: rotate(18deg);
+  }
+  50% {
+    transform: rotate(-18deg);
+  }
+}
+
+.walk .sideHead,
+.run .sideHead {
+  animation: bob 0.42s ease-in-out infinite;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(1px);
+  }
+}
+
+/* Held by the scruff: stretched long, legs hanging, swinging a little. */
+.dangle .flip {
+  transform-origin: 50% 0;
+  animation: swing 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes swing {
+  from {
+    transform: scaleX(var(--dir, 1)) scaleY(1.12) rotate(-7deg);
+  }
+  to {
+    transform: scaleX(var(--dir, 1)) scaleY(1.12) rotate(7deg);
+  }
+}
+
+.fall .flip {
+  transform: scaleX(var(--dir, 1)) scaleY(1.1);
+}
+
+/* Landing: a squash, then up. */
+.land .flip {
+  animation: land 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes land {
+  0% {
+    transform: scaleX(calc(var(--dir, 1) * 1.18)) scaleY(0.78);
+  }
+  60% {
+    transform: scaleX(calc(var(--dir, 1) * 0.96)) scaleY(1.05);
+  }
+}
+
+/* In the box: only his head shows over the rim. */
+.box .flip {
+  transform: scaleX(var(--dir, 1)) translateY(26px);
+}
+
+.box {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 80px;
+}
+
+.boxSvg,
+.mouseSvg {
+  display: block;
+  width: 100%;
+}
+
+.toy {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 30px;
+  pointer-events: none;
+}
+
+.zzz,
+.heart,
+.say {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.zzz {
+  margin-left: 10px;
+  font: 600 11px/1 -apple-system, sans-serif;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+  animation: rise 2.4s ease-in infinite;
+}
+
+.heart {
+  color: #ff4f6d;
+  font-size: 14px;
+  animation: rise 1.2s ease-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -16px);
+  }
+}
+
+.say {
+  margin-bottom: 6px;
+  padding: 5px 9px;
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  font: 500 11px/1.2 -apple-system, sans-serif;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+}
+
+/* His menu: a panel with his portrait, like the desktop pets of old. */
+.menu {
+  position: fixed;
+  z-index: 10004;
+  display: flex;
+  flex-direction: column;
+  width: 210px;
+  padding: 6px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff, #e9e9ee);
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.2), 0 14px 40px rgb(0 0 0 / 0.35);
+  color: #1d1d1f;
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.menuHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid rgb(0 0 0 / 0.08);
+  margin-bottom: 4px;
+}
+
+.menuHead svg {
+  width: 36px;
+  height: 36px;
+}
+
+.menuHead b {
+  font-size: 15px;
+}
+
+.menu button {
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.menu button:hover {
+  background: #0a84ff;
+  color: #fff;
+}
+
+.sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgb(0 0 0 / 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tail,
+  .flip,
+  .head,
+  .eyes,
+  .legA,
+  .legB {
+    animation: none !important;
+  }
+}

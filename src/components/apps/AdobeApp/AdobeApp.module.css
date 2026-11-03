@@ -1,0 +1,289 @@
+/* Adobe's dark UI: #535353 pasteboard, #323232 chrome, 11px labels. */
+.app {
+  --chrome: #323232;
+  --panel: #282828;
+  --line: #1e1e1e;
+  --txt: #d6d6d6;
+  --dim: #9a9a9a;
+  --acc: #31a8ff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--chrome);
+  color: var(--txt);
+  font: 11px/1.3 -apple-system, 'Segoe UI', sans-serif;
+  user-select: none;
+}
+
+.ai {
+  --acc: #ff9a00;
+}
+
+.menus {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 28px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--txt);
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: #001e36;
+  color: var(--acc);
+  font-weight: 700;
+}
+
+.ai .badge {
+  background: #330000;
+}
+
+.tabs {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+}
+
+.tabs button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border: 0;
+  background: #2b2b2b;
+  color: var(--dim);
+  font: inherit;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.tabs .tabOn {
+  background: var(--chrome);
+  color: #fff;
+}
+
+.tabs i {
+  font-style: normal;
+  opacity: 0.6;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 38px;
+  padding: 8px 0;
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.tool {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 26px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--txt);
+  cursor: default;
+}
+
+.tool svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tool:hover {
+  background: #3e3e3e;
+}
+
+.toolOn {
+  background: #4a4a4a;
+}
+
+.swatches {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  margin-top: 8px;
+}
+
+.swatches i {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #888;
+}
+
+.swatches i:first-child {
+  z-index: 1;
+  background: #000;
+}
+
+.swatches i:last-child {
+  right: 0;
+  bottom: 0;
+  background: #fff;
+}
+
+.pasteboard {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-width: 0;
+  padding: 28px;
+  background: #535353;
+  overflow: hidden;
+}
+
+.ai .pasteboard {
+  background: #4b4b4b;
+}
+
+/* The document: its layers stacked inside, sized to its own width. */
+.canvas {
+  position: relative;
+  width: min(100%, 1100px);
+  max-height: 100%;
+  overflow: hidden;
+  container-type: inline-size;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.5);
+  background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0 0 / 16px 16px;
+}
+
+.selection {
+  position: absolute;
+  outline: 1px solid #4b8cff;
+  pointer-events: none;
+}
+
+.panels {
+  display: flex;
+  flex-direction: column;
+  width: 248px;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.panelTabs {
+  display: flex;
+  gap: 12px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--dim);
+}
+
+.panelTabs b {
+  color: #fff;
+  font-weight: 600;
+}
+
+.blend {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--dim);
+}
+
+.layers {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.layers li {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.layers .layerOn {
+  background: #464646;
+}
+
+.eye {
+  width: 26px;
+  height: 36px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: none;
+  color: var(--txt);
+  font-size: 9px;
+  cursor: default;
+}
+
+.layerName {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.thumb {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 24px;
+  overflow: hidden;
+  border: 1px solid #111;
+  background: #fff;
+  color: #222;
+  font-weight: 700;
+}
+
+.thumb img,
+.thumb i {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lock {
+  margin-left: auto;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.props {
+  padding: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+}
+
+.props b {
+  display: block;
+  margin-bottom: 4px;
+  color: #fff;
+  font-weight: 600;
+}
