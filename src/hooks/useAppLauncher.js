@@ -13,6 +13,7 @@ import FlappyBird from '../components/apps/FlappyBird/FlappyBird.jsx';
 import ChromeDino from '../components/apps/ChromeDino/ChromeDino.jsx';
 import TumbleBlocks from '../components/apps/TumbleBlocks/TumbleBlocks.jsx';
 import MazeMuncher from '../components/apps/MazeMuncher/MazeMuncher.jsx';
+import BubbleShooter from '../components/apps/BubbleShooter/BubbleShooter.jsx';
 import { getProjectById } from '../data/projects.js';
 import { RIGHT_DOCK_RESERVE, getCenteredWindowPosition } from '../utils/animationOrigin.js';
 
@@ -30,6 +31,7 @@ const APP_REGISTRY = {
   chromedino: { title: 'New Tab', component: ChromeDino, size: { width: 680, height: 320 } },
   tumbleblocks: { title: 'Tetris', component: TumbleBlocks, size: { width: 460, height: 500 } },
   mazemuncher: { title: 'Pac-Man', component: MazeMuncher, size: { width: 420, height: 420 } },
+  bubbleshooter: { title: 'Bubble Shooter', component: BubbleShooter, size: { width: 480, height: 640 } },
   systempreferences: {
     title: 'System Preferences',
     component: SystemPreferences,

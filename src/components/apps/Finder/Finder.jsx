@@ -216,8 +216,10 @@ export default function Finder() {
                   className={`${styles.projectCard} ${selectedId === project.id ? styles.projectCardSelected : ''}`}
                   style={{ '--card-bg': `url("${getProjectCoverUrl(project)}")` }}
                   data-animation-origin
-                  onClick={() => setSelectedId(project.id)}
-                  onDoubleClick={(e) => openProjectItem(project, e)}
+                  onClick={(e) => {
+                    setSelectedId(project.id);
+                    openProjectItem(project, e);
+                  }}
                 >
                   <div className={styles.cardOverlay} aria-hidden />
                   <div className={styles.cardBody}>

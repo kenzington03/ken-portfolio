@@ -4,6 +4,7 @@ import { getOriginFromEvent } from '../../utils/animationOrigin.js';
 import { PORTFOLIO_ICON_SRC } from '../../data/funZone.jsx';
 import { MUSIC_PLAYER_ENABLED } from '../../hooks/useMusicPlayer.js';
 import { setSystem, useSystemSettings } from '../../hooks/useSystemSettings.js';
+import { wallpaperFor } from '../MenuBar/ControlCenter.jsx';
 import Wallpaper from './Wallpaper.jsx';
 import WindowLayer from '../Window/WindowLayer.jsx';
 import DesktopIcon from './DesktopIcon.jsx';
@@ -65,7 +66,7 @@ function saveStoredPositions(positions) {
 }
 
 export default function Desktop() {
-  const { launchApp } = useOS();
+  const { launchApp, wallpaper, setWallpaper } = useOS();
   const petMountRef = useRef(null);
   const surfaceRef = useRef(null);
   const dragRef = useRef(null);
@@ -270,7 +271,11 @@ export default function Desktop() {
           <button
             type="button"
             className={styles.contextItem}
-            onClick={fromMenu(() => setSystem({ appearance: sys.appearance === 'dark' ? 'light' : 'dark' }))}
+            onClick={fromMenu(() => {
+              const appearance = sys.appearance === 'dark' ? 'light' : 'dark';
+              setSystem({ appearance });
+              setWallpaper(wallpaperFor(wallpaper, appearance));
+            })}
           >
             <span className={styles.contextCheck}>{sys.appearance === 'dark' ? '✓' : ''}</span>
             <MenuGlyph name="moon" />

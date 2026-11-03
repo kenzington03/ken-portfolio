@@ -308,3 +308,53 @@
 .content::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ---------- Light appearance (Control Center) ---------- */
+:global(html[data-appearance='light']) .sidebar {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+:global(html[data-appearance='light']) .sidebarSection,
+:global(html[data-appearance='light']) .toolBtn:disabled {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+:global(html[data-appearance='light']) .sidebarDivider {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+:global(html[data-appearance='light']) .sidebarItem {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-appearance='light']) .sidebarItem:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+:global(html[data-appearance='light']) .sidebarItemActive {
+  background: rgba(0, 122, 255, 0.14);
+  color: #007aff;
+}
+
+:global(html[data-appearance='light']) .toolBtn,
+:global(html[data-appearance='light']) .sidebarIcon {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+:global(html[data-appearance='light']) .toolBtn:hover:not(:disabled),
+:global(html[data-appearance='light']) .toolBtnActive {
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-appearance='light']) .searchWrap {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+:global(html[data-appearance='light']) .search {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-appearance='light']) .content {
+  background: #fff;
+}

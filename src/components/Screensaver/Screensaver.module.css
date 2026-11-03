@@ -154,78 +154,19 @@
   color: rgb(18 18 20 / 0.4);
 }
 
-/* ---------- Latte vs Roast ----------
-   A coffee-brown room, the board in the middle with its title above and the
-   score below, as in a little arcade cabinet. */
-.brew {
-  background: linear-gradient(180deg, #7d6047 0%, #4a3324 55%, #2a1c14 100%);
+/* ---------- Tides: the board is the whole screen ---------- */
+.tidesRoom {
+  background: #16234a;
 }
 
-.coffee {
+.tides {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-}
-
-.brewFrame {
-  display: grid;
-  gap: 12px;
-  justify-items: stretch;
-}
-
-.brewTitle {
-  margin: 0;
-  padding: 11px 0 10px;
-  background: #f5ebd3;
-  color: #2d1a0c;
-  font: 800 15px/1 'Instrument Sans', -apple-system, sans-serif;
-  letter-spacing: 0.08em;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.brewBoard {
-  display: block;
-}
-
-.brewScore {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 4px 12px;
-}
-
-.brewLabel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  font: 800 12px/1 'Instrument Sans', -apple-system, sans-serif;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #f5ebd3;
-}
-
-.brewLabel i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.brewBar {
-  display: block;
-  height: 14px;
-  background: rgb(255 255 255 / 0.08);
-}
-
-.brewBar span {
-  display: block;
+  width: 100%;
   height: 100%;
-  transform-origin: left;
-  transition: transform 300ms linear;
+  display: block;
 }
 
-.brew .hint {
-  color: rgb(245 235 211 / 0.45);
+.tidesRoom .hint {
+  color: #e2562b;
 }

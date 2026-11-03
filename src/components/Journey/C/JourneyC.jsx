@@ -24,7 +24,6 @@ import MacRoom from '../MacRoom.jsx';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import MePanel from './MePanel.jsx';
-import MePanelY2K from './MePanelY2K.jsx';
 import MePanelFleur from './MePanelFleur.jsx';
 import Ball3D from './Ball3D.jsx';
 import ChromeLogo from './ChromeLogo.jsx';
@@ -33,7 +32,7 @@ import { PALETTES, paletteStyle, readPalette, savePalette } from './palette.js';
 import styles from './JourneyC.module.css';
 
 const EASE = [0.16, 1, 0.3, 1];
-// Section 2 in other looks, to compare: ?about=y2k or ?about=fleur.
+// Section 2 in another look, to compare: ?about=fleur.
 const ABOUT_LOOK = (() => {
   try {
     return new URLSearchParams(window.location.search).get('about');
@@ -1336,8 +1335,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const [loaded, setLoaded] = useState(() => closing || seenBefore());
   const [lines, setLines] = useState([false, false]);
   const [dark, setDark] = useState(closing);
-  // The Y2K About is night: the bar's links go light over it.
-  const [night, setNight] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [idle, setIdle] = useState(false);
   const deckRef = useRef(null);
@@ -1561,8 +1558,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     // About types itself as it arrives; back on the hero it resets, so the
     // next visit types again.
     const arrive = within(v, SPAN['hero>ab']);
-    const n = ABOUT_LOOK === 'y2k' && arrive > 0.5 && v < SPAN.tl[0];
-    setNight((cur) => (cur === n ? cur : n));
     if (arrive > 0.55) setLines((cur) => (cur[0] ? cur : [true, cur[1]]));
     else if (arrive <= 0) setLines((cur) => (cur[0] || cur[1] ? [false, false] : cur));
   });
@@ -2296,7 +2291,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       className={styles.journey}
       style={paletteStyle(palette)}
       data-dark={dark ? 'true' : undefined}
-      data-night={night ? 'true' : undefined}
       aria-label="Introduction"
     >
       <MacRoom
@@ -2401,9 +2395,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             </Panel>
 
             <Panel progress={progress} enter="hero>ab" enterAxis="y" exit={SHOT_CAM} exitAxis="y" reduced={reduced} className={`${styles.aboutPanel} ${wide ? styles.aboutWide : ''}`} aria-label="About">
-              {ABOUT_LOOK === 'y2k' ? (
-                <MePanelY2K progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} />
-              ) : ABOUT_LOOK === 'fleur' ? (
+              {ABOUT_LOOK === 'fleur' ? (
                 <MePanelFleur progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} onSeeWork={seeWork} />
               ) : (
                 <MePanel progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} wide={wide} />

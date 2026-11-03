@@ -155,3 +155,19 @@
   background: rgba(255, 255, 255, 0.22);
   align-self: center;
 }
+
+/* ---------- Light appearance (Control Center) ---------- */
+:global(html[data-appearance='light']) .dock {
+  background: rgba(255, 255, 255, 0.38);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+:global(html[data-appearance='light']) .label {
+  background: rgba(246, 246, 248, 0.86);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-appearance='light']) .running {
+  background: rgba(0, 0, 0, 0.6);
+}

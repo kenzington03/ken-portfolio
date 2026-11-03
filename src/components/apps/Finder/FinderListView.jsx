@@ -111,8 +111,10 @@ export default function FinderListView({ projects, selectedId, onSelect, onOpenP
             type="button"
             role="row"
             className={`${styles.row} ${selectedId === project.id ? styles.rowSelected : ''}`}
-            onClick={() => onSelect(project.id)}
-            onDoubleClick={(e) => onOpenProject(project, e)}
+            onClick={(e) => {
+              onSelect(project.id);
+              onOpenProject(project, e);
+            }}
           >
             <span className={`${styles.cell} ${styles.colName}`}>
               <span className={styles.iconWrap} data-animation-origin>

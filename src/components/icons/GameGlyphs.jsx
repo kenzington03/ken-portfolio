@@ -29,3 +29,14 @@ export const FlappyBirdGlyph = () => (
     <path d="M21 12.5L27 14L21 16.5Z" fill="#E8833A" />
   </svg>
 );
+
+export const BubbleGlyph = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <circle cx="8" cy="8" r="5.5" fill="#ff453a" />
+    <circle cx="20" cy="8" r="5.5" fill="#ffd60a" />
+    <circle cx="14" cy="17.5" r="5.5" fill="#0a84ff" />
+    <circle cx="6.5" cy="6.5" r="1.6" fill="#fff" opacity="0.7" />
+    <circle cx="18.5" cy="6.5" r="1.6" fill="#fff" opacity="0.7" />
+    <circle cx="12.5" cy="16" r="1.6" fill="#fff" opacity="0.7" />
+  </svg>
+);

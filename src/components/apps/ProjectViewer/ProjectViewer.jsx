@@ -12,15 +12,30 @@ import MilestoneProjectViewer from './MilestoneProjectViewer.jsx';
 import LebronProjectViewer from './LebronProjectViewer.jsx';
 import SectionedProjectViewer from './SectionedProjectViewer.jsx';
 import VideoProjectViewer from './VideoProjectViewer.jsx';
+import CaseStudy from './CaseStudy.jsx';
+import { getCaseStudy } from '../../../data/caseStudies.js';
 import styles from './ProjectViewer.module.css';
 
+/** A project: its case study down the left (where it has one), the work on
+ *  the right. */
 export default function ProjectViewer({ data }) {
   const project = data?.projectId ? getProjectById(data.projectId) : null;
 
   if (!project) {
     return <div className={styles.empty}>[ placeholder ]</div>;
   }
+  if (!getCaseStudy(project.folder)) return <Work project={project} />;
+  return (
+    <div className={styles.withCase}>
+      <CaseStudy project={project} />
+      <div className={styles.work}>
+        <Work project={project} />
+      </div>
+    </div>
+  );
+}
 
+function Work({ project }) {
   if (project.folder === '02-milestone') {
     return <MilestoneProjectViewer project={project} />;
   }

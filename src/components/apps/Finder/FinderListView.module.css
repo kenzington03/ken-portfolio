@@ -134,3 +134,29 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------- Light appearance (Control Center) ---------- */
+:global(html[data-appearance='light']) .headerRow {
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+:global(html[data-appearance='light']) .headerCell,
+:global(html[data-appearance='light']) .colTags,
+:global(html[data-appearance='light']) .colDate {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+:global(html[data-appearance='light']) .row {
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-appearance='light']) .row:nth-child(even) {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+:global(html[data-appearance='light']) .rowSelected {
+  background: #007aff;
+  color: #fff;
+}

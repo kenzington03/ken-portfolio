@@ -10,9 +10,9 @@ import { useMotionValueEvent } from 'framer-motion';
 import styles from './MePanel.module.css';
 
 // The statement, a line per array, broken where it reads aloud.
-export const STATEMENT = [['I', "don't", 'scroll', 'past', 'design.'], ['I', 'take', 'it', 'apart.']];
-// Under it, what he does, what he plays, and how he uses AI.
-export const ASIDE = 'I design for a living, play basketball to switch off and dabble in chess. AI makes me faster. The ideas stay mine.';
+export const STATEMENT = [['Nothing', 'in', 'good', 'design'], ['is', 'there', 'by', 'accident.']];
+// Under it, the question he asks of every design.
+export const ASIDE = "I'm the one asking why the button is blue. Usually there's a good answer. When there isn't, that's where I start.";
 // What he specialises in: each in a line, what it covers.
 export const PILLARS = [
   { name: 'Brands', line: 'Identities, logos and guidelines that hold up wherever the brand goes.' },
@@ -79,17 +79,6 @@ export function useWrite(rootRef, { progress, span, arrive, instant, total }) {
   };
   useMotionValueEvent(progress, 'change', write);
   useEffect(() => write(progress.get()));
-}
-
-/** Loads a stylesheet (a version's own fonts) while it is on the page. */
-export function useStylesheet(href) {
-  useEffect(() => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-    return () => link.remove();
-  }, [href]);
 }
 
 // The pointer over the statement: letters within REACH px of it swell from

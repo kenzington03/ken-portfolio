@@ -1,4 +1,4 @@
-import { PacManGlyph, TetrisGlyph } from '../components/icons/GameGlyphs.jsx';
+import { BubbleGlyph, PacManGlyph, TetrisGlyph } from '../components/icons/GameGlyphs.jsx';
 
 /** Cute flat-illustration cat face for Buddy, pointed ears, whiskers,
     closed happy eyes, same style family as About Ken's cat icon. */
@@ -59,6 +59,15 @@ export const FUN_ZONE_ITEMS = [
     nudge: true,
   },
   {
+    id: 'bubbleshooter',
+    label: 'Bubbles',
+    appId: 'bubbleshooter',
+    icon: <BubbleGlyph />,
+    bg: 'linear-gradient(135deg, #2c2c6e 0%, #12123a 100%)',
+    action: 'app',
+    nudge: true,
+  },
+  {
     id: 'pet',
     label: 'Buddy',
     icon: <CatGlyph />,
@@ -81,6 +90,7 @@ export const GAME_APP_IDS = new Set([
   'minesweeper',
   'tumbleblocks',
   'mazemuncher',
+  'bubbleshooter',
 ]);
 
 /** Portfolio icon shared by dock and right-sidebar desktop icon. */

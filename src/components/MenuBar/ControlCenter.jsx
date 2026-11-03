@@ -1,7 +1,7 @@
 // Control Center, from the menu bar: Wi-Fi, Bluetooth and AirDrop, Focus,
 // the display's brightness and light or dark, laid out like the Mac's own.
 // Brightness dims the whole screen; light or dark changes the windows, the
-// menus and (where the wallpaper has both) the wallpaper.
+// menus, Finder, the Dock and the wallpaper.
 
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -37,10 +37,11 @@ export function ControlCenterGlyph() {
   );
 }
 
-// Light and dark pairs among the wallpapers ("tahoe-light" and "tahoe-dark").
-function pairedWallpaper(id, appearance) {
+// The wallpaper for an appearance: the other half of a light and dark pair
+// ("tahoe-light" and "tahoe-dark"), or, for one with no pair, Tahoe's.
+export function wallpaperFor(id, appearance) {
   const m = /^(.*)-(light|dark)$/.exec(id || '');
-  return m ? `${m[1]}-${appearance}` : null;
+  return m ? `${m[1]}-${appearance}` : `tahoe-${appearance}`;
 }
 
 export default function ControlCenter({ open, onClose, anchorRef }) {
@@ -65,8 +66,8 @@ export default function ControlCenter({ open, onClose, anchorRef }) {
 
   const setAppearance = (appearance) => {
     setSystem({ appearance });
-    const next = pairedWallpaper(wallpaper, appearance);
-    if (next && next !== wallpaper) setWallpaper(next);
+    const next = wallpaperFor(wallpaper, appearance);
+    if (next !== wallpaper) setWallpaper(next);
   };
 
   const row = (key, label, onText, offText) => (

@@ -1,5 +1,4 @@
 import { ROLES, SKILLS } from '../../../data/about.js';
-import RecognitionCards from './RecognitionCards.jsx';
 import ContactCta from '../../shared/ContactCta.jsx';
 import styles from './About.module.css';
 
@@ -49,13 +48,6 @@ export default function About() {
           ))}
         </div>
 
-        <section className={styles.recognition}>
-          <h2 className={styles.sectionTitle}>Recognition</h2>
-          <p className={styles.recognitionIntro}>
-            Kudos and recognition from the teams I work with.
-          </p>
-          <RecognitionCards />
-        </section>
       </div>
       <ContactCta />
     </div>
