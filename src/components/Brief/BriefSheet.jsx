@@ -100,7 +100,7 @@ export function Brief({ headingId }) {
 
       <footer className={styles.foot}>
         <span>Hiring?</span>
-        <a href="/cv.pdf" target="_blank" rel="noreferrer">
+        <a href="/Kenneth-Nathanael-Resume.pdf" target="_blank" rel="noreferrer">
           Résumé
         </a>
         <a href={LINKEDIN} target="_blank" rel="noreferrer">

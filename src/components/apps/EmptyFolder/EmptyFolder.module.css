@@ -1,0 +1,17 @@
+.folder {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.icon {
+  width: 56px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.6;
+}

@@ -100,7 +100,7 @@ function ResumeContent() {
         <p className={styles.resumeIntro}>Kenneth Nathanael, Designer</p>
       </div>
       <a
-        href="/cv.pdf"
+        href="/Kenneth-Nathanael-Resume.pdf"
         download="Kenneth-Nathanael-Resume.pdf"
         className={styles.downloadBtn}
       >

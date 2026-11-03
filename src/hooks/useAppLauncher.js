@@ -14,6 +14,7 @@ import ChromeDino from '../components/apps/ChromeDino/ChromeDino.jsx';
 import TumbleBlocks from '../components/apps/TumbleBlocks/TumbleBlocks.jsx';
 import MazeMuncher from '../components/apps/MazeMuncher/MazeMuncher.jsx';
 import BubbleShooter from '../components/apps/BubbleShooter/BubbleShooter.jsx';
+import EmptyFolder from '../components/apps/EmptyFolder/EmptyFolder.jsx';
 import { getProjectById } from '../data/projects.js';
 import { RIGHT_DOCK_RESERVE, getCenteredWindowPosition } from '../utils/animationOrigin.js';
 
@@ -23,7 +24,7 @@ const APP_REGISTRY = {
   finder: { title: 'Portfolio', component: Finder, size: { width: 920, height: 580 }, roomy: true },
   terminal: { title: 'Terminal', component: Terminal, size: { width: 640, height: 420 } },
   minesweeper: { title: 'Minesweeper', component: Minesweeper, size: { width: 520, height: 580 } },
-  pdfviewer: { title: 'Resume', component: PDFViewer, size: { width: 680, height: 560 }, fill: true },
+  pdfviewer: { title: 'Resume', component: PDFViewer, size: { width: 680, height: 560 }, fill: { maxWidth: 900 } },
   projectviewer: { title: 'Project', component: ProjectViewer, size: { width: 920, height: 720 }, fill: true },
   trash: { title: 'Trash', component: Trash, size: { width: 520, height: 380 } },
   claude: { title: 'Ask about Ken', component: ClaudeFaq, size: { width: 720, height: 560 } },
@@ -31,6 +32,7 @@ const APP_REGISTRY = {
   chromedino: { title: 'New Tab', component: ChromeDino, size: { width: 680, height: 320 } },
   tumbleblocks: { title: 'Tetris', component: TumbleBlocks, size: { width: 460, height: 500 } },
   mazemuncher: { title: 'Pac-Man', component: MazeMuncher, size: { width: 420, height: 420 } },
+  folder: { title: 'untitled folder', component: EmptyFolder, size: { width: 560, height: 360 } },
   bubbleshooter: { title: 'Bubble Shooter', component: BubbleShooter, size: { width: 480, height: 640 } },
   systempreferences: {
     title: 'System Preferences',
@@ -54,11 +56,13 @@ function roomySize(fallback) {
 /** The resume and the projects open filling the screen, from under the menu
     bar to just above the Dock, still a window (it can be sized down). */
 const FILL_GAP = 12;
-function fillFrame() {
+function fillFrame({ maxWidth = Infinity } = {}) {
   const top = 24 + FILL_GAP;
+  // Full height; as wide as the screen, or (the resume) as wide as its page.
+  const width = Math.min(window.innerWidth - FILL_GAP * 2, maxWidth);
   return {
-    size: { width: window.innerWidth - FILL_GAP * 2, height: window.innerHeight - top - 104 },
-    position: { x: FILL_GAP, y: top },
+    size: { width, height: window.innerHeight - top - 104 },
+    position: { x: Math.round((window.innerWidth - width) / 2), y: top },
   };
 }
 
@@ -71,13 +75,14 @@ export function useAppLauncher(windowManager, achievements) {
       const config = APP_REGISTRY[appId];
       if (!config) return null;
 
-      const existing = windows.find((w) => w.appId === appId && !options.forceNew);
+      // (A window with its own title, like a new folder, is its own window.)
+      const existing = windows.find((w) => w.appId === appId && !options.forceNew && (!options.title || w.title === options.title));
       if (existing) {
         focusWindow(existing.id);
         return existing.id;
       }
 
-      let title = config.title;
+      let title = options.title ?? config.title;
       let data = options.data ?? null;
 
       if (appId === 'projectviewer' && options.projectId) {
@@ -89,7 +94,7 @@ export function useAppLauncher(windowManager, achievements) {
         }
       }
 
-      const fill = config.fill && !options.size && typeof window !== 'undefined' ? fillFrame() : null;
+      const fill = config.fill && !options.size && typeof window !== 'undefined' ? fillFrame(config.fill === true ? {} : config.fill) : null;
       const size = fill?.size ?? options.size ?? (config.roomy ? roomySize(config.size) : config.size);
       const id = openWindow({
         appId,

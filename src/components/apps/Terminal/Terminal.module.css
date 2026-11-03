@@ -1,80 +1,62 @@
+/* The Mac's Terminal, Basic profile in dark: SF Mono 12, the prompt and
+   input inline with the output, scrolling as one. */
 .terminal {
-  display: flex;
-  flex-direction: column;
   height: 100%;
   min-height: 280px;
-  background: #0d0d0d;
-  font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+  background: #1e1e1e;
+  font-family: 'SF Mono', Menlo, Monaco, monospace;
   font-size: 12px;
+  line-height: 1.45;
+  color: #e6e6e6;
+  cursor: text;
 }
 
 .output {
-  flex: 1;
-  padding: 12px;
+  height: 100%;
+  padding: 6px 8px 12px;
   overflow-y: auto;
-  color: #e5e5e5;
 }
 
 .line {
-  margin-bottom: 4px;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.prompt {
-  color: var(--accent);
-}
-
 .inputRow {
   display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-top: 1px solid var(--border);
-  background: #0a0a0a;
+  align-items: baseline;
+  margin: 0;
+}
+
+.in {
+  white-space: pre;
 }
 
 .input {
   flex: 1;
-  background: transparent;
+  min-width: 0;
+  padding: 0;
   border: none;
   outline: none;
-  color: #f5f5f5;
+  background: transparent;
+  color: inherit;
   font: inherit;
-  margin-left: 8px;
+  caret-color: #e6e6e6;
 }
 
-.error {
-  color: #f87171;
+.err {
+  color: #ff6b6b;
 }
 
-.success {
-  color: #4ade80;
+.ok {
+  color: #5fd35f;
 }
 
 .muted {
-  color: #888;
+  color: #8a8a8a;
 }
 
-.skill {
-  color: var(--accent);
-}
-
-.helpGrid {
-  display: grid;
-  grid-template-columns: minmax(120px, auto) 1fr;
-  column-gap: 16px;
-  row-gap: 8px;
-  margin-bottom: 8px;
-}
-
-.helpRow {
-  display: contents;
-}
-
-.helpCmd {
-  color: var(--accent);
-}
-
-.helpDesc {
-  color: #fff;
+.art {
+  color: #ffb05e;
+  line-height: 1.15;
 }

@@ -9,7 +9,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { getProjectBySlug } from '../../data/projects.js';
-import { BEHANCE, INSTAGRAM, LINKEDIN } from '../../data/links.js';
+import { INSTAGRAM, LINKEDIN } from '../../data/links.js';
 import { SERVICES } from '../../data/services.js';
 import { EMAIL, WHATSAPP } from '../Brief/briefData.js';
 import { Brief } from '../Brief/BriefSheet.jsx';
@@ -193,7 +193,7 @@ function Hero() {
         <a className={styles.cta} href={`mailto:${EMAIL}`}>
           Email
         </a>
-        <a className={styles.cta} href="/cv.pdf" target="_blank" rel="noreferrer">
+        <a className={styles.cta} href="/Kenneth-Nathanael-Resume.pdf" target="_blank" rel="noreferrer">
           Résumé
         </a>
       </nav>
@@ -292,9 +292,6 @@ function Footer() {
         </a>
         <a href={LINKEDIN} target="_blank" rel="noreferrer">
           LinkedIn
-        </a>
-        <a href={BEHANCE} target="_blank" rel="noreferrer">
-          Behance
         </a>
       </p>
       <p className={styles.footSmall}>Designed and built by Ken, in India.</p>

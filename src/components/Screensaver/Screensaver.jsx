@@ -308,7 +308,6 @@ function Particles({ reduced }) {
 // the colour the square underneath is not: as the border moves through the
 // clock, the clock changes colour with it.
 const TIDE = ['#f1ece2', '#16234a']; // paper, ink (the poster's navy)
-const TIDE_BALL = '#e2562b'; // the poster's orange, a ring round each ball
 const TILE = 28; // px a square
 const TIDE_R = 10;
 const TIDE_SPEED = 320; // px per second
@@ -428,15 +427,12 @@ function Tides({ reduced }) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.drawImage(flipped, 0, 0);
       ctx.restore();
-      // The balls: each in the colour it is fighting, ringed in orange.
+      // The balls: each in the colour of the side it is fighting.
       balls.forEach((b) => {
         ctx.fillStyle = TIDE[1 - b.team];
         ctx.beginPath();
         ctx.arc(b.x, b.y, TIDE_R, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = TIDE_BALL;
-        ctx.lineWidth = 2;
-        ctx.stroke();
       });
     };
     raf = requestAnimationFrame(step);

@@ -28,16 +28,6 @@ export default function Contact() {
         </a>
         <a
           className={styles.actionBtn}
-          href="https://behance.net/nathanaelkenneth"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Behance"
-        >
-          <span className={styles.actionIcon}>Be</span>
-          <span className={styles.actionLabel}>behance</span>
-        </a>
-        <a
-          className={styles.actionBtn}
           href="https://instagram.com/nathanaelkenneth"
           target="_blank"
           rel="noopener noreferrer"
@@ -65,15 +55,6 @@ export default function Contact() {
         >
           <span className={styles.infoLabel}>linkedin</span>
           <span className={styles.infoValue}>linkedin.com/in/kenneth-n-576134103</span>
-        </a>
-        <a
-          className={styles.infoRow}
-          href="https://behance.net/nathanaelkenneth"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span className={styles.infoLabel}>behance</span>
-          <span className={styles.infoValue}>behance.net/nathanaelkenneth</span>
         </a>
         <a
           className={styles.infoRow}

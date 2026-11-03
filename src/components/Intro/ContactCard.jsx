@@ -8,7 +8,6 @@ const PHONE_HREF = 'tel:+917204662258';
 
 const LINKS = [
   { label: 'LinkedIn', value: 'kenneth-n-576134103', href: 'https://linkedin.com/in/kenneth-n-576134103' },
-  { label: 'Behance', value: 'nathanaelkenneth', href: 'https://behance.net/nathanaelkenneth' },
   { label: 'Instagram', value: '@nathanaelkenneth', href: 'https://instagram.com/nathanaelkenneth' },
 ];
 

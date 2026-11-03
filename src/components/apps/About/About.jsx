@@ -21,13 +21,6 @@ export default function About() {
         </div>
         <div className={styles.links}>
           <a
-            href="https://behance.net/nathanaelkenneth"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Behance
-          </a>
-          <a
             href="https://linkedin.com/in/kenneth-n-576134103"
             target="_blank"
             rel="noopener noreferrer"

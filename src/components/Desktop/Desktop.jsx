@@ -171,7 +171,7 @@ export default function Desktop() {
       window.dispatchEvent(new CustomEvent('ken:brief'));
       return;
     }
-    launchApp(item.appId, { animationOrigin: getOriginFromEvent(event) });
+    launchApp(item.appId, { animationOrigin: getOriginFromEvent(event), title: item.appId === 'folder' ? item.label : undefined });
     setSelected(item.id);
   };
 
@@ -186,7 +186,7 @@ export default function Desktop() {
     const id = `folder-${Date.now()}`;
     const x = Math.max(0, contextMenu.x - (surface?.left ?? 0) - ICON_W / 2);
     const y = Math.max(0, contextMenu.y - (surface?.top ?? 0) - ICON_H / 3);
-    setFolders((f) => [...f, { id, label: n === 1 ? 'untitled folder' : `untitled folder ${n}`, appId: 'finder', src: '/assets/icons/desktop-folder.png' }]);
+    setFolders((f) => [...f, { id, label: n === 1 ? 'untitled folder' : `untitled folder ${n}`, appId: 'folder', src: '/assets/icons/desktop-folder.png' }]);
     setPositions((prev) => ({ ...prev, [id]: { x, y } }));
     setSelected(id);
   };

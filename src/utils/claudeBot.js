@@ -192,7 +192,7 @@ const ABOUT = {
   location: "India.",
   contact: "Email kennethnathanael@gmail.com or LinkedIn: linkedin.com/in/kenneth-n-576134103. Email is fastest.",
   resume: "Open Resume on the desktop, or the About app, for the full history.",
-  social: "Behance: behance.net/nathanaelkenneth. Instagram: @nathanaelkenneth.",
+  social: "Instagram: @nathanaelkenneth. The full portfolio is right here, on kennethnathanael.com.",
   interests: "Outside work: basketball (Lakers), chess, Rocket League, sneakers, and a Royal Enfield Classic 350.",
 };
 
@@ -241,7 +241,7 @@ export const CLAUDE_TOPICS = [
 ];
 
 const RULES = [
-  { keywords: ['behance', 'instagram', 'showcase', 'social'], response: ABOUT.social },
+  { keywords: ['instagram', 'showcase', 'social'], response: ABOUT.social },
   { keywords: ['resume', 'cv'], response: ABOUT.resume },
   { keywords: ['lebron', 'lakers', 'basketball', 'nba', 'chess', 'rocket league', 'fortnite', 'gaming', 'sneaker', 'motorcycle', 'enfield', 'hobby', 'hobbies', 'interests'], response: ABOUT.interests },
   {

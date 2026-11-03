@@ -1163,7 +1163,7 @@ const END_FROM = 0.84;
 // has landed and opened, and on the whole journey before it pulls back to the logo.
 const AUTO_REST = 1500;
 const AUTO_REST_NOW = 500; // a beat on Now before the ball becomes the logo
-const AUTO_REST_LOGO = 700; // a breath on the finished logo, then on to the Mac by itself
+const AUTO_REST_LOGO = 250; // a breath on the finished logo, then on to the Mac by itself
 // The Mac's drift: each line to the next, continuous, long enough to read.
 const DRIFT_MS = 3600;
 // Opening the Mac: the lid comes up over the words, the screen wakes, in.
@@ -1746,7 +1746,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       ];
       // Beat 2: the pull-back that shows the logo was on the closed Mac. It
       // rests there, waiting to be opened (beat 3: one scroll or a click).
-      if (runwayRef.current && !phone && use3DRef.current) list.push({ id: 'mac', y: runAt(REVEAL_END), ms: 3200 });
+      if (runwayRef.current && !phone && use3DRef.current) list.push({ id: 'mac', y: runAt(REVEAL_END), ms: 1900 });
       // Phones: the iPhone ending's own stops. The Mac has none: from the
       // closed laptop, one scroll (or a click) opens it and goes in.
       if (runwayRef.current && phone) PHONE_STOPS.forEach((t, i) => list.push({ id: `chapter${i}`, y: runAt(t), ms: 1300 }));

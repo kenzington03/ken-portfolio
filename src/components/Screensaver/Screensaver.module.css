@@ -167,6 +167,13 @@
   display: block;
 }
 
+/* The way out: big enough to read across the room, thin and quiet, and
+   always the opposite of what is under it. */
 .tidesRoom .hint {
-  color: #e2562b;
+  bottom: 40px;
+  font: 300 22px/1 -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  letter-spacing: 0.04em;
+  color: #fff;
+  mix-blend-mode: difference;
+  opacity: 0.75;
 }
