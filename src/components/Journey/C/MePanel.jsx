@@ -5,8 +5,7 @@
 // each word rising into place out of a blur, then the three in turn. Under
 // a fine pointer the letters thicken and lift as it passes over them.
 
-import { Fragment, useEffect, useMemo, useRef } from 'react';
-import { useMotionValueEvent } from 'framer-motion';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './MePanel.module.css';
 
 // The statement, a line per array, broken where it reads aloud.
@@ -43,14 +42,11 @@ export const COLLAGE = [
   { id: 'acdc', alt: 'AC/DC, event artwork', caption: 'AC/DC', cue: 'explain.', x: 66, y: 49, w: 33, r: -10, z: 4 },
 ];
 
-// Every word in order: each gets its turn as the scroll writes; then the
-// aside, then the three, a beat apart.
+// The statement's words in order (each pops up a hair after the last).
 const build = () => {
   let n = 0;
   const lines = STATEMENT.map((line) => line.map((w) => ({ w, i: n++ })));
-  const aside = n + 0.5;
-  const pillars = PILLARS.map((p, k) => ({ ...p, i: n + 1.5 + k * 1.2 }));
-  return { lines, aside, pillars, total: n + 1.5 + PILLARS.length * 1.2 };
+  return { lines, pillars: PILLARS };
 };
 
 /** A word set in letters (each letter's weight follows the pointer). */
@@ -62,24 +58,6 @@ function Letters({ text }) {
   ));
 }
 
-const clamp01 = (v) => Math.min(1, Math.max(0, v));
-const within = (v, a, b) => clamp01((v - a) / (b - a));
-
-/** The writing, from the scroll: --w (how many beats are written) and --e
- *  (how far the section still has to travel in) on `rootRef`, for `total`
- *  beats. Shared by every version of the section. */
-export function useWrite(rootRef, { progress, span, arrive, instant, total }) {
-  const write = (v) => {
-    const root = rootRef.current;
-    if (!root) return;
-    const t = instant ? 1 : within(v, span[0], span[1]);
-    const e = instant ? 1 : within(v, arrive[0], arrive[1]);
-    root.style.setProperty('--e', (1 - e).toFixed(4));
-    root.style.setProperty('--w', (t * (total + 2)).toFixed(3));
-  };
-  useMotionValueEvent(progress, 'change', write);
-  useEffect(() => write(progress.get()));
-}
 
 // The pointer over the statement: letters within REACH px of it swell from
 // the line's weight to the face's heaviest and lift a touch, and ease back as
@@ -157,44 +135,35 @@ function useLetterWeight(storyRef) {
   }, [storyRef]);
 }
 
+/** The beat About is on (0..6), told by the ball (JourneyC's Cast) as it
+ *  bounces on Videos' line: 1 the statement and that line, 2 the line
+ *  under it, 3 to 6 the four. */
+export const ABOUT_BEAT = 'ken:about-beat';
+const PILLAR_BEAT = (k) => 3 + k;
+
 /**
- * `progress` is the journey's scroll; `span` [a, b] is where the paragraph
- * writes itself; `arrive` [a, b] the whole crossing from the hero, for the
- * depth. `instant` shows it written.
+ * About: everything waits for the ball. `instant` shows it all at once.
  */
-export default function MePanel({ progress, span, arrive, instant, wide }) {
+export default function MePanel({ instant, wide }) {
   const rootRef = useRef(null);
   const storyRef = useRef(null);
-  const { lines, aside, pillars, total } = useMemo(build, []);
+  const { lines, pillars } = useMemo(build, []);
+  const [beat, setBeat] = useState(instant ? 6 : 0);
   useLetterWeight(storyRef);
-
-  const write = (v) => {
-    const root = rootRef.current;
-    if (!root) return;
-    const t = instant ? 1 : within(v, span[0], span[1]);
-    const e = instant ? 1 : within(v, arrive[0], arrive[1]);
-    root.style.setProperty('--e', (1 - e).toFixed(4));
-    // How many words are written (with a soft edge of two words).
-    const w = t * (total + 2);
-    root.style.setProperty('--w', w.toFixed(3));
-    // The four drop in on their turn, each on its own clock (a spring with
-    // follow-through, see .pillar[data-in]); back up the page, they reset.
-    let all = true;
-    root.querySelectorAll('[data-pillar]').forEach((li) => {
-      const on = w > Number(li.dataset.pillar);
-      if (on !== li.hasAttribute('data-in')) li.toggleAttribute('data-in', on);
-      all = all && on;
-    });
-    // All in: the ball may land (JourneyC's Cast waits for this).
-    if (all !== root.hasAttribute('data-pillars-in')) root.toggleAttribute('data-pillars-in', all);
-  };
-  useMotionValueEvent(progress, 'change', write);
-  useEffect(() => write(progress.get()));
+  useEffect(() => {
+    if (instant) {
+      setBeat(6);
+      return undefined;
+    }
+    const on = (e) => setBeat(e.detail);
+    window.addEventListener(ABOUT_BEAT, on);
+    return () => window.removeEventListener(ABOUT_BEAT, on);
+  }, [instant]);
 
   return (
-    <section ref={rootRef} className={`${styles.me} ${wide ? styles.wide : ''}`} aria-label="About Ken">
+    <section ref={rootRef} className={`${styles.me} ${wide ? styles.wide : ''}`} data-beat={beat} aria-label="About Ken">
       <div ref={storyRef} className={styles.story}>
-        <h2 className={styles.statement}>
+        <h2 className={`${styles.statement} ${beat >= 1 ? styles.in : ''}`}>
           <span className={styles.srOnly}>{STATEMENT.map((l) => l.join(' ')).join(' ')}</span>
           {lines.map((line, li) => (
             <span key={li} className={styles.line}>
@@ -209,7 +178,7 @@ export default function MePanel({ progress, span, arrive, instant, wide }) {
             </span>
           ))}
         </h2>
-        <p className={styles.aside} style={{ '--i': aside }}>
+        <p className={`${styles.aside} ${beat >= 2 ? styles.in : ''}`}>
           {ASIDE}
         </p>
       </div>
@@ -217,17 +186,18 @@ export default function MePanel({ progress, span, arrive, instant, wide }) {
       {/* What he specialises in. */}
       <ol className={styles.pillars} aria-label="What I specialise in">
         {pillars.map((p, k) => (
-          <li
-            key={p.name}
-            className={styles.pillar}
-            style={{ '--i': p.i }}
-            data-pillar={p.i}
-            // The ball lands on Videos.
-            data-ball-spot={p.name === 'Videos' ? '' : undefined}
-          >
-            <span className={styles.pillarNum}>{String(k + 1).padStart(2, '0')}</span>
-            <span className={styles.pillarName}>{p.name}</span>
-            <span className={styles.pillarLine}>{p.line}</span>
+          <li key={p.name} className={styles.pillar}>
+            {/* Its line: Videos' is there from the first bounce (the ball
+                lands on it); the others come with their words. */}
+            <span
+              className={`${styles.rule} ${beat >= (p.name === 'Videos' ? 1 : PILLAR_BEAT(k)) ? styles.in : ''}`}
+              data-ball-spot={p.name === 'Videos' ? '' : undefined}
+            />
+            <span className={`${styles.pillarBody} ${beat >= PILLAR_BEAT(k) ? styles.in : ''}`}>
+              <span className={styles.pillarNum}>{String(k + 1).padStart(2, '0')}</span>
+              <span className={styles.pillarName}>{p.name}</span>
+              <span className={styles.pillarLine}>{p.line}</span>
+            </span>
           </li>
         ))}
       </ol>

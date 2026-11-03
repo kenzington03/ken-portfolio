@@ -1,14 +1,11 @@
-/* Q2: who Ken is, in one sentence, big in the middle of the page. The ball rests at the
-   foot of the screen, right of the middle, where it stood in the hero.
-   Values written from scroll by MePanel:
-     --e   how far the section still has to travel in (1 .. 0), for depth
-     --w   how many words are written so far (each word has --i) */
+/* Q2: who Ken is, in one sentence, big. Everything waits for the ball:
+   it lands on Videos' line and each bounce brings the next piece (see
+   MePanel's beat: .in is set on a piece once its bounce has happened). */
 
 .me {
   --display: 'Big Shoulders', 'Cabinet Grotesk', system-ui, sans-serif;
   --text: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --gut: max(var(--gutter, 24px), 3.5vw);
-  --w: 999;
   position: absolute;
   inset: 0;
   color: var(--ink, #121214);
@@ -21,8 +18,6 @@
   left: var(--gut);
   right: var(--gut);
   top: clamp(96px, 14vh, 140px);
-  /* Comes up a little behind its panel, for depth (--e 1..0 as it arrives). */
-  translate: 0 calc(var(--e, 0) * 16vh);
 }
 
 .statement {
@@ -33,34 +28,70 @@
   letter-spacing: 0.005em;
 }
 
-/* One line each, never re-wrapped: the breaks are the point. Each line is
-   a mask the words rise out of. */
+/* One line each, never re-wrapped: the breaks are the point. */
 .line {
   display: block;
   white-space: nowrap;
 }
 
-/* A word rises into place as the writing reaches it (--w, set from the
-   scroll, so it plays back too), out of a blur. */
+/* With the first bounce the words spring up, a hair apart, overshoot and
+   settle, as if knocked up by the hit. */
 .word {
-  --k: clamp(0, calc(var(--w) - var(--i)), 1);
   display: inline-block;
-  opacity: var(--k);
-  filter: blur(calc((1 - var(--k)) * 6px));
-  transform: translate3d(0, calc((1 - var(--k)) * 0.5em), 0) rotate(calc((1 - var(--k)) * 4deg));
-  transform-origin: 0 100%;
+  opacity: 0;
+  transform-origin: 50% 100%;
 }
 
-/* Under it, smaller, what he plays and why. */
+.statement.in .word {
+  animation: wordUp 820ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  animation-delay: calc(var(--i) * 34ms);
+}
+
+@keyframes wordUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0.55em, 0) scale(0.92, 1.08);
+  }
+  35% {
+    opacity: 1;
+    transform: translate3d(0, -0.08em, 0) scale(1.03, 0.97);
+  }
+  60% {
+    transform: translate3d(0, 0.02em, 0) scale(0.995, 1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Under it, the second bounce. */
 .aside {
-  --k: clamp(0, calc(var(--w) - var(--i)), 1);
   max-width: 46ch;
   margin: clamp(18px, 3vh, 30px) 0 0;
   font: 500 clamp(15px, 1.25vw, 19px) / 1.4 var(--text);
   letter-spacing: -0.005em;
   color: color-mix(in srgb, var(--ink, #121214) 62%, transparent);
-  opacity: var(--k);
-  transform: translate3d(0, calc((1 - var(--k)) * 10px), 0);
+  opacity: 0;
+}
+
+.aside.in {
+  animation: lift 700ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+@keyframes lift {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, -2px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---------- What he specialises in ----------
@@ -78,35 +109,54 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  translate: 0 calc(var(--e, 0) * 9vh);
 }
 
 .pillar {
+  position: relative;
   display: grid;
   align-content: start;
-  gap: 8px;
   padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--ink, #121214) 16%, transparent);
-  opacity: 0;
-  transform-origin: 50% 0;
   /* The ball's hits on Videos (written by JourneyC's Cast). */
   translate: 0 calc(var(--hit, 0) * 1px);
 }
 
-/* Each drops in on its turn and lands like something with weight: a squash
-   as it hits, a bounce, a smaller one, settled. Its lines follow a beat
-   behind (follow-through), so it reads as one thing landing, not a block. */
-.pillar[data-in] {
+/* Its hairline: drawn out from the middle when its turn comes. */
+.rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--ink, #121214) 22%, transparent);
+  transform: scaleX(0);
+  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.rule.in {
+  transform: none;
+}
+
+.pillarBody {
+  display: grid;
+  gap: 8px;
+  opacity: 0;
+  transform-origin: 50% 0;
+}
+
+/* Each drops in on its bounce and lands like something with weight: a
+   squash as it hits, a bounce, a smaller one, settled. Its lines follow a
+   beat behind (follow-through). */
+.pillarBody.in {
   opacity: 1;
   animation: pillarDrop 1050ms both;
 }
 
-.pillar[data-in] .pillarName,
-.pillar[data-in] .pillarLine {
+.pillarBody.in .pillarName,
+.pillarBody.in .pillarLine {
   animation: pillarFollow 1050ms both;
 }
 
-.pillar[data-in] .pillarLine {
+.pillarBody.in .pillarLine {
   animation-delay: 50ms;
 }
 
@@ -207,10 +257,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pillar[data-in],
-  .pillar[data-in] .pillarName,
-  .pillar[data-in] .pillarLine {
+  .statement.in .word,
+  .aside.in,
+  .pillarBody.in,
+  .pillarBody.in .pillarName,
+  .pillarBody.in .pillarLine {
     animation: none;
+    opacity: 1;
   }
 
   .word {

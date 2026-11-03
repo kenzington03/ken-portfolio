@@ -13,6 +13,7 @@ import Spotlight from './components/Spotlight/Spotlight.jsx';
 import HelloScreen from './components/HelloScreen/HelloScreen.jsx';
 import JourneyBridge from './components/JourneyBridge/JourneyBridge.jsx';
 import IPhoneHome from './components/IPhoneHome/IPhoneHome.jsx';
+import HelloMac from './components/HelloMac/HelloMac.jsx';
 import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen.jsx';
 import ShutdownPrompt from './components/ShutdownPrompt/ShutdownPrompt.jsx';
 import BriefSheet from './components/Brief/BriefSheet.jsx';
@@ -121,6 +122,8 @@ function IntroFlow() {
   const [phase, setPhase] = useState('intro');
   const [introMode, setIntroMode] = useState('open');
   const [blackout, setBlackout] = useState(false);
+  // The Mac says hello once it has been opened (not on a skip straight in).
+  const [hello, setHello] = useState(false);
 
   // Only the intro scrolls the page; the OS is a fixed, full-viewport surface.
   useLayoutEffect(() => {
@@ -171,7 +174,15 @@ function IntroFlow() {
           <DesktopShell unlocked={phase === 'desktop'} onShutDown={shutDown} />
         </div>
       )}
-      {phase === 'welcome' && <WelcomeScreen onDone={() => setPhase('desktop')} />}
+      {phase === 'welcome' && (
+        <WelcomeScreen
+          onDone={() => {
+            setPhase('desktop');
+            setHello(true);
+          }}
+        />
+      )}
+      {hello && <HelloMac onDone={() => setHello(false)} />}
       <div className={`${styles.blackout} ${blackout ? styles.blackoutOn : ''}`} aria-hidden />
     </>
   );

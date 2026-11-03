@@ -217,8 +217,16 @@
 
 /* The hero carries its own set; About and the timeline are transparent so
    the grid shows through. */
-.heroPanel {
+.panel.heroPanel {
   z-index: 1;
+  background: transparent;
+}
+
+.dotField {
+  position: absolute;
+  inset: 0;
+  background: var(--stage);
+  pointer-events: none;
 }
 
 .panel[hidden] {
@@ -254,18 +262,9 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--stage);
-}
-
-/* Print grain over everything but the controls. */
-.grain {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: url('/assets/hero/art/grain.png') 0 0 / 256px 256px;
-  mix-blend-mode: multiply;
-  opacity: 0.5;
-  pointer-events: none;
+  /* The sheet under it (dots and paper) is the deck's DotField, shared with
+     About, so nothing changes underfoot as the hero rises away. */
+  background: transparent;
 }
 
 /* ---------- The canvas: the hero's set, a design tool's ----------
@@ -274,7 +273,6 @@
 .canvas {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgb(18 18 20 / 0.16) 1px, transparent 1.3px) 12px 12px / 24px 24px;
   transform: translate3d(calc(var(--px, 0) * -6px), calc(var(--py, 0) * -4px), 0);
   opacity: 0;
   transition: opacity 900ms ease 200ms;

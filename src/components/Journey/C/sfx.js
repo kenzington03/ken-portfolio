@@ -1,6 +1,6 @@
-// Two sounds on the intro: a real DSLR shutter (CC0, see
-// public/assets/sfx/CREDITS.txt), and the swish of the net (made here, from
-// noise). No score, no "enter with sound" gate.
+// Two sounds on the intro, both real recordings: a DSLR shutter (CC0, see
+// public/assets/sfx/CREDITS.txt) and the swish of the net. No score, no
+// "enter with sound" gate.
 // Browsers only let audio start from a user gesture, so the opening curtain
 // is silent on a cold visit; every click that takes a photo is not.
 
@@ -45,36 +45,39 @@ export async function playShutter({ level = 0.8, rate = 1 } = {}) {
   }
 }
 
-/** Nothing but net: a soft burst of noise swept down through a band, the
- *  sound of a ball dropping clean through the strings. */
-export async function playSwish({ level = 0.5 } = {}) {
+/** Nothing but net: a real recording of a ball dropping clean through the
+ *  strings (public/assets/sfx/swish.mp3, from Pixabay's free library). Until
+ *  that file is there, it stays quiet: no made-up stand-in. */
+const SWISH_URL = '/assets/sfx/swish.mp3';
+let swishBytes = null;
+let swishBuffer = null;
+export function preloadSwish() {
+  if (swishBytes || typeof fetch === 'undefined') return;
+  swishBytes = fetch(SWISH_URL)
+    .then((r) => (r.ok && /audio|mpeg|octet/.test(r.headers.get('content-type') || '') ? r.arrayBuffer() : null))
+    .catch(() => null);
+}
+
+export async function playSwish({ level = 0.7 } = {}) {
   try {
+    preloadSwish();
     if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     if (!ctx) ctx = new AC();
     if (ctx.state === 'suspended') await ctx.resume();
     if (ctx.state !== 'running') return;
-    const dur = 0.42;
-    const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
-    const data = noise.getChannelData(0);
-    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+    if (!swishBuffer) {
+      const ab = await swishBytes;
+      if (!ab) return;
+      swishBuffer = await ctx.decodeAudioData(ab.slice(0));
+    }
     const src = ctx.createBufferSource();
-    src.buffer = noise;
-    const band = ctx.createBiquadFilter();
-    band.type = 'bandpass';
-    band.Q.value = 1.1;
-    const t = ctx.currentTime;
-    band.frequency.setValueAtTime(5200, t);
-    band.frequency.exponentialRampToValueAtTime(1300, t + dur);
+    src.buffer = swishBuffer;
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(level, t + 0.05);
-    g.gain.exponentialRampToValueAtTime(level * 0.35, t + 0.16);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    src.connect(band).connect(g).connect(ctx.destination);
-    src.start(t);
-    src.stop(t + dur);
+    g.gain.value = level;
+    src.connect(g).connect(ctx.destination);
+    src.start();
   } catch {
     /* sound is a garnish; never let it break the page */
   }

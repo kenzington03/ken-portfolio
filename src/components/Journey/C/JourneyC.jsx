@@ -19,12 +19,12 @@ import BriefSheet from '../../Brief/BriefSheet.jsx';
 import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../Intro/shared.jsx';
 import { tintChapters } from '../../Intro3/timeline.js';
 import { SERVICES } from '../../../data/services.js';
-import { playSwish, preloadShutter } from './sfx.js';
+import { playSwish, preloadShutter, preloadSwish } from './sfx.js';
+import DotField, { addRipple } from './DotField.jsx';
 import MacRoom from '../MacRoom.jsx';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
-import MePanel from './MePanel.jsx';
-import MePanelFleur from './MePanelFleur.jsx';
+import MePanel, { ABOUT_BEAT } from './MePanel.jsx';
 import Ball3D from './Ball3D.jsx';
 import ChromeLogo from './ChromeLogo.jsx';
 import useClock from '../../../hooks/useClock.js';
@@ -32,14 +32,6 @@ import { PALETTES, paletteStyle, readPalette, savePalette } from './palette.js';
 import styles from './JourneyC.module.css';
 
 const EASE = [0.16, 1, 0.3, 1];
-// Section 2 in another look, to compare: ?about=fleur.
-const ABOUT_LOOK = (() => {
-  try {
-    return new URLSearchParams(window.location.search).get('about');
-  } catch {
-    return null;
-  }
-})();
 // Same file the 3D rig loads (kept as a literal so this chunk stays free of three.js).
 const MODEL_SRC = '/models/macbook-rigged.glb';
 
@@ -249,7 +241,6 @@ function Hero({ on }) {
       <h1 className={styles.srOnly}>
         Hi, I&apos;m Kenneth Nathanael. {DESCRIPTOR}
       </h1>
-      <span className={styles.grain} aria-hidden />
     </div>
   );
 }
@@ -305,9 +296,10 @@ function castLayout(phone) {
 
 const PUSH = 0.07;
 // The ball. In the hero it rolls out from behind his legs and comes to rest
-// just past his right shoe. Into About it leaves with the hero's page, then
-// drops in from above onto Videos once the four are in (spotDropAt); into
-// the career it is shot through a hoop onto the career's line (hoopShotAt).
+// just past his right shoe. Into About it is knocked up in one arc onto
+// Videos' line and bounces there, each bounce bringing the next piece
+// (kickAt, bounceAt); into the career it is shot through a hoop onto the
+// career's line (hoopShotAt).
 // BALL is its size in units of his height in the hero.
 // ROLL_K: how much it turns for the ground covered (a quarter of a true
 // roll, so it rolls without whirling).
@@ -319,94 +311,103 @@ const ROLL_K = 0.25;
 // The bounces on the line, after the shot into the career.
 const BOUNCES = 3;
 
-// Onto About's four: once they have all dropped in, the ball falls in from
-// above onto Videos' hairline and bounces to rest, each bounce `e` of the
-// last, squashing as it hits and stretching as it falls. In seconds (it
-// keeps its own clock, like the four).
-const SPOT_DROP = { wait: 0.3, fall: 0.62, e: 0.55, bounces: 4 };
-function spotDropAt(t, fallPx) {
-  if (t < 0) return { lift: fallPx, squash: 0, landed: false, hit: -1, since: 0 };
-  const T = SPOT_DROP.fall;
-  const g = (2 * fallPx) / (T * T);
-  if (t < T) {
-    const speed = g * t;
-    // Stretched along the fall, more the faster it goes.
-    return { lift: fallPx - (g * t * t) / 2, squash: -0.16 * smooth01(speed / (g * T)), landed: false, hit: -1, since: 0 };
-  }
-  let at = T;
-  let speed = g * T;
-  for (let n = 0; n <= SPOT_DROP.bounces; n += 1) {
-    const since = t - at;
-    // A squash where it hits, gone within a moment.
-    const squash = SPOT_DROP.e ** n * Math.max(0, 1 - since / 0.07);
-    speed *= SPOT_DROP.e;
-    const d = (2 * speed) / g;
-    if (n === SPOT_DROP.bounces || since < d) {
-      const lift = n === SPOT_DROP.bounces ? 0 : Math.max(0, speed * since - (g * since * since) / 2);
-      return { lift, squash, landed: true, hit: n, since };
+// Hero to About: as Ken and his name rise away, the ball is knocked up off
+// his floor in one arc (true gravity, `f` is time over the glide) and comes
+// down on Videos' line. There it bounces six times, each lower and quicker
+// (`e` of the last), on its own clock; each hit brings the next piece of
+// About (see MePanel's beat) and sends a ripple through the dots.
+const KICK = { apex: 0.12 }; // the arc's top, a share of vh
+const BOUNCE = { first: 0.62, e: 0.74, n: 6, h: 0.2 }; // s, of the last, hits, first height (share of vh)
+
+function kickAt(f, { x0, y0, x1, y1, vh }) {
+  const apexY = vh * KICK.apex;
+  const k1 = Math.sqrt(Math.max(1, y0 - apexY));
+  const k2 = Math.sqrt(Math.max(1, y1 - apexY));
+  const tUp = k1 / (k1 + k2);
+  const g = 2 * (k1 + k2) ** 2;
+  const y = y0 - g * tUp * f + (g * f * f) / 2;
+  return { x: x0 + (x1 - x0) * f, y, speed: Math.abs(g * (f - tUp)) / g };
+}
+
+/** On Videos' line, `t` s after it landed: its height, its squash (stretch
+ *  when < 0), and how many times it has hit (1 on landing, up to n). */
+function bounceAt(t, vh) {
+  const g = (8 * BOUNCE.h * vh) / BOUNCE.first ** 2;
+  let at = 0;
+  for (let k = 1; k <= BOUNCE.n; k += 1) {
+    const d = BOUNCE.first * BOUNCE.e ** (k - 1);
+    const s = t - at;
+    if (k === BOUNCE.n && s >= d) break;
+    if (s < d) {
+      const lift = (g * s * (d - s)) / 2;
+      const speed = Math.abs(g * (d / 2 - s));
+      const hit = BOUNCE.e ** (k - 1) * Math.max(0, 1 - s / 0.08);
+      // Stretched along the way it moves, more the faster.
+      const stretch = 0.14 * Math.min(1, speed / (g * BOUNCE.first * 0.5)) * BOUNCE.e ** (k - 1);
+      return { lift, squash: hit > 0.02 ? hit : -stretch, hits: k, since: s };
     }
     at += d;
   }
-  return { lift: 0, squash: 0, landed: true, hit: -1, since: 1 };
+  return { lift: 0, squash: 0, hits: BOUNCE.n, since: t - at };
 }
 
-// About to the career, as shares of its beat. The camera pans right (About
-// out to the left, the hoop in from the right) as the ball takes a long,
-// low shot from Videos, growing as it comes; it drops through the net
-// (a swish), the net lets it go, and the camera tilts down after it (the
-// hoop up and away, the timeline up from below) until it lands on the line
-// and bounces, turning to chrome. Each thing has the stage to itself.
+// About to the career, as shares of its beat. About fades; the hoop drops in
+// from above, swinging a little on its way to stillness; the ball takes one
+// true shot (constant gravity, constant size) up into it; nothing but net
+// (a swish); the net lets it go and the camera tilts down after it (the hoop
+// up and away, the timeline up from below) until it lands on the line and
+// bounces, turning to chrome. Each thing has the stage to itself.
 const HOOP_SHOT = {
-  launch: 0.04, // it leaves Videos
-  pan: [0, 0.3], // About out, the hoop in
-  rim: 0.36, // through the rim
-  netOut: 0.44, // out of the net's foot
-  tilt: [0.44, 0.7], // the hoop away, the timeline in
-  land: 0.72, // on the line
-  apex: 0.14, // the top of the arc, a share of vh (clear of the top bar)
-  rimY: 0.26, // the rim, a share of vh
-  grow: 1.35, // its size at the rim, times its size on Videos
-  e: 0.32, // each bounce on the line, of the last
+  out: [0, 0.14], // About fades
+  hoopIn: [0.06, 0.3], // the hoop drops in and settles
+  crouch: [0.18, 0.24], // the ball dips before it goes
+  launch: 0.24, // it leaves Videos
+  rim: 0.56, // through the rim
+  netOut: 0.62, // out of the net's foot
+  tilt: [0.62, 0.84], // the hoop away, the timeline in
+  land: 0.86, // on the line
+  apex: 0.12, // the top of the arc, a share of vh
+  rimY: 0.32, // the rim, a share of vh
+  e: 0.36, // each bounce on the line, of the last
 };
 const HOOP_STAGE = 0.3; // the hoop's size, a share of vh
 const NET_FOOT = 46 / 120; // the net's foot below the rim, a share of the hoop
 
-function hoopShotAt(b, { x0, y0, cx, vw, vh, yL }) {
+function hoopShotAt(b, { x0, y0, cx, vh, yL }) {
   const S = HOOP_SHOT;
   const rimY = vh * S.rimY;
   const apexY = vh * S.apex;
   const netY = rimY + vh * HOOP_STAGE * NET_FOOT;
-  const pan = smooth01(within(b, S.pan));
   const tilt = smooth01(within(b, S.tilt)) * vh;
   const T = S.rim - S.launch;
   const k1 = Math.sqrt(Math.max(1, y0 - apexY));
   const k2 = Math.sqrt(Math.max(1, rimY - apexY));
   const g = (2 * (k1 + k2) ** 2) / (T * T);
   const tUp = (T * k1) / (k1 + k2);
-  const base = { pan, tilt, rimT: S.rim, squash: 0, hits: 0, down: 0 };
-  if (b <= S.launch) return { ...base, x: x0 - pan * vw, y: y0, air: 0, grow: 0 };
+  const base = { rimT: S.rim, squash: 0, hits: 0, down: 0 };
+  if (b <= S.launch) {
+    // Gathering itself: a little squat, then up.
+    const c = within(b, S.crouch);
+    return { ...base, x: x0, y: y0, air: 0, squash: Math.sin(Math.PI * c) * 0.5 };
+  }
   if (b < S.rim) {
-    // In the world it flies a whole screen to the right; the camera pans
-    // with it, so on screen it comes down in the middle.
     const t = b - S.launch;
-    const xw = x0 + (cx + vw - x0) * (t / T);
-    return { ...base, x: xw - pan * vw, y: y0 - g * tUp * t + (g * t * t) / 2, air: t / T, grow: smooth01(t / T) };
+    return { ...base, x: x0 + (cx - x0) * (t / T), y: y0 - g * tUp * t + (g * t * t) / 2, air: t / T, squash: -0.1 * Math.max(0, 1 - t / 0.05) };
   }
   if (b < S.netOut) {
     // The net takes its speed: it sinks through to the net's foot.
-    return { ...base, x: cx, y: rimY + (netY - rimY) * outQuad(within(b, [S.rim, S.netOut])), air: 1, grow: 1 };
+    return { ...base, x: cx, y: rimY + (netY - rimY) * outQuad(within(b, [S.rim, S.netOut])), air: 1 };
   }
-  // Let go, it falls (the same gravity) while the camera tilts down after
-  // it, so on screen it comes down gently onto the line.
+  // Let go, it falls (one gravity) while the camera tilts down after it,
+  // so on screen it comes down gently onto the line.
   const T3 = S.land - S.netOut;
   const fall = yL + vh - netY; // the line is a screen below, in the world
   const g3 = (2 * fall) / (T3 * T3);
   const shrink = smooth01(within(b, [S.netOut, S.land]));
   if (b < S.land) {
     const t = b - S.netOut;
-    return { ...base, x: cx, y: netY + (g3 * t * t) / 2 - tilt, air: 1, grow: 1 - shrink, down: shrink };
+    return { ...base, x: cx, y: netY + (g3 * t * t) / 2 - tilt, air: 1, down: shrink };
   }
-  // On the line: each bounce leaves at `e` of the speed it came in with.
   let y = yL;
   let squash = 0;
   let hits = 0;
@@ -414,8 +415,8 @@ function hoopShotAt(b, { x0, y0, cx, vw, vh, yL }) {
   let speed = g3 * T3;
   let hit = 1;
   for (let n = 0; n <= BOUNCES; n += 1) {
-    if (b >= at) squash = Math.max(squash, hit * Math.max(0, 1 - (b - at) / 0.025));
-    if (n < BOUNCES) hits += smooth01(within(b, [at, at + 0.03]));
+    if (b >= at) squash = Math.max(squash, hit * Math.max(0, 1 - (b - at) / 0.02));
+    if (n < BOUNCES) hits += smooth01(within(b, [at, at + 0.025]));
     speed *= S.e;
     hit *= S.e;
     const d = (2 * speed) / g3;
@@ -423,7 +424,17 @@ function hoopShotAt(b, { x0, y0, cx, vw, vh, yL }) {
     if (n < BOUNCES && t >= 0 && t < d) y = yL - (speed * t - (g3 * t * t) / 2);
     at += d;
   }
-  return { ...base, x: cx, y, air: 1, grow: 0, down: 1, squash, hits };
+  return { ...base, x: cx, y, air: 1, down: 1, squash, hits };
+}
+
+/** Where the hoop hangs over the shot: dropped in from above on a short
+ *  cable, swinging to rest; up and away as the camera tilts. */
+function hoopAt(b, vh) {
+  const k = within(b, HOOP_SHOT.hoopIn);
+  const drop = (1 - outQuad(Math.min(1, k * 1.6))) * vh * 0.7;
+  const swing = 7 * Math.exp(-4 * k) * Math.sin(k * Math.PI * 3.2) * (k > 0 ? 1 : 0);
+  const tilt = smooth01(within(b, HOOP_SHOT.tilt)) * vh;
+  return { y: -drop - tilt, rot: swing, on: b > HOOP_SHOT.hoopIn[0] && b < HOOP_SHOT.tilt[1] };
 }
 
 // The net as the ball drops through it: it stretches down, then shivers back.
@@ -609,7 +620,7 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
   const startRef = useRef(null);
   // The ball's drop onto About's four (its own clock, started once they are
   // all in), where it rests (its spot), and the shot's progress last frame.
-  const dropRef = useRef({ start: null, spot: null, b: 0 });
+  const dropRef = useRef({ landAt: null, spot: null, b: 0, hits: 0 });
   useEffect(() => {
     if (go && startRef.current == null) startRef.current = performance.now();
   }, [go]);
@@ -718,62 +729,65 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
         let seams = 1;
         let squash = 0;
         let seen = t0 != null && enter > 0;
-        // About's spot for it: Videos' hairline (the collage look has none:
-        // there it is the floor, under About).
+        // About's spot for it: Videos' hairline.
         const st = dropRef.current;
         const b = a >= 1 ? within(v, SPAN['ab>tl']) : 0;
-        const spotEl = a > 0.5 ? document.querySelector('[data-ball-spot]') : null;
-        if (b <= 0) {
-          if (spotEl) {
-            const r = spotEl.getBoundingClientRect();
-            st.spot = { x: r.left + Math.min(r.width * 0.42, 150), y: r.top - heroD / 2 };
-          } else {
-            st.spot = { x: heroX, y: floorY };
-          }
+        const spotEl = document.querySelector('[data-ball-spot]');
+        if (b <= 0 && spotEl) {
+          const r = spotEl.getBoundingClientRect();
+          st.spot = { x: r.left + Math.min(r.width * 0.42, 150), y: r.top - heroD / 2 };
         }
         const spot = st.spot ?? { x: heroX, y: floorY };
-        if (a < 1) st.start = null;
-        if (a > 0 && a < 1 && !reduced) {
-          // Into About: it rides up and away with the hero's page.
-          y = floorY - a * vh;
-        }
-        if (a >= 1 && b <= 0) {
-          // About: once its four have dropped in, the ball falls in from
-          // above onto Videos and bounces to rest; Videos gives a little
-          // under each hit.
-          const ready = !spotEl || spotEl.closest('[data-pillars-in]');
-          if (!ready) st.start = null;
-          else if (st.start == null) st.start = now + (reduced || instant ? -1e5 : SPOT_DROP.wait * 1000);
-          const tt = st.start == null ? -1 : (now - st.start) / 1000;
-          const d = reduced ? { lift: 0, squash: 0, landed: true, hit: -1, since: 1 } : spotDropAt(tt, spot.y + heroD);
+        const f = within(v, KICK_SPAN);
+        // The beat About is on: how many times the ball has hit Videos.
+        let hits = 0;
+        if (f > 0 && f < 1 && !reduced) {
+          // Knocked up off his floor as he leaves, in one arc onto Videos.
+          const k = kickAt(f, { x0: heroX, y0: floorY, x1: spot.x, y1: spot.y, vh });
+          x = k.x;
+          y = k.y;
+          rz += f * 9;
+          squash = f < 0.05 ? -0.12 : -0.1 * Math.min(1, k.speed * 2);
+          st.landAt = null;
+        } else if (f >= 1 && b <= 0) {
+          if (st.landAt == null) st.landAt = now - (reduced || instant ? 1e5 : 0);
+          const bb = reduced ? { lift: 0, squash: 0, hits: BOUNCE.n, since: 1 } : bounceAt((now - st.landAt) / 1000, vh);
           x = spot.x;
-          y = spot.y - d.lift;
-          squash = d.squash;
-          seen = st.start != null && tt >= 0;
-          if (spotEl) {
-            const dip = d.hit >= 0 && d.since < 0.18 ? 7 * SPOT_DROP.e ** d.hit * Math.sin(Math.PI * (d.since / 0.18)) : 0;
-            put(spotEl, 'hit', '--hit', dip.toFixed(2));
-          }
+          y = spot.y - bb.lift;
+          squash = bb.squash;
+          hits = bb.hits;
+          rz += 9;
+          // Videos gives a little under each hit.
+          const li = spotEl?.closest('li');
+          if (li) put(li, 'hit', '--hit', (bb.since < 0.18 && bb.lift < 2 ? 6 * BOUNCE.e ** (bb.hits - 1) * Math.sin(Math.PI * (bb.since / 0.18)) : 0).toFixed(2));
+        } else if (b > 0) {
+          hits = BOUNCE.n;
+        }
+        if (f <= 0) st.landAt = null;
+        // Each new hit: the next piece of About, and a ripple through the dots.
+        if (hits !== st.hits) {
+          if (hits > st.hits && hits <= BOUNCE.n && b <= 0) addRipple(spot.x, spot.y + heroD / 2, 16 * BOUNCE.e ** (hits - 1));
+          st.hits = hits;
+          window.dispatchEvent(new CustomEvent(ABOUT_BEAT, { detail: hits }));
         }
         if (b > 0) {
-          // Into the career: the long shot, through the hoop, onto the line.
+          // Into the career: the shot, through the hoop, onto the line.
           const s = reduced
             ? b < 0.5
-              ? { x: spot.x, y: spot.y, air: 0, grow: 0, down: 0, squash: 0, hits: 0, rimT: 1 }
-              : { x: cx, y: cy, air: 1, grow: 0, down: 1, squash: 0, hits: BOUNCES, rimT: 1 }
-            : hoopShotAt(b, { x0: spot.x, y0: spot.y, cx, vw, vh, yL: cy });
+              ? { x: spot.x, y: spot.y, air: 0, down: 0, squash: 0, hits: 0, rimT: 1 }
+              : { x: cx, y: cy, air: 1, down: 1, squash: 0, hits: BOUNCES, rimT: 1 }
+            : hoopShotAt(b, { x0: spot.x, y0: spot.y, cx, vh, yL: cy });
           x = s.x;
           y = s.y;
           rimT = s.rimT;
-          // Bigger as it comes at the hoop, then the knob's size as it lands.
-          const bigD = heroD * (1 + (HOOP_SHOT.grow - 1) * s.grow);
-          size = bigD * (1 - s.down) + knobD * s.down;
+          // Its own size all the way up and in; the knob's as it lands.
+          size = heroD * (1 - s.down) + knobD * s.down;
           floor = 1 - smooth01(s.air * 4);
           // Orange to chrome, a step with every bounce.
           chrome = s.hits / BOUNCES;
           squash = s.squash;
           // Backspin on the way up and over.
-          rz += s.air * 7;
+          rz += 9 + s.air * 7;
         }
         // Nothing but net.
         if (!reduced && st.b < HOOP_SHOT.rim && b >= HOOP_SHOT.rim && b - st.b < 0.2) playSwish();
@@ -811,18 +825,17 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
       const hb = hoopBackRef.current;
       const hf = hoopFrontRef.current;
       if (hb && hf) {
-        // The hoop, on a stage of its own: in from the right as the camera
-        // pans, away over the top as it tilts down after the ball.
+        // The hoop, on a stage of its own, in the middle: it drops in from
+        // above and swings still, and goes up as the camera tilts down.
         const b2 = a >= 1 && !reduced ? within(v, SPAN['ab>tl']) : 0;
-        const k = b2 > 0 && b2 < HOOP_SHOT.tilt[1] ? 1 : 0;
+        const ho = hoopAt(b2, vh);
+        const k = ho.on ? 1 : 0;
         put(hb, 'hop', 'opacity', String(k));
         put(hf, 'hop2', 'opacity', String(k));
         if (k > 0) {
           // The rim (y 30 of the drawing's 120) on the shot's rim line.
           const hs = vh * HOOP_STAGE;
-          const pan = smooth01(within(b2, HOOP_SHOT.pan));
-          const tilt = smooth01(within(b2, HOOP_SHOT.tilt)) * vh;
-          const tf = `translate3d(${(vw / 2 + (1 - pan) * vw - hs / 2).toFixed(1)}px, ${(vh * HOOP_SHOT.rimY - hs * 0.25 - tilt).toFixed(1)}px, 0)`;
+          const tf = `translate3d(${(vw / 2 - hs / 2).toFixed(1)}px, ${(vh * HOOP_SHOT.rimY - hs * 0.25 + ho.y).toFixed(1)}px, 0) rotate(${ho.rot.toFixed(2)}deg)`;
           put(hb, 'htf', 'transform', tf);
           put(hf, 'htf2', 'transform', tf);
           put(hb, 'hsz', 'width', `${hs.toFixed(1)}px`);
@@ -1041,7 +1054,10 @@ const part = ([a, b], f0, f1) => [a + (b - a) * f0, a + (b - a) * f1];
 // Into the career: About pans out to the left as the hoop comes in; later
 // the camera tilts down, and the timeline comes up from below (see
 // hoopShotAt).
-const ABOUT_OUT = part(SPAN['ab>tl'], ...HOOP_SHOT.pan);
+const ABOUT_OUT = part(SPAN['ab>tl'], ...HOOP_SHOT.out);
+// The ball's arc from the hero onto Videos: the whole glide to About's stop.
+// (It lands a touch before the stop: a glide comes to rest a pixel short.)
+const KICK_SPAN = [SPAN['hero>ab'][0], part(SPAN.about, 0.86, 0.86)[0]];
 const TL_IN = part(SPAN['ab>tl'], ...HOOP_SHOT.tilt);
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
@@ -1084,9 +1100,9 @@ function Panel({ progress, enter, exit, enterAxis = 'x', exitAxis = 'x', reduced
   const tout = (v) => (exit ? smooth01(within(v, exitSpan)) : 0);
   const x = useTransform(progress, (v) => `${(enterAxis === 'x' ? (1 - tin(v)) * 100 : 0) - (exitAxis === 'x' ? tout(v) * 100 : 0)}%`);
   const y = useTransform(progress, (v) => `${(enterAxis === 'y' ? (1 - tin(v)) * 100 : 0) - (exitAxis === 'y' ? tout(v) * 100 : 0)}%`);
-  // Reduced motion: no travel, panels simply swap.
+  // Reduced motion: no travel, panels simply swap. A 'fade' exit fades.
   const opacity = useTransform(progress, (v) => {
-    if (!reduced) return 1;
+    if (!reduced) return exitAxis === 'fade' ? 1 - tout(v) : 1;
     const a = enter ? within(v, enterSpan) : 1;
     const b = exit ? within(v, exitSpan) : 0;
     return a > 0.5 && b <= 0.5 ? 1 : 0;
@@ -1100,7 +1116,7 @@ function Panel({ progress, enter, exit, enterAxis = 'x', exitAxis = 'x', reduced
     setOffstage((cur) => (cur === off ? cur : off));
   });
   return (
-    <motion.div className={`${styles.panel} ${className}`} style={reduced ? { opacity } : { x, y }} hidden={offstage} aria-hidden={offstage || undefined} {...rest}>
+    <motion.div className={`${styles.panel} ${className}`} style={reduced ? { opacity } : exitAxis === 'fade' ? { x, y, opacity } : { x, y }} hidden={offstage} aria-hidden={offstage || undefined} {...rest}>
       {children}
     </motion.div>
   );
@@ -1452,7 +1468,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const stickyRef = useRef(null);
   // Q2: the prints land and drop their inks over the second half of the
   // arrival, settled by the stop.
-  const meSpan = [SPAN['hero>ab'][0] + (SPAN['hero>ab'][1] - SPAN['hero>ab'][0]) * 0.4, SPAN.about[0] + (SPAN.about[1] - SPAN.about[0]) * 0.6];
   const gridSize = useTransform([tlProgress, timelineDrift], ([p]) => timelineGrid(tg, p).size);
   const gridPosition = useTransform([tlProgress, timelineDrift], ([p]) => timelineGrid(tg, p).position);
 
@@ -1479,8 +1494,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const DISSOLVE = [0.1, 0.24];
   const mid = (DISSOLVE[0] + DISSOLVE[1]) / 2;
   const paperOpacity = useTransform(nowT, (t) => 1 - smooth01(within(t, DISSOLVE)));
-  // The deck's grain takes over from the hero's own as the hero leaves.
-  const paperGrain = useTransform([progress, nowT], ([v, t]) => 0.5 * within(v, SPAN['hero>ab']) * (1 - within(t, DISSOLVE)));
+  const dotOpacity = useTransform(progress, (v) => 1 - smooth01(within(v, TL_IN)));
+  // One grain over the whole sheet, hero and About alike (until the Mac).
+  const paperGrain = useTransform(nowT, (t) => 0.5 * (1 - within(t, DISSOLVE)));
   // At Now the timeline fades where it is (it does not wind back: after
   // rolling forward all career, a line sliding backward reads as a glitch);
   // the ball, still on its spot, is all that is left.
@@ -1642,6 +1658,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
 
   useEffect(() => {
     preloadShutter();
+    preloadSwish();
     const timers = timersRef.current;
     return () => {
       cancelRef.current?.();
@@ -1731,7 +1748,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         { id: 'hero', y: deckAt(0) },
         // About sits at the end of its beat, so each move between hero,
         // About and the timeline is all crossing, no dead scroll.
-        { id: 'about', y: spanAt(SPAN.about, 0.9), ms: 2700, curve: linear },
+        { id: 'about', y: spanAt(SPAN.about, 0.9), ms: 1900, curve: linear },
         // The shot into the career: the page comes up, the ball drops
         // through the net onto the line. Linear, so the ball keeps true time
         // (the panels ease their own moves).
@@ -2441,9 +2458,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         <div ref={deckRef} className={styles.deck} style={{ height: `${TOTAL + 100}vh` }}>
           <div ref={stickyRef} className={styles.deckSticky}>
             <motion.div className={styles.paperBg} style={{ opacity: paperOpacity }} aria-hidden />
-            {/* The hero's print grain, carried on in the paper under About and
-                the timeline, so the whole story is one printed sheet. */}
-            <motion.span className={styles.paperGrain} style={{ opacity: paperGrain }} aria-hidden />
             <motion.div className={`${styles.grid} ${lines[0] || aboutInstant ? styles.gridOn : ''}`} style={{ opacity: gridOpacity }} aria-hidden>
               <motion.div
                 className={styles.gridLines}
@@ -2451,18 +2465,23 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
               />
             </motion.div>
 
-            {/* The page moves down, section to section: each one rises away
-                over the top as the next comes up from below. */}
+            {/* The sheet the hero and About share: the canvas's dots, rippling
+                where the ball hits. It gives way to the timeline's grid as the
+                camera tilts down into the career. */}
+            <DotField className={styles.dotField} opacity={dotOpacity} />
+            {/* The hero's print grain, carried on in the paper under About and
+                the timeline, so the whole story is one printed sheet. */}
+            <motion.span className={styles.paperGrain} style={{ opacity: paperGrain }} aria-hidden />
+
+            {/* The hero rises away over the top; About is already there under it. */}
             <Panel progress={progress} exit="hero>ab" exitAxis="y" reduced={reduced} className={styles.heroPanel} aria-label="Ken">
               <Hero on={loaded || closing} />
             </Panel>
 
-            <Panel progress={progress} enter="hero>ab" enterAxis="y" exit={ABOUT_OUT} exitAxis="x" reduced={reduced} className={`${styles.aboutPanel} ${wide ? styles.aboutWide : ''}`} aria-label="About">
-              {ABOUT_LOOK === 'fleur' ? (
-                <MePanelFleur progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} onSeeWork={seeWork} />
-              ) : (
-                <MePanel progress={progress} span={meSpan} arrive={SPAN['hero>ab']} instant={aboutInstant} wide={wide} />
-              )}
+            {/* About does not move: it is on the same sheet as the hero, and
+                waits for the ball (each of its bounces brings a piece). */}
+            <Panel progress={progress} exit={ABOUT_OUT} exitAxis="fade" reduced={reduced} className={`${styles.aboutPanel} ${wide ? styles.aboutWide : ''}`} aria-label="About">
+              <MePanel instant={aboutInstant} wide={wide} />
             </Panel>
 
             {/* It comes up under the ball's shot, settled before the ball lands. */}
