@@ -9,9 +9,10 @@ const DISPLAY = "'Big Shoulders', 'Cabinet Grotesk', sans-serif";
 // The screensaver (Ken's pick): Tides, full screen, with the time. Two others
 // can still be tried with ?saver=print or ?saver=particles (remembered on
 // that browser); ?saver=tides goes back; ?saver-now shows it at once.
-//   tides      two colours fight over the whole screen, square by square,
+//   tides      two soft colours fight over the whole screen, tile by tile,
 //              under a huge clock whose figures are always the colour the
-//              squares beneath them are not.
+//              tiles beneath them are not; power-ups, a slow build, a
+//              climax, and round again.
 //   print      the bouncing logo, as a print run: Ken's name bounces and
 //              leaves an ink stamp, two inks a hair off, at every wall it
 //              hits, so a poster builds up behind it as it goes. Landing in
@@ -302,15 +303,32 @@ function Particles({ reduced }) {
 /* Tides                                                               */
 /* ------------------------------------------------------------------ */
 
-// Two colours fight over the whole screen, square by square: each ball turns
-// the other side's squares to its own as it bounces into them, so the border
-// keeps moving. The time sits over it, huge, each square of its figures in
-// the colour the square underneath is not: as the border moves through the
-// clock, the clock changes colour with it.
-const TIDE = ['#f1ece2', '#16234a']; // paper, ink (the poster's navy)
-const TILE = 28; // px a square
-const TIDE_R = 10;
-const TIDE_SPEED = 320; // px per second
+// Two soft colours fight over the whole screen, tile by tile: each ball
+// turns the other side's tiles to its own as it bounces into them. The tiles
+// are lit like a relief (a gradient across the screen, a highlight and a
+// shadow on each) under a film of grain. The time sits over it, huge, its
+// figures always the colour beneath them is not.
+//
+// It builds: the balls quicken as the round goes on, and power-ups drift in
+// (faster, more often): a bolt (that side's balls speed up), a spark (that
+// side gets another ball), a ring (a burst that turns a patch over). When
+// one side has nearly all of it, or the round has run long, it ends: the
+// light swells to white, the board resets, and it begins again.
+const SIDE = [
+  { top: '#efe9df', bottom: '#d9cfbf' }, // warm paper
+  { top: '#3a4766', bottom: '#222b42' }, // dusk navy
+];
+const TILE = 30; // px a square
+const TIDE_R = 9;
+const BASE_SPEED = 260; // px per second, at the start of a round
+const ROUND_S = 150; // a round's length, s
+const POWERS = ['bolt', 'spark', 'ring'];
+
+const mixHex = (a, b, t) => {
+  const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [x, y] = [p(a), p(b)];
+  return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`;
+};
 
 function Tides({ reduced }) {
   const canvasRef = useRef(null);
@@ -321,33 +339,84 @@ function Tides({ reduced }) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const W = window.innerWidth;
     const H = window.innerHeight;
+    const make = () => {
+      const c = document.createElement('canvas');
+      c.width = Math.round(W * dpr);
+      c.height = Math.round(H * dpr);
+      const x = c.getContext('2d');
+      x.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return [c, x];
+    };
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const cols = Math.ceil(W / TILE);
     const rows = Math.ceil(H / TILE);
-    // 0 paper, 1 ink: paper on the left, ink on the right.
+
+    // Two sheets of tiles, one per side, lit; the board and its negative
+    // are assembled from them tile by tile as tiles flip.
+    const sheets = SIDE.map((side, k) => {
+      const [c, x] = make();
+      for (let r = 0; r < rows; r += 1) {
+        for (let q = 0; q < cols; q += 1) {
+          const tx = q * TILE;
+          const ty = r * TILE;
+          x.fillStyle = mixHex(side.top, side.bottom, (r / rows) * 0.8 + (q / cols) * 0.2);
+          x.fillRect(tx, ty, TILE, TILE);
+          x.fillStyle = k ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.5)';
+          x.fillRect(tx, ty, TILE, 1.5);
+          x.fillRect(tx, ty, 1.5, TILE);
+          x.fillStyle = k ? 'rgba(0,0,0,0.28)' : 'rgba(80,60,40,0.12)';
+          x.fillRect(tx, ty + TILE - 1.5, TILE, 1.5);
+          x.fillRect(tx + TILE - 1.5, ty, 1.5, TILE);
+        }
+      }
+      return c;
+    });
+    const [board, bx] = make();
+    const [neg, nx] = make();
     const grid = new Uint8Array(cols * rows);
-    for (let r = 0; r < rows; r += 1) for (let c = 0; c < cols; c += 1) grid[r * cols + c] = c < cols / 2 ? 0 : 1;
-    const angle = () => (Math.random() * 0.5 + 0.25) * (Math.random() < 0.5 ? 1 : -1);
-    const balls = [
-      { team: 0, x: W * 0.25, y: H * 0.5, a: Math.PI * 0.25 + angle() },
-      { team: 1, x: W * 0.75, y: H * 0.5, a: Math.PI * 1.25 + angle() },
-    ].map((b) => ({ ...b, vx: Math.cos(b.a) * TIDE_SPEED, vy: Math.sin(b.a) * TIDE_SPEED }));
-    const flip = (c, r, team) => {
-      if (c < 0 || r < 0 || c >= cols || r >= rows) return false;
-      const i = r * cols + c;
+    const paint = (q, r) => {
+      const v = grid[r * cols + q];
+      const sx = q * TILE * dpr;
+      const sy = r * TILE * dpr;
+      const sw = TILE * dpr;
+      bx.setTransform(1, 0, 0, 1, 0, 0);
+      nx.setTransform(1, 0, 0, 1, 0, 0);
+      bx.drawImage(sheets[v], sx, sy, sw, sw, sx, sy, sw, sw);
+      nx.drawImage(sheets[1 - v], sx, sy, sw, sw, sx, sy, sw, sw);
+    };
+
+    let balls = [];
+    let powers = [];
+    let round = 0;
+    let nextPower = 0;
+    let ending = 0; // the white swell at the end of a round, 0 .. 1
+    const newBall = (team, x, y) => {
+      const a = (Math.random() * 0.5 + 0.25) * (Math.random() < 0.5 ? 1 : -1) + (team ? Math.PI * 1.25 : Math.PI * 0.25);
+      return { team, x, y, a, boost: 0, trail: [] };
+    };
+    const reset = () => {
+      for (let r = 0; r < rows; r += 1) for (let q = 0; q < cols; q += 1) grid[r * cols + q] = q < cols / 2 ? 0 : 1;
+      for (let r = 0; r < rows; r += 1) for (let q = 0; q < cols; q += 1) paint(q, r);
+      balls = [newBall(0, W * 0.25, H * 0.5), newBall(1, W * 0.75, H * 0.5)];
+      powers = [];
+      round = 0;
+      nextPower = 9;
+      ending = 0;
+    };
+    reset();
+    const flip = (q, r, team) => {
+      if (q < 0 || r < 0 || q >= cols || r >= rows) return false;
+      const i = r * cols + q;
       if (grid[i] === team) return false;
       grid[i] = team;
+      paint(q, r);
       return true;
     };
 
-    // The clock's figures, as a mask the size of the screen (redrawn when
-    // the minute changes).
-    const mask = document.createElement('canvas');
-    mask.width = canvas.width;
-    mask.height = canvas.height;
-    const mctx = mask.getContext('2d');
+    // The clock, as a mask (redrawn when the minute changes).
+    const [mask, mx] = make();
     let shown = '';
     const drawMask = () => {
       const now = new Date();
@@ -355,23 +424,16 @@ function Tides({ reduced }) {
       const day = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
       if (time + day === shown) return;
       shown = time + day;
-      mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      mctx.clearRect(0, 0, W, H);
-      mctx.fillStyle = '#000';
-      mctx.textAlign = 'center';
-      mctx.textBaseline = 'alphabetic';
-      const size = Math.min(W * 0.34, H * 0.46);
-      mctx.font = `800 ${size}px ${DISPLAY}`;
-      mctx.fillText(time, W / 2, H / 2 + size * 0.34);
-      mctx.font = `700 ${Math.max(16, size * 0.1)}px ${DISPLAY}`;
-      mctx.fillText(day.toUpperCase(), W / 2, H / 2 + size * 0.34 + Math.max(28, size * 0.2));
+      mx.clearRect(0, 0, W, H);
+      mx.fillStyle = '#000';
+      mx.textAlign = 'center';
+      const size = Math.min(W * 0.32, H * 0.44);
+      mx.font = `800 ${size}px ${DISPLAY}`;
+      mx.fillText(time, W / 2, H / 2 + size * 0.34);
+      mx.font = `700 ${Math.max(16, size * 0.09)}px ${DISPLAY}`;
+      mx.fillText(day.toUpperCase(), W / 2, H / 2 + size * 0.34 + Math.max(28, size * 0.2));
     };
-    // The same board in the other colours, to cut the figures out of.
-    const flipped = document.createElement('canvas');
-    flipped.width = canvas.width;
-    flipped.height = canvas.height;
-    const fctx = flipped.getContext('2d');
-    fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const [clock, cx] = make();
 
     let raf = 0;
     let last = performance.now();
@@ -379,61 +441,124 @@ function Tides({ reduced }) {
       raf = requestAnimationFrame(step);
       const dt = reduced ? 0 : Math.min(0.03, (now - last) / 1000);
       last = now;
+      round += dt;
+      // The round builds: faster as it goes.
+      const pace = 1 + Math.min(1.3, round / ROUND_S);
+      // Power-ups drift in, more often as it goes.
+      nextPower -= dt;
+      if (nextPower <= 0 && powers.length < 3) {
+        powers.push({ kind: POWERS[Math.floor(Math.random() * POWERS.length)], x: TILE * 3 + Math.random() * (W - TILE * 6), y: TILE * 3 + Math.random() * (H - TILE * 6), t: 0 });
+        nextPower = Math.max(3, 11 - round / 18);
+      }
       balls.forEach((b) => {
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
+        const sp = BASE_SPEED * pace * (b.boost > 0 ? 1.7 : 1);
+        b.boost -= dt;
+        b.x += Math.cos(b.a) * sp * dt;
+        b.y += Math.sin(b.a) * sp * dt;
         if (b.x < TIDE_R || b.x > W - TIDE_R) {
-          b.vx = -b.vx;
+          b.a = Math.PI - b.a;
           b.x = Math.max(TIDE_R, Math.min(W - TIDE_R, b.x));
         }
         if (b.y < TIDE_R || b.y > H - TIDE_R) {
-          b.vy = -b.vy;
+          b.a = -b.a;
           b.y = Math.max(TIDE_R, Math.min(H - TIDE_R, b.y));
         }
-        // The other side's squares: turn the first one it touches, bounce off.
         for (let k = 0; k < 8; k += 1) {
           const t = (k / 8) * Math.PI * 2;
           if (flip(Math.floor((b.x + Math.cos(t) * TIDE_R) / TILE), Math.floor((b.y + Math.sin(t) * TIDE_R) / TILE), b.team)) {
-            if (Math.abs(Math.cos(t)) > Math.abs(Math.sin(t))) b.vx = -b.vx;
-            else b.vy = -b.vy;
+            if (Math.abs(Math.cos(t)) > Math.abs(Math.sin(t))) b.a = Math.PI - b.a;
+            else b.a = -b.a;
             break;
           }
         }
-        // A touch of drift, so it never settles into a loop.
-        const sp = Math.hypot(b.vx, b.vy);
-        const a = Math.atan2(b.vy, b.vx) + (Math.random() - 0.5) * 0.02;
-        b.vx = Math.cos(a) * sp;
-        b.vy = Math.sin(a) * sp;
+        b.a += (Math.random() - 0.5) * 0.02;
+        b.trail.unshift([b.x, b.y]);
+        b.trail.length = Math.min(b.trail.length, 10);
+        // Power-ups: the ball that reaches one takes it.
+        powers = powers.filter((p) => {
+          if (Math.hypot(p.x - b.x, p.y - b.y) > 22) return true;
+          if (p.kind === 'bolt') balls.filter((o) => o.team === b.team).forEach((o) => (o.boost = 6));
+          if (p.kind === 'spark' && balls.length < 10) balls.push(newBall(b.team, b.x, b.y));
+          if (p.kind === 'ring') {
+            const q0 = Math.floor(p.x / TILE);
+            const r0 = Math.floor(p.y / TILE);
+            for (let dr = -3; dr <= 3; dr += 1) for (let dq = -3; dq <= 3; dq += 1) if (dr * dr + dq * dq <= 10) flip(q0 + dq, r0 + dr, b.team);
+          }
+          return false;
+        });
       });
-
-      // The board, and the same board the other way round.
-      for (let r = 0; r < rows; r += 1) {
-        for (let c = 0; c < cols; c += 1) {
-          const v = grid[r * cols + c];
-          ctx.fillStyle = TIDE[v];
-          ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
-          fctx.fillStyle = TIDE[1 - v];
-          fctx.fillRect(c * TILE, r * TILE, TILE, TILE);
-        }
+      powers.forEach((p) => (p.t += dt));
+      // The end of a round: one side has nearly all of it, or it has run long.
+      let mine = 0;
+      for (let i = 0; i < grid.length; i += 1) mine += grid[i];
+      const share = mine / grid.length;
+      if (!ending && (share < 0.12 || share > 0.88 || round > ROUND_S + 30)) ending = 0.0001;
+      if (ending) {
+        ending += dt / 2.6;
+        if (ending >= 1) reset();
       }
-      // The clock: the other-way-round board, seen through the figures.
-      drawMask();
-      fctx.save();
-      fctx.setTransform(1, 0, 0, 1, 0, 0);
-      fctx.globalCompositeOperation = 'destination-in';
-      fctx.drawImage(mask, 0, 0);
-      fctx.restore();
-      ctx.save();
+
+      // The board, then the clock cut from its negative.
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(flipped, 0, 0);
-      ctx.restore();
-      // The balls: each in the colour of the side it is fighting.
+      // A slow push in over the round: cinematic, barely felt.
+      const zoom = 1 + Math.min(1, round / ROUND_S) * 0.04;
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(zoom, zoom);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      ctx.drawImage(board, 0, 0);
+      drawMask();
+      cx.setTransform(1, 0, 0, 1, 0, 0);
+      cx.clearRect(0, 0, clock.width, clock.height);
+      cx.drawImage(neg, 0, 0);
+      cx.globalCompositeOperation = 'destination-in';
+      cx.drawImage(mask, 0, 0);
+      cx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(clock, 0, 0);
+      ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, (canvas.width * (1 - zoom)) / 2, (canvas.height * (1 - zoom)) / 2);
+      // Power-ups: a soft ring and a mark, breathing.
+      powers.forEach((p) => {
+        const pulse = 1 + Math.sin(p.t * 4) * 0.12;
+        ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 12 * pulse, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = '600 13px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.kind === 'bolt' ? '⚡' : p.kind === 'spark' ? '✦' : '◎', p.x, p.y + 0.5);
+      });
+      // The balls: soft spheres in the other side's colours, with a trail.
       balls.forEach((b) => {
-        ctx.fillStyle = TIDE[1 - b.team];
+        const col = SIDE[1 - b.team];
+        b.trail.forEach(([x, y], i) => {
+          ctx.globalAlpha = (1 - i / b.trail.length) * (b.boost > 0 ? 0.35 : 0.18);
+          ctx.fillStyle = col.top;
+          ctx.beginPath();
+          ctx.arc(x, y, TIDE_R * (1 - i / 14), 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        const g = ctx.createRadialGradient(b.x - 3, b.y - 3, 1, b.x, b.y, TIDE_R);
+        g.addColorStop(0, col.top);
+        g.addColorStop(1, col.bottom);
+        ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(b.x, b.y, TIDE_R, 0, Math.PI * 2);
         ctx.fill();
       });
+      // The vignette, and at the end of a round, the swell of light.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
+      v.addColorStop(0, 'rgba(0,0,0,0)');
+      v.addColorStop(1, `rgba(10,12,20,${0.28 + Math.min(1, round / ROUND_S) * 0.14})`);
+      ctx.fillStyle = v;
+      ctx.fillRect(0, 0, W, H);
+      if (ending) {
+        ctx.fillStyle = `rgba(250,248,242,${Math.sin(Math.PI * Math.min(1, ending)) * 0.96})`;
+        ctx.fillRect(0, 0, W, H);
+      }
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);

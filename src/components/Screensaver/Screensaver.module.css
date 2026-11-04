@@ -156,7 +156,18 @@
 
 /* ---------- Tides: the board is the whole screen ---------- */
 .tidesRoom {
-  background: #16234a;
+  background: #222b42;
+}
+
+/* A film of grain over it, like the illustration's paper. */
+.tidesRoom::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/hero/art/grain.png') 0 0 / 256px 256px;
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .tides {
