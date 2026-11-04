@@ -28,7 +28,7 @@
 // a mouse and, up high, watches a butterfly and swats at it.
 
 const G = 2400; // gravity, px/s²
-const S = 1.25; // his scale: the rig is in units of 1px at S = 1
+const S = 1.2; // his scale: the rig is in units of 1px at S = 1
 const WALK = 58; // px/s
 const RUN = 280;
 const ZOOM = 520;
@@ -36,13 +36,15 @@ const MAX_UP = 250; // the highest he will jump, px
 const MAX_ACROSS = 460;
 const EDGE = 14; // how close to a surface's end he will stand
 
-const INK = '#0c0c10';
-const IRIS = ['#fff3b0', '#ffc93a', '#cf820c'];
-const FORE = [10, 10.5]; // upper arm, forearm
-const HIND = [8, 8.5, 6.5]; // thigh, shin, foot (paw to hock)
-const PAW = 2.3;
-const TAIL_N = 12;
+const INK = '#060608';
+// His eyes: a clear gold that goes olive at the rim.
+const IRIS = ['#f8e88a', '#e6bb2e', '#8c8a2a'];
+const FORE = [11.5, 11.5]; // upper arm, forearm
+const HIND = [10, 10.5, 7.5]; // thigh, shin, foot (paw to hock)
+const PAW = 2.1;
+const TAIL_N = 14;
 const TAIL_SEG = 3.6;
+const WIDE = 420; // the least room, px, he needs to play with the yarn
 const LEGS = ['xh', 'xf', 'nh', 'nf']; // far hind, far fore, near hind, near fore
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -64,29 +66,29 @@ const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 // shin, as in the air), haunch (the round thigh of a sitting cat), tuck (paws
 // folded under), the tail (ta its angle at the root, tc its curl per segment,
 // th the hook at its tip), eye openness and how far back the ears are.
-const BASE = { hx: -11, hy: -19, sx: 11, sy: -21, arch: 2.5, nx: 7, ny: -12, tilt: 0, turn: 0.3, fx: 1, bx: 0, hock: 0, hs: 0, haunch: 0, tuck: 0, ta: -1.95, tc: 0.02, th: 0.3, lid: 1, ears: 0 };
+const BASE = { hx: -13, hy: -23, sx: 13, sy: -25, arch: 2.5, nx: 8, ny: -13, tilt: 0, turn: 0.3, fx: 1, bx: 0, hock: 0, hs: 0, haunch: 0, tuck: 0, ta: -1.95, tc: 0.02, th: 0.3, lid: 1, ears: 0 };
 const POSES = {
   stand: BASE,
-  aim: { ...BASE, hy: -17, sy: -19, nx: 8, ny: -12, tilt: -0.2, turn: 0.55, ta: 2.95, tc: 0.03, th: 0.12 },
-  crouch: { ...BASE, hx: -9, hy: -12, sx: 10, sy: -12.5, arch: 0.5, nx: 9, ny: -9, tilt: -0.12, turn: 0.6, fx: -1, bx: 5, ta: 3.05, tc: 0, th: 0.1 },
-  land: { ...BASE, hx: -10, hy: -15, sx: 10, sy: -13, arch: 1.5, nx: 8, ny: -10, turn: 0.45, fx: 2, bx: 2, ta: -2.5, tc: 0.05, th: 0.2 },
-  sit: { ...BASE, hx: -6, hy: -8, sx: 6, sy: -22, arch: 4, nx: 5, ny: -12, turn: 0.12, fx: 3, bx: 8, hock: 1, haunch: 1, ta: 1.9, tc: -0.3, th: 0 },
-  loaf: { ...BASE, hx: -10, hy: -9, sx: 9, sy: -9.5, arch: 5, nx: 7, ny: -9, turn: 0.15, tuck: 1, ta: 2.6, tc: -0.22, th: 0, lid: 0.55 },
-  sleep: { ...BASE, hx: -7, hy: -8, sx: 6, sy: -8, arch: 9, nx: 6, ny: -1, tilt: 0.35, turn: 0, tuck: 1, ta: 2.3, tc: -0.3, th: 0, lid: 0 },
-  stretch: { ...BASE, hx: -9, hy: -24, sx: 9, sy: -10, arch: -3, nx: 11, ny: -5, tilt: -0.25, turn: 0.35, fx: 19, bx: -1, ta: -1.85, tc: 0.04, th: 0.25, lid: 0.25 },
-  air: { ...BASE, hx: -13, hy: -21, sx: 13, sy: -22, arch: 0, nx: 8, ny: -11, turn: 0.6, hs: 1, ta: 3.35, tc: 0.03, th: 0.05 },
-  drag: { ...BASE, hx: 0, hy: 38, sx: 1, sy: 14, arch: -2, nx: 2, ny: -12, turn: 0, hs: 0.8, ta: 1.65, tc: 0.06, th: 0.15, lid: 0.6, ears: 0.6 },
+  aim: { ...BASE, hy: -21, sy: -23, nx: 9, ny: -13, tilt: -0.2, turn: 0.55, ta: 2.95, tc: 0.03, th: 0.12 },
+  crouch: { ...BASE, hx: -11, hy: -14, sx: 12, sy: -14.5, arch: 0.5, nx: 10, ny: -10, tilt: -0.12, turn: 0.6, fx: -1, bx: 6, ta: 3.05, tc: 0, th: 0.1 },
+  land: { ...BASE, hx: -12, hy: -17, sx: 12, sy: -15, arch: 1.5, nx: 9, ny: -11, turn: 0.45, fx: 2, bx: 2, ta: -2.5, tc: 0.05, th: 0.2 },
+  sit: { ...BASE, hx: -6, hy: -7.5, sx: 6, sy: -25.5, arch: 4, nx: 5, ny: -13, turn: 0.12, fx: 3, bx: 8, hock: 1, haunch: 1, ta: 1.9, tc: -0.3, th: 0 },
+  loaf: { ...BASE, hx: -12, hy: -8.5, sx: 10, sy: -9, arch: 4.5, nx: 7, ny: -10, turn: 0.15, tuck: 1, ta: 2.6, tc: -0.22, th: 0, lid: 0.55 },
+  sleep: { ...BASE, hx: -8, hy: -7.5, sx: 7, sy: -7.5, arch: 9, nx: 7, ny: -2, tilt: 0.35, turn: 0, tuck: 1, ta: 2.3, tc: -0.3, th: 0, lid: 0 },
+  stretch: { ...BASE, hx: -11, hy: -28, sx: 11, sy: -11, arch: -3, nx: 12, ny: -6, tilt: -0.25, turn: 0.35, fx: 22, bx: -1, ta: -1.85, tc: 0.04, th: 0.25, lid: 0.25 },
+  air: { ...BASE, hx: -15, hy: -25, sx: 15, sy: -26, arch: 0, nx: 9, ny: -12, turn: 0.6, hs: 1, ta: 3.35, tc: 0.03, th: 0.05 },
+  drag: { ...BASE, hx: 0, hy: 44, sx: 1, sy: 15, arch: -2, nx: 2, ny: -13, turn: 0, hs: 0.8, ta: 1.65, tc: 0.06, th: 0.15, lid: 0.6, ears: 0.6 },
 };
-POSES.groom = { ...POSES.sit, nx: 6, ny: -10, tilt: 0.3, lid: 0.25 };
+POSES.groom = { ...POSES.sit, nx: 6, ny: -11, tilt: 0.3, lid: 0.25 };
 // How quickly he moves into each (sleep curls up slowly, landings are fast).
 const RATES = { crouch: 14, land: 20, air: 12, drag: 12, aim: 8, stretch: 5, sleep: 3.5, loaf: 4, sit: 7, groom: 7, stand: 8 };
 
 // The gaits: when each paw lands (fraction of the stride), how long it stays
 // down, how high the front and hind paws lift.
 const GAITS = {
-  walk: { duty: 0.64, off: { nh: 0, nf: 0.25, xh: 0.5, xf: 0.75 }, lift: [5.5, 4] },
-  trot: { duty: 0.42, off: { nh: 0, xf: 0, xh: 0.5, nf: 0.5 }, lift: [7, 6] },
-  gallop: { duty: 0.24, off: { nh: 0, xh: 0.07, nf: 0.5, xf: 0.57 }, lift: [9, 7.5] },
+  walk: { duty: 0.64, off: { nh: 0, nf: 0.25, xh: 0.5, xf: 0.75 }, lift: [6.5, 5] },
+  trot: { duty: 0.42, off: { nh: 0, xf: 0, xh: 0.5, nf: 0.5 }, lift: [8, 7] },
+  gallop: { duty: 0.24, off: { nh: 0, xh: 0.07, nf: 0.5, xf: 0.57 }, lift: [10, 9] },
 };
 
 /** Two-bone IK: the joint between a and b for bones l1, l2. bend 1 puts the
@@ -176,7 +178,8 @@ export function createCat({ canvas, onSay }) {
     vx: 0,
     vy: 0,
     face: 1,
-    faceVis: 1,
+    yaw: 1, // which way he faces, turning through 0 (towards you)
+    tn: 0.3,
     on: { key: 'floor', dx: 0 },
     mode: 'walk',
     until: 0,
@@ -218,6 +221,23 @@ export function createCat({ canvas, onSay }) {
   const P = { ...POSES.stand };
   const F = { nf: [12, 0], xf: [9.5, 0], nh: [-11, 0], xh: [-13.5, 0] };
   const ta = Array.from({ length: TAIL_N }, (_, i) => -1.95 + i * 0.02);
+  // Fine grain over the black, like a soft print.
+  const grain = document.createElement('canvas');
+  grain.width = 96;
+  grain.height = 96;
+  {
+    const gc = grain.getContext('2d');
+    const img = gc.createImageData(96, 96);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() < 0.5 ? 0 : 255;
+      img.data[i] = v;
+      img.data[i + 1] = v;
+      img.data[i + 2] = v;
+      img.data[i + 3] = Math.random() * 255;
+    }
+    gc.putImageData(img, 0, 0);
+  }
+  let grainPattern = null;
   const tv = new Array(TAIL_N).fill(0);
   let R = null; // this frame's rig
   let surfaces = readSurfaces();
@@ -237,6 +257,8 @@ export function createCat({ canvas, onSay }) {
     c.until = performance.now() / 1000 + secs;
   };
   const onFloor = () => c.on?.key === 'floor';
+  // Room to bat a ball of yarn about: the floor, the Dock, a wide window.
+  const roomy = (s) => !!s && (s.key === 'floor' || s.x1 - s.x0 >= WIDE);
 
   // ---------- Thinking ----------
   function reachable() {
@@ -267,7 +289,7 @@ export function createCat({ canvas, onSay }) {
     if (high && r < 0.22) return startButterfly();
     if (onFloor() && r < 0.1) return startZoomies();
     if (onFloor() && r < 0.18) return startMouse();
-    if (here && r < 0.28) return startYarn();
+    if (roomy(here) && r < 0.28) return startYarn();
     if (options.length && r < 0.6) {
       options.sort((a, b) => b.up - a.up + rand(-120, 120));
       c.plan = { tx: options[0].tx, jump: options[0] };
@@ -294,8 +316,10 @@ export function createCat({ canvas, onSay }) {
 
   function startYarn() {
     const here = surfaceOf(c.on);
-    if (!here) return set('sit', 3);
+    if (!roomy(here)) return set('sit', 3);
     const [a, b] = span(here);
+    // Towards the side with more room.
+    if ((c.face > 0 ? b - c.x : c.x - a) < 160) c.face = -c.face;
     const x = clamp(c.x + c.face * rand(70, 140), a + 10, b - 10);
     toys.yarn = { x, vx: 0, on: c.on.key, spin: 0, trail: [] };
     c.count = Math.round(rand(3, 5));
@@ -545,7 +569,7 @@ export function createCat({ canvas, onSay }) {
     c.speed = approach(c.speed, speed, 8, dt);
     c.accel = approach(c.accel, (c.speed - c.prevV) / Math.max(dt, 1e-3), 10, dt);
     c.prevV = c.speed;
-    c.phase = (c.phase + (c.speed * dt) / clamp(28 + c.speed * 0.17, 30, 110)) % 1;
+    c.phase = (c.phase + (c.speed * dt) / clamp(32 + c.speed * 0.18, 34, 120)) % 1;
     c.bat = Math.max(0, c.bat - dt * 3);
   }
 
@@ -693,8 +717,8 @@ export function createCat({ canvas, onSay }) {
       const m = 1 - u;
       spine.push([m * m * H[0] + 2 * m * u * C[0] + u * u * Sh[0], m * m * H[1] + 2 * m * u * C[1] + u * u * Sh[1]]);
       const s = Math.sin(Math.PI * u);
-      rT.push(lerp(7.8, 8.6, u) - 0.6 * s + breathe * 0.5);
-      rB.push(lerp(8.4, 9.4, u) + 1.6 * s + breathe);
+      rT.push(lerp(6.6, 7.4, u) - 0.5 * s + breathe * 0.5);
+      rB.push(lerp(7.0, 8.2, u) + 0.7 * s + breathe);
     }
     const head = [Sh[0] + P.nx, Sh[1] + P.ny + ndy];
     const Jf = [Sh[0] + 1.5, Sh[1] + 3];
@@ -712,24 +736,24 @@ export function createCat({ canvas, onSay }) {
         Object.assign(rest, { nf: [P.sx + 7, 3], xf: [P.sx + 3, 3], nh: [P.hx - 3, 3], xh: [P.hx + 1, 3] });
       } else if (c.swat) {
         const s = Math.sin(t * 16) * 4;
-        Object.assign(rest, { nf: [P.sx + 9 + s, P.sy - 14], xf: [P.sx + 6 - s, P.sy - 11], nh: [P.hx + 1, 0], xh: [P.hx - 1.5, 0] });
+        Object.assign(rest, { nf: [P.sx + 10 + s, P.sy - 16], xf: [P.sx + 7 - s, P.sy - 13], nh: [P.hx + 1, 0], xh: [P.hx - 1.5, 0] });
       } else {
         // Rising: forelegs reach for the target, hind legs trail from the push.
         // Falling: forelegs reach down to land first, hind legs come under.
         const k = clamp((c.vy + 200) / 700, 0, 1);
         const mix = (a, b) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k)];
         Object.assign(rest, {
-          nf: mix([P.sx + 14, -15], [P.sx + 8, 2]),
-          xf: mix([P.sx + 11, -13], [P.sx + 5, 1]),
-          nh: mix([P.hx - 13, -7], [P.hx + 4, -4]),
-          xh: mix([P.hx - 11, -5], [P.hx + 2, -3]),
+          nf: mix([P.sx + 16, -17], [P.sx + 9, 2]),
+          xf: mix([P.sx + 13, -15], [P.sx + 6, 1]),
+          nh: mix([P.hx - 15, -8], [P.hx + 5, -5]),
+          xh: mix([P.hx - 13, -6], [P.hx + 3, -4]),
         });
       }
     } else if (name === 'drag') {
       const s = Math.sin(t * 2.5) * 1.5;
-      Object.assign(rest, { nf: [6, 30], xf: [3, 29], nh: [2 + s, 57], xh: [-2 + s, 56] });
+      Object.assign(rest, { nf: [6, 36], xf: [3, 35], nh: [2 + s, 68], xh: [-2 + s, 67] });
     }
-    const L = clamp(28 + c.speed * 0.17, 30, 110) / S;
+    const L = clamp(32 + c.speed * 0.18, 34, 120) / S;
     const gaits = [
       [GAITS.walk, wW],
       [GAITS.trot, wT],
@@ -787,10 +811,10 @@ export function createCat({ canvas, onSay }) {
       if (k[1] === 'f') {
         // (The paw is a ball of radius PAW resting on the ground.)
         const [ex, ey, px, py] = ik(Jf[0], Jf[1], f[0], f[1] - PAW, FORE[0], FORE[1], 1);
-        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -3) : ey], [px, py], [px + 1.4, py]], r: [4.6, 3.1, 2.5, PAW] };
+        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -3) : ey], [px, py], [px + 1.4, py]], r: [4, 2.6, 2.2, PAW] };
       } else {
-        let mx = lerp(-2.5, -7, P.hock);
-        let my = lerp(-6.2, -1.9, P.hock);
+        let mx = lerp(-2.8, -8, P.hock);
+        let my = lerp(-7, -2, P.hock);
         if (P.hs > 0.01) {
           const ddx = Jh[0] - f[0];
           const ddy = Jh[1] - f[1];
@@ -805,52 +829,65 @@ export function createCat({ canvas, onSay }) {
         ky = lerp(ky, Jh[1] - 1, P.hock);
         if (grounded) ky = Math.min(ky, -3);
         const paw = [qx - mx, qy - my];
-        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.4, paw[1]]], r: [6.2, 3.6, 2.6, 2.4, PAW] };
+        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.4, paw[1]]], r: [5.6, 3.1, 2.3, 2.1, PAW] };
       }
     });
 
     // The tail: each segment sprung toward the pose's curve plus a slow wave
     // (or the tip's twitch when he's intent), thrown about by his moves.
-    let amp = 0.07;
-    let om = 2.2;
+    // Two waves travel down it at different speeds, so it never repeats, and
+    // the tip curls and uncurls: a lazy twirl at rest, a flick when intent.
+    let amp = 0.13;
+    let om = 2;
     let tip = false;
+    let curl = 0.45;
     if (name === 'sleep' || name === 'loaf') {
-      amp = 0.02;
-      om = 1;
+      amp = 0.03;
+      om = 0.9;
+      curl = 0.15;
     } else if (['watch', 'aim', 'crouch', 'hunt'].includes(c.mode)) {
-      amp = 0.3;
-      om = 8;
+      amp = 0.32;
+      om = 7;
       tip = true;
+      curl = 0.2;
     } else if (c.mode === 'pet') {
-      amp = 0.06;
-      om = 28;
+      amp = 0.07;
+      om = 24;
       tip = true;
     } else if (name === 'drag') {
-      amp = 0.35;
-      om = 5;
+      amp = 0.32;
+      om = 4.5;
     } else if (wG > 0.5 && w > 0.5) {
-      amp = 0.12;
-      om = 7;
+      amp = 0.14;
+      om = 6;
+      curl = 0.2;
     } else if (name === 'sit' || name === 'groom') {
-      amp = 0.12;
-      om = 1.6;
+      amp = 0.14;
+      om = 1.5;
       tip = true;
     }
     const push = grounded ? c.accel : 0;
-    for (let i = 0; i < TAIL_N; i += 1) {
-      const hook = i >= TAIL_N - 4 ? P.th * (i - (TAIL_N - 5)) : 0;
-      const wave = amp * Math.sin(om * t - i * 0.55) * (tip ? ss(TAIL_N - 6, TAIL_N - 1, i) : (i + 1) / TAIL_N);
-      const tgt = P.ta + P.tc * i + hook + wave;
-      const K = 170 - i * 8;
-      const torque = (push * Math.sin(ta[i]) * 0.012 + c.sqv * Math.cos(ta[i]) * 0.06) * ((i + 1) / TAIL_N);
-      tv[i] += (K * wrap(tgt - ta[i]) - 8.5 * tv[i] + torque) * dt;
-      ta[i] += tv[i] * dt;
+    const coil = 1 + curl * Math.sin(t * 1.25);
+    const sub = dt / 2;
+    for (let pass = 0; pass < 2; pass += 1) {
+      for (let i = 0; i < TAIL_N; i += 1) {
+        const u = (i + 1) / TAIL_N;
+        const hook = i >= TAIL_N - 5 ? P.th * coil * 0.8 * (i - (TAIL_N - 6)) : 0;
+        const wave =
+          amp * Math.sin(om * t - i * 0.42) * (tip ? ss(TAIL_N - 7, TAIL_N - 1, i) : u) +
+          amp * 0.6 * Math.sin(om * 0.53 * t + 1.7 - i * 0.25) * u;
+        const tgt = P.ta + P.tc * i + hook + wave;
+        const K = 120 - i * 5;
+        const torque = (push * Math.sin(ta[i]) * 0.012 + c.sqv * Math.cos(ta[i]) * 0.06) * u;
+        tv[i] += (K * wrap(tgt - ta[i]) - 7 * tv[i] + torque) * sub;
+        ta[i] += tv[i] * sub;
+      }
     }
-    const tail = [[H[0] - dx * 5.5 + nx * 3.8, H[1] - dy * 5.5 + ny * 3.8]];
-    const tailR = [3.3];
+    const tail = [[H[0] - dx * 5 + nx * 3.4, H[1] - dy * 5 + ny * 3.4]];
+    const tailR = [2.7];
     for (let i = 0; i < TAIL_N; i += 1) {
       const p = tail[i];
-      const r = lerp(3.3, 2.4, (i + 1) / TAIL_N);
+      const r = lerp(2.7, 1.9, (i + 1) / TAIL_N);
       const q = [p[0] + Math.cos(ta[i]) * TAIL_SEG, p[1] + Math.sin(ta[i]) * TAIL_SEG];
       if (grounded) q[1] = Math.min(q[1], -r);
       tail.push(q);
@@ -902,7 +939,7 @@ export function createCat({ canvas, onSay }) {
     }
     c.slow = Math.max(0, c.slow - dt / 1.6);
     const excited = ['watch', 'aim', 'crouch', 'hunt', 'zoom', 'chase', 'yarn', 'air'].includes(c.mode);
-    c.pupil = approach(c.pupil, excited ? 0.88 : 0.62, 5, dt);
+    c.pupil = approach(c.pupil, excited ? 1.35 : c.mode === 'pet' ? 0.7 : 0.55, 5, dt);
     c.purr = approach(c.purr, c.mode === 'pet' ? 1 : 0, 6, dt);
     c.ears = approach(c.ears, P.ears + (c.mode === 'zoom' || c.thrown ? 0.7 : 0), 8, dt);
     c.nextEar -= dt;
@@ -914,8 +951,9 @@ export function createCat({ canvas, onSay }) {
     c.mouth = Math.max(0, c.mouth - dt * 2.5);
     c.yawn = Math.max(0, c.yawn - dt / 1.8);
 
-    // Facing: turning round squeezes through the middle rather than snapping.
-    c.faceVis = approach(c.faceVis, c.face, 16, dt);
+    // Turning round: he swings through facing you (head first), never a flip.
+    c.yaw = approach(c.yaw, c.face, 5, dt);
+    c.tn = c.turn * clamp(Math.abs(c.yaw) * 1.3, 0, 1);
     let pitch = 0;
     if (name === 'air') {
       pitch = c.swat ? -0.55 : c.thrown ? clamp(c.vx / 1500, -0.4, 0.4) : clamp(Math.atan2(c.vy, Math.abs(c.vx) + 60), -0.9, 0.9) * 0.55;
@@ -943,23 +981,26 @@ export function createCat({ canvas, onSay }) {
       happy: c.purr > 0.5,
       mouth: Math.max(c.mouth * 0.5, Math.sin(Math.PI * (1 - c.yawn)) * (c.yawn > 0 ? 1 : 0)),
     };
-    c.box = [Math.min(H[0] - 10, head[0] - 14), Math.max(Sh[0] + 10, head[0] + 14), head[1] - 20];
+    c.box = [Math.min(H[0] - 10, head[0] - 14), Math.max(Sh[0] + 10, head[0] + 14), head[1] - 24];
   }
 
   // ---------- Drawing ----------
+  // Head, front view (x towards the side he faces); c.tn turns it from facing
+  // you (0) towards profile (1). His are a young cat's: tall ears set wide,
+  // a wedge of a face to a small chin, almond eyes.
   function earPts(side) {
-    const fx = c.turn * 4.5;
+    const fx = c.tn * 4;
     const e = c.ears + (side > 0 ? c.earTw * 0.45 : 0);
-    const sh = fx * (side > 0 ? 0.45 : 0.25);
+    const sh = fx * (side > 0 ? 0.45 : 0.2);
     return [
-      [side * 3.2 + sh, -10.4],
-      [side * (10.2 + 5 * e) + sh, -19.6 + 7 * e],
-      [side * 12.6 + sh, -3.6],
+      [side * 1.8 + sh, -7.6],
+      [side * (12.6 + 5 * e) + sh, -21.5 + 8 * e],
+      [side * 12.2 + sh, -0.8],
     ];
   }
 
   function earPath(b0, tip, b1) {
-    const k = 0.24;
+    const k = 0.3;
     g.beginPath();
     g.moveTo(b0[0], b0[1]);
     g.lineTo(tip[0] + (b0[0] - tip[0]) * k, tip[1] + (b0[1] - tip[1]) * k);
@@ -970,123 +1011,133 @@ export function createCat({ canvas, onSay }) {
   }
 
   function headShape() {
-    const fx = c.turn * 4.5;
+    const tn = c.tn;
+    const fx = tn * 4;
     g.beginPath();
-    g.ellipse(fx * 0.3, 0, 13.6, 11.6, 0, 0, Math.PI * 2);
+    g.ellipse(fx * 0.3, -1.5, 11.4, 9.4, 0, 0, Math.PI * 2);
     g.fill();
-    // Round cheeks: the soft, wide lower face that makes a kitten.
+    // Cheekbones down to a narrow chin.
     g.beginPath();
-    g.ellipse(fx * 0.5 - 6.8 + c.turn * 1.5, 4.4, 7.2 - c.turn * 1.2, 6.2, 0.2, 0, Math.PI * 2);
-    g.fill();
-    g.beginPath();
-    g.ellipse(fx * 0.5 + 6.8, 4.4, 7.2, 6.2, -0.2, 0, Math.PI * 2);
+    g.moveTo(-10.8 + tn * 2.2, -3);
+    g.quadraticCurveTo(-9.6 + tn * 2.4, 6.2, fx * 0.95 - 0.4, 9.6);
+    g.quadraticCurveTo(fx + 9.4 - tn * 1.2, 6.2, 10.8 + tn * 0.6, -3);
+    g.closePath();
     g.fill();
     earPath(...earPts(-1));
     earPath(...earPts(1));
   }
 
-  function eye(ex, ey, sx, open, happy) {
-    const rx = 4.3 * sx;
-    const ry = 4.9;
+  /** An almond eye, its outer corner (side) lifted, the upper lid heavy. */
+  function eye(ex, ey, sx, side, open, happy) {
+    const rx = 5.1 * sx;
+    const ry = 4;
+    const lift = 1.2;
     if (open < 0.14) {
-      g.strokeStyle = 'rgba(255,255,255,0.5)';
-      g.lineWidth = 0.9;
+      g.strokeStyle = 'rgba(255,255,255,0.45)';
+      g.lineWidth = 0.8;
       g.lineCap = 'round';
       g.beginPath();
-      if (happy) g.arc(ex, ey + 2.2, rx * 0.85, Math.PI * 1.15, Math.PI * 1.85);
-      else g.arc(ex, ey - 1, rx * 0.85, Math.PI * 0.15, Math.PI * 0.85);
+      if (happy) {
+        g.moveTo(ex - rx * side * 0.85, ey + 1.2);
+        g.quadraticCurveTo(ex, ey - 2.2, ex + rx * side * 0.85, ey + 0.4 - lift);
+      } else {
+        g.moveTo(ex - rx * side * 0.9, ey);
+        g.quadraticCurveTo(ex, ey + 2.2, ex + rx * side * 0.9, ey - lift * 0.6);
+      }
       g.stroke();
       return;
     }
     g.save();
-    g.translate(ex, ey + ry * 0.45);
+    g.translate(ex, ey);
     g.scale(1, open);
-    g.translate(0, -ry * 0.45);
-    const gr = g.createRadialGradient(0, ry * 0.35, 0.5, 0, 0, ry * 1.05);
+    g.beginPath();
+    g.moveTo(-rx * side, 0.6);
+    g.bezierCurveTo(-rx * 0.45 * side, -ry * 1.2, rx * 0.5 * side, -ry * 1.3 - lift, rx * side, -lift);
+    g.bezierCurveTo(rx * 0.45 * side, ry * 1.15 - lift * 0.5, -rx * 0.5 * side, ry * 1.15, -rx * side, 0.6);
+    g.closePath();
+    const gr = g.createRadialGradient(0, 0.8, 0.3, 0, 0, ry * 1.7);
     gr.addColorStop(0, IRIS[0]);
     gr.addColorStop(0.5, IRIS[1]);
     gr.addColorStop(1, IRIS[2]);
     g.fillStyle = gr;
-    g.beginPath();
-    g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
     g.fill();
     g.clip();
-    g.fillStyle = '#060608';
+    // The pupil: a slit in daylight, wide and round when he's after something.
+    g.fillStyle = '#050506';
     g.beginPath();
-    g.ellipse(c.lookX * 1.3 * sx, c.lookY * 1.1, rx * c.pupil, ry * 0.92, 0, 0, Math.PI * 2);
+    g.ellipse(c.lookX * 1.4 * sx, c.lookY * 0.8, rx * 0.5 * c.pupil, ry * 1.08, 0, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = '#fff';
+    // The heavy upper lid's shadow: the cool, half-bored look.
+    const lid = g.createLinearGradient(0, -ry * 1.4, 0, ry * 0.2);
+    lid.addColorStop(0, 'rgba(0,0,0,0.42)');
+    lid.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = lid;
+    g.fillRect(-rx - 1, -ry * 1.6, rx * 2 + 2, ry * 1.9);
+    g.fillStyle = 'rgba(255,255,255,0.95)';
     g.beginPath();
-    g.arc(1.4 * sx + c.lookX * 0.4, -2.0, 1.45, 0, Math.PI * 2);
+    g.arc(side * rx * 0.28 + c.lookX * 0.4, -ry * 0.25, 1.2, 0, Math.PI * 2);
     g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.5)';
     g.beginPath();
-    g.arc(-1.5 * sx, 1.9, 0.65, 0, Math.PI * 2);
+    g.arc(-side * rx * 0.3, ry * 0.45, 0.45, 0, Math.PI * 2);
     g.fill();
     g.restore();
   }
 
   function face() {
-    const tn = c.turn;
-    const fx = tn * 4.5;
-    // Inner ears, a dusky pink.
-    g.fillStyle = 'rgba(92,52,72,0.85)';
+    const tn = c.tn;
+    const fx = tn * 4;
+    // Inner ears, dark with a little warmth.
+    g.fillStyle = 'rgba(78,48,58,0.75)';
     [-1, 1].forEach((side) => {
       const p = earPts(side);
       const cx = (p[0][0] + p[1][0] + p[2][0]) / 3;
-      const cy = (p[0][1] + p[1][1] + p[2][1]) / 3 + 1.2;
-      earPath(...p.map(([x, y]) => [cx + (x - cx) * 0.5, cy + (y - cy) * 0.55]));
+      const cy = (p[0][1] + p[1][1] + p[2][1]) / 3 + 1.5;
+      earPath(...p.map(([x, y]) => [cx + (x - cx) * 0.48, cy + (y - cy) * 0.58]));
     });
-    eye(fx - 5.6 * (1 - tn * 0.4), 0.4, 1 - tn * 0.4, R.open, R.happy);
-    eye(fx + 5.6 * (1 - tn * 0.12), 0.4, 1, R.open, R.happy);
-    const nx = fx + tn * 2.2;
-    const ny = 5.4;
-    // Blush.
-    g.fillStyle = 'rgba(255,120,150,0.14)';
-    g.beginPath();
-    g.ellipse(fx - 6 * (1 - tn * 0.4), 6.2, 2.6 * (1 - tn * 0.4), 1.3, 0, 0, Math.PI * 2);
-    g.fill();
-    g.beginPath();
-    g.ellipse(fx + 6.4, 6.2, 2.8, 1.4, 0, 0, Math.PI * 2);
-    g.fill();
+    eye(fx - 5.5 * (1 - tn * 0.4), 0.8, 1 - tn * 0.4, -1, R.open, R.happy);
+    eye(fx + 5.5 * (1 - tn * 0.12), 0.8, 1, 1, R.open, R.happy);
+    const nx = fx * 0.95 + tn * 1.6;
+    const ny = 6;
     // Nose and mouth: a meow, or the big yawn after a nap.
-    g.fillStyle = '#5a3444';
+    g.fillStyle = '#2a1b22';
     g.beginPath();
-    g.moveTo(nx - 1.4, ny - 0.8);
-    g.lineTo(nx + 1.4, ny - 0.8);
-    g.lineTo(nx, ny + 0.7);
+    g.moveTo(nx - 1.3, ny - 0.7);
+    g.lineTo(nx + 1.3, ny - 0.7);
+    g.lineTo(nx, ny + 0.6);
     g.closePath();
     g.fill();
     if (R.mouth > 0.05) {
-      g.fillStyle = '#4a1626';
+      g.fillStyle = '#3e1420';
       g.beginPath();
-      g.ellipse(nx, ny + 2.4 + R.mouth * 1.4, 1.5 + R.mouth * 1.1, 0.6 + R.mouth * 2.6, 0, 0, Math.PI * 2);
+      g.ellipse(nx, ny + 2.1 + R.mouth * 1.2, 1.3 + R.mouth, 0.5 + R.mouth * 2.3, 0, 0, Math.PI * 2);
       g.fill();
       if (R.mouth > 0.5) {
-        g.fillStyle = '#e8798f';
+        g.fillStyle = '#d9788c';
         g.beginPath();
-        g.ellipse(nx, ny + 3.6 + R.mouth * 2, 1.4, 1, 0, 0, Math.PI * 2);
+        g.ellipse(nx, ny + 3.2 + R.mouth * 1.8, 1.2, 0.9, 0, 0, Math.PI * 2);
         g.fill();
       }
     } else {
-      g.strokeStyle = 'rgba(255,255,255,0.22)';
-      g.lineWidth = 0.5;
+      g.strokeStyle = 'rgba(255,255,255,0.16)';
+      g.lineWidth = 0.45;
       g.lineCap = 'round';
       g.beginPath();
-      g.moveTo(nx, ny + 0.7);
-      g.quadraticCurveTo(nx - 0.6, ny + 2.2, nx - 1.9, ny + 1.9);
-      g.moveTo(nx, ny + 0.7);
-      g.quadraticCurveTo(nx + 0.6, ny + 2.2, nx + 1.9, ny + 1.9);
+      g.moveTo(nx, ny + 0.6);
+      g.quadraticCurveTo(nx - 0.5, ny + 1.9, nx - 1.6, ny + 1.6);
+      g.moveTo(nx, ny + 0.6);
+      g.quadraticCurveTo(nx + 0.5, ny + 1.9, nx + 1.6, ny + 1.6);
       g.stroke();
     }
-    // Whiskers.
-    g.strokeStyle = 'rgba(255,255,255,0.3)';
-    g.lineWidth = 0.45;
+    // Whiskers: long and pale.
+    g.strokeStyle = 'rgba(255,255,255,0.32)';
+    g.lineWidth = 0.4;
     const far = 1 - tn * 0.5;
     g.beginPath();
     [
-      [4.2, 15, -2],
-      [4.5, 15.5, 0.8],
-      [4.2, 14.3, 3.4],
+      [3.4, 15, -1],
+      [3.6, 15.5, 1.8],
+      [3.3, 14, 4.4],
     ].forEach(([a, b, d]) => {
       g.moveTo(nx + a, ny + 1);
       g.lineTo(nx + b, ny + d);
@@ -1097,7 +1148,27 @@ export function createCat({ canvas, onSay }) {
   }
 
   function drawCat(t) {
+    // Turning round, the body foreshortens through facing you and swaps
+    // sides behind the head, which turns to you and on round: a 3/4 turn.
+    const sgn = c.yaw >= 0 ? 1 : -1;
+    const bs = sgn * (0.4 + 0.6 * Math.abs(c.yaw));
+    const pc = Math.cos(c.pitch);
+    const ps = Math.sin(c.pitch);
+    const hx = pc * R.head[0] - ps * (R.head[1] + 18);
+    const hy = ps * R.head[0] + pc * (R.head[1] + 18) - 18;
+    const headAt = () => {
+      g.translate(bs * hx, hy);
+      g.scale(sgn, 1);
+      g.rotate(R.headTilt + c.pitch);
+    };
     g.fillStyle = INK;
+    g.save();
+    g.scale(bs, 1);
+    if (c.pitch) {
+      g.translate(0, -18);
+      g.rotate(c.pitch);
+      g.translate(0, 18);
+    }
     LEGS.forEach((k) => {
       const l = R.legs[k];
       tube(g, l.pts, l.r, l.r, true);
@@ -1105,32 +1176,34 @@ export function createCat({ canvas, onSay }) {
     tube(g, R.spine, R.rT, R.rB, false);
     if (R.haunch > 0.02) {
       g.beginPath();
-      g.ellipse(R.H[0] + 3.5, Math.min(R.H[1] + 1.5, -7.5 * R.haunch), 9.5 * R.haunch, 7.5 * R.haunch, -0.3, 0, Math.PI * 2);
+      g.ellipse(R.H[0] + 3.5, Math.min(R.H[1] + 1.5, -7 * R.haunch), 9 * R.haunch, 7 * R.haunch, -0.3, 0, Math.PI * 2);
       g.fill();
     }
     tube(g, R.tail, R.tailR, R.tailR, true);
-    tube(g, [[R.Sh[0] + 1, R.Sh[1] - 2], [R.head[0], R.head[1] + 4]], [7, 7], [7, 7], true);
+    tube(g, [[R.Sh[0] + 1, R.Sh[1] - 2], [R.head[0], R.head[1] + 4]], [6, 6], [6, 6], true);
+    g.restore();
     g.save();
-    g.translate(R.head[0], R.head[1]);
-    g.rotate(R.headTilt);
+    headAt();
     headShape();
     g.restore();
-    // Light from above, over the whole silhouette: still black, but round.
+    // Pitch black, the faintest light from above, and a fine grain.
     g.globalCompositeOperation = 'source-atop';
-    const lg = g.createLinearGradient(0, -62, 0, 4);
-    lg.addColorStop(0, '#2b2b36');
-    lg.addColorStop(1, '#08080b');
+    const lg = g.createLinearGradient(0, -70, 0, 4);
+    lg.addColorStop(0, '#1c1c22');
+    lg.addColorStop(1, '#040405');
     g.fillStyle = lg;
-    g.fillRect(-140, -160, 280, 300);
-    const hl = g.createRadialGradient(R.head[0] - 3, R.head[1] - 7, 0, R.head[0] - 3, R.head[1] - 7, 13);
-    hl.addColorStop(0, 'rgba(255,255,255,0.09)');
-    hl.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = hl;
-    g.fillRect(R.head[0] - 20, R.head[1] - 24, 40, 40);
+    g.fillRect(-150, -200, 300, 320);
+    if (!grainPattern) {
+      grainPattern = g.createPattern(grain, 'repeat');
+      grainPattern.setTransform?.(new DOMMatrix().scale(0.35)); // fine, not glitter
+    }
+    g.globalAlpha = 0.03;
+    g.fillStyle = grainPattern;
+    g.fillRect(-150, -200, 300, 320);
+    g.globalAlpha = 1;
     g.globalCompositeOperation = 'source-over';
     g.save();
-    g.translate(R.head[0], R.head[1]);
-    g.rotate(R.headTilt);
+    headAt();
     face(t);
     g.restore();
   }
@@ -1239,19 +1312,10 @@ export function createCat({ canvas, onSay }) {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, BW, BH);
     g.translate(OX, OY);
-    g.scale(c.faceVis * S, S);
-    if (c.mode === 'drag') g.rotate(c.drag.swing + Math.sin(t * 3) * 0.04);
-    else if (Math.abs(c.pitch) > 0.001) {
-      g.translate(0, -18);
-      g.rotate(c.pitch);
-      g.translate(0, 18);
-    }
+    g.scale(S, S);
+    if (c.mode === 'drag') g.rotate(c.drag.swing * c.face + Math.sin(t * 3) * 0.04);
     drawCat(t);
-    ctx.save();
-    ctx.shadowColor = 'rgba(255,255,255,0.24)';
-    ctx.shadowBlur = 5 * dpr;
     ctx.drawImage(buf, c.x - OX, oy - OY, BW, BH);
-    ctx.restore();
 
     if (c.mode === 'sleep') {
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
@@ -1351,6 +1415,10 @@ export function createCat({ canvas, onSay }) {
       set('sleep', 25);
     },
     yarn() {
+      if (!roomy(surfaceOf(c.on))) {
+        say('no room.');
+        return;
+      }
       startYarn();
     },
     zoomies() {

@@ -1174,7 +1174,6 @@ const REVEAL_END = 0.42; // where it rests, closed, waiting to be opened
 const HEART_REACH = 13.6;
 // What the closed Mac says, once it has been revealed. "|" breaks the line.
 const STORY_LINE = "My portfolio isn't a page. | It's my Mac.";
-const STORY_SUB = "Open the lid. The work is in folders, the resume's on the desktop, the games are in the dock.";
 // From here (as a share of "now"), the story is at its end (the idle hint).
 const END_FROM = 0.84;
 
@@ -1537,8 +1536,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const macP = useRef(0);
   // The line about the Mac: 0..1 as it comes in (driven from MacRoom's frame).
   const sayT = useMotionValue(0);
-  const subOpacity = useTransform(sayT, (k) => within(k, [0.45, 1]));
-  const subY = useTransform(sayT, (k) => `${((1 - within(k, [0.45, 1])) * 8).toFixed(2)}px`);
   const cueOpacity = useTransform(sayT, (k) => within(k, [0.75, 1]));
   const use3DRef = useRef(use3D);
   use3DRef.current = use3D;
@@ -2340,9 +2337,6 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     <div ref={introOuterRef} className={styles.storyOuter}>
       <div className={styles.storyLineWrap}>
         <RiseWords text={STORY_LINE} reveal={sayT} className={styles.bridgeLine} />
-        <motion.p className={styles.bridgeSub} style={{ opacity: subOpacity, y: subY }}>
-          {STORY_SUB}
-        </motion.p>
         {flat ? (
           <button type="button" className={styles.btnLight} onClick={() => onReachScreen?.()}>
             See my work
@@ -2350,7 +2344,14 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         ) : (
           // (Only once there is a Mac to open.)
           <motion.p className={styles.openCue} style={{ opacity: revealed ? cueOpacity : 0, transition: 'opacity 400ms ease' }}>
-            Scroll to open
+            {/* A ripple of light runs along the words, letter by letter. */}
+            <span className={styles.cueText} aria-label="Scroll to open">
+              {[...'Scroll to open'].map((ch, i) => (
+                <span key={i} style={{ '--i': i }} aria-hidden>
+                  {ch === ' ' ? '\u00A0' : ch}
+                </span>
+              ))}
+            </span>
             <svg viewBox="0 0 16 16" aria-hidden>
               <path d="M8 3v10M4 9l4 4 4-4" />
             </svg>

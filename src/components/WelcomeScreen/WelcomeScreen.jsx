@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  HELLO_PATH,
-  HELLO_W,
   STAGE_H,
   STAGE_W,
   SUBTITLE_Y,
@@ -10,15 +8,21 @@ import {
   WELCOME_TITLE,
   coverScale,
   loadScreenAssets,
+  paintHello,
   paintWelcome,
 } from './screenArt.js';
 import styles from './WelcomeScreen.module.css';
 
-// From the dive: "hello" (as the 3D screen left it), then it clears and the
+// From the dive: the white screen (as the 3D screen left it), "hello" writes
+// itself across it in colour, then the white clears to the wallpaper, the
 // title writes in, holds, and lifts away into the desktop.
-const TITLE_AT = 600; // "hello" holds this long, then gives way to the title
-const LIFT_AT = 2500; // the title has been read: lift
-const DONE_AT = 3470; // letters gone, backdrop dissolved: desktop takes over
+const WRITE_FROM = 250; // the pen starts
+const WRITE_MS = 2600; // and takes this long
+const TITLE_AT = 3500; // "hello" has been read: over to the title
+const LIFT_AT = 5400; // the title has been read: lift
+const DONE_AT = 6370; // letters gone, backdrop dissolved: desktop takes over
+// The pen's pace: it eases in, runs, and slows into the last flick.
+const pen = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 /**
  * The beat the intro dive lands on. At first it is pixel-for-pixel the 3D
@@ -29,6 +33,7 @@ const DONE_AT = 3470; // letters gone, backdrop dissolved: desktop takes over
  */
 export default function WelcomeScreen({ onDone }) {
   const canvasRef = useRef(null);
+  const helloRef = useRef(null);
   const [scale, setScale] = useState(() => coverScale(window.innerWidth, window.innerHeight));
   const [phase, setPhase] = useState('phaseHello'); // phaseHello → phaseTitle → lift
   const doneRef = useRef(false);
@@ -50,11 +55,28 @@ export default function WelcomeScreen({ onDone }) {
     window.addEventListener('resize', onResize);
     window.addEventListener('keydown', finish);
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    // "hello", written in colour.
+    const hc = helloRef.current;
+    const pr = Math.min(2, window.devicePixelRatio || 1) * 1.5;
+    hc.width = STAGE_W * pr;
+    hc.height = STAGE_H * pr;
+    const hctx = hc.getContext('2d');
+    const start = performance.now() + (reduced ? 0 : WRITE_FROM);
+    let raf = 0;
+    const write = (now) => {
+      const k = reduced ? 1 : Math.min(1, Math.max(0, (now - start) / WRITE_MS));
+      hctx.setTransform(pr, 0, 0, pr, 0, 0);
+      hctx.clearRect(0, 0, STAGE_W, STAGE_H);
+      paintHello(hctx, pen(k));
+      if (k < 1) raf = requestAnimationFrame(write);
+    };
+    raf = requestAnimationFrame(write);
     const t0 = setTimeout(() => setPhase('phaseTitle'), reduced ? 300 : TITLE_AT);
     const t1 = setTimeout(() => setPhase('lift'), reduced ? 1400 : LIFT_AT);
     const t2 = setTimeout(finish, reduced ? 1800 : DONE_AT);
     return () => {
       cancelled = true;
+      cancelAnimationFrame(raf);
       clearTimeout(t0);
       clearTimeout(t1);
       clearTimeout(t2);
@@ -68,14 +90,9 @@ export default function WelcomeScreen({ onDone }) {
   return (
     <div className={`${styles.welcome} ${styles[phase]}`} onClick={finish} role="status" aria-label={WELCOME_TITLE}>
       <canvas ref={canvasRef} className={`${styles.stage} ${styles.backdrop}`} style={stage} />
+      <div className={styles.white} />
+      <canvas ref={helloRef} className={`${styles.stage} ${styles.hello}`} style={stage} aria-hidden />
       <div className={styles.stage} style={stage} aria-hidden>
-        <svg
-          className={styles.hello}
-          viewBox="-160 -60 320 120"
-          style={{ left: STAGE_W / 2 - HELLO_W / 2, top: STAGE_H / 2 - (HELLO_W * 120) / 320 / 2, width: HELLO_W }}
-        >
-          <path d={HELLO_PATH} />
-        </svg>
         <p className={styles.title} style={{ top: TITLE_Y }}>
           {[...WELCOME_TITLE].map((ch, i) => (
             <span key={i} style={{ '--i': i }}>

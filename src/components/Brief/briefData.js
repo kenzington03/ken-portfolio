@@ -7,7 +7,7 @@ export const EMAIL = 'kennethnathanael@gmail.com';
 export const WHATSAPP = '917204662258';
 // A short call, booked straight into Ken's calendar (his Cal.com link).
 // Empty: the brief offers no call.
-export const BOOKING_URL = '';
+export const BOOKING_URL = 'https://cal.com/kenneth-nathanael-hymjak/30min';
 
 // What people come to Ken for, as they would say it. `hint` is what it
 // covers, in a line; `say` how it reads in the message; `short` in a subject

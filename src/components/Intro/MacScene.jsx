@@ -25,20 +25,19 @@ function lerp(a, b, t) {
 
 /**
  * The screen's art as a texture, the exact pixels the DOM welcome paints:
- * the wallpaper, with "hello" written on it as the screen wakes (`write(k)`).
+ * the plain white the screen wakes to ("hello" is written on it by the
+ * welcome screen, once the camera is in).
  * `null` while loading, `false` if the art failed (the scene carries on bare).
  */
 function useWelcomeTexture() {
   const [texture, setTexture] = useState(null);
-  const art = useRef(null);
   useEffect(() => {
     let cancelled = false;
     let tex = null;
     loadScreenAssets()
       .then((assets) => {
         if (cancelled) return;
-        const canvas = paintWelcome(document.createElement('canvas'), assets, 2, { hello: 0 });
-        art.current = { canvas, assets, k: 0 };
+        const canvas = paintWelcome(document.createElement('canvas'), assets, 2, { white: true });
         tex = new THREE.CanvasTexture(canvas);
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.anisotropy = 8;
@@ -52,16 +51,7 @@ function useWelcomeTexture() {
       tex?.dispose();
     };
   }, []);
-  // Repainted only when the writing has moved on a step (each repaint is a
-  // texture upload).
-  const write = (k) => {
-    const a = art.current;
-    if (!a || !texture || Math.abs(k - a.k) < 1 / 90) return;
-    a.k = k;
-    paintWelcome(a.canvas, a.assets, 2, { hello: k });
-    texture.needsUpdate = true;
-  };
-  return [texture, write];
+  return texture;
 }
 
 /* Local-space anchors of the panel, scanned once per geometry (the vertex
@@ -145,7 +135,7 @@ export function Rig({ progressRef, screenOnRef, onReady, beats = BEATS, poses = 
   const group = useRef(null);
   const screenMesh = useRef(null);
   const [floorY, setFloorY] = useState(null);
-  const [texture, writeHello] = useWelcomeTexture();
+  const texture = useWelcomeTexture();
   const tmp = useMemo(
     () => ({ orbit: new THREE.Vector3(), look: new THREE.Vector3(), up: new THREE.Vector3(), end: new THREE.Vector3() }),
     [],
@@ -180,9 +170,6 @@ export function Rig({ progressRef, screenOnRef, onReady, beats = BEATS, poses = 
 
   useFrame(() => {
     const p = progressRef.current;
-    // "hello" writes itself as the screen wakes, done before the dive.
-    const h = screenOnRef.current ? ramp(p, beats.wake[0], beats.dive[0] - 0.01) : 0;
-    writeHello(h >= 0.995 ? 1 : (1 - Math.cos(Math.PI * h)) / 2);
     const aspect = size.width / size.height;
     // Keep the whole laptop in frame on narrow windows.
     const fit = Math.max(1, 1.55 / aspect);
