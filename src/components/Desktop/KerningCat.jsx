@@ -89,6 +89,12 @@ export default function KerningCat() {
           <button type="button" role="menuitem" onClick={pick(() => setLaser(true))}>
             Laser pointer
           </button>
+          <button type="button" role="menuitem" onClick={pick(() => engine.current?.yarn())}>
+            Ball of yarn
+          </button>
+          <button type="button" role="menuitem" onClick={pick(() => engine.current?.zoomies())}>
+            Zoomies
+          </button>
           <button type="button" role="menuitem" onClick={pick(() => engine.current?.nap())}>
             Nap time
           </button>
