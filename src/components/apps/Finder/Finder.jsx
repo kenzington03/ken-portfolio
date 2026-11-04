@@ -216,6 +216,7 @@ export default function Finder() {
                   className={`${styles.projectCard} ${selectedId === project.id ? styles.projectCardSelected : ''}`}
                   style={{ '--card-bg': `url("${getProjectCoverUrl(project)}")` }}
                   data-animation-origin
+                  data-cat-surface
                   onClick={(e) => {
                     setSelectedId(project.id);
                     openProjectItem(project, e);

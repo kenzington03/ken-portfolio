@@ -253,7 +253,7 @@ export default function SystemPreferences({ data }) {
               <Toggle on={sys.dockMagnify} onChange={(v) => setSystem({ dockMagnify: v })} label="Magnification" />
             </Row>
             <Row label="Position on screen" sub="Bottom" />
-            <Row label="Show the desktop cat" sub="Kerning">
+            <Row label="Show the desktop cat" sub="Toothless">
               <Toggle on={petVisible} onChange={togglePet} label="Show the desktop cat" />
             </Row>
           </div>

@@ -10,7 +10,7 @@ import WindowLayer from '../Window/WindowLayer.jsx';
 import DesktopIcon from './DesktopIcon.jsx';
 import MusicPlayer from './MusicPlayer.jsx';
 import FunZone from './FunZone.jsx';
-import KerningCat from './KerningCat.jsx';
+import ToothlessCat from './ToothlessCat.jsx';
 import SocialProof from './SocialProof.jsx';
 import styles from './Desktop.module.css';
 
@@ -19,9 +19,9 @@ const DESKTOP_ICONS = [
   { id: 'portfolio', label: 'Portfolio', appId: 'finder', src: PORTFOLIO_ICON_SRC },
   // Talking to Ken, never more than a click away: opens the brief.
   { id: 'talk', label: "Let's talk", action: 'talk', src: '/assets/icons/desktop-talk.svg' },
-  { id: 'aboutken', label: 'About Ken', appId: 'about', src: '/assets/icons/desktop-Resume.png' },
+  // Who Ken is and how to reach him: one card, in Contacts.
+  { id: 'contact', label: 'About Ken', appId: 'contact', src: '/assets/icons/dock-contacts.png' },
   { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.png' },
-  { id: 'contact', label: 'Contact', appId: 'contact', src: '/assets/icons/dock-contacts.png' },
   // Back to the hero, the start of the journey (App's IntroFlow listens).
   { id: 'start', label: 'Back to start', action: 'start', src: '/assets/icons/desktop-start.svg' },
 ];
@@ -345,7 +345,7 @@ export default function Desktop() {
       <div className={styles.windows}>
         <WindowLayer />
       </div>
-      <KerningCat />
+      <ToothlessCat />
     </div>
   );
 }

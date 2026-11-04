@@ -28,15 +28,8 @@ const DOCK_PRIMARY = [
     tourId: 'dock-portfolio',
   },
   {
-    id: 'about',
-    label: 'About',
-    appId: 'about',
-    src: '/assets/icons/desktop-Resume.png',
-    action: 'app',
-  },
-  {
     id: 'contact',
-    label: 'Contact',
+    label: 'Contacts',
     appId: 'contact',
     src: '/assets/icons/dock-contacts.png',
     action: 'app',
@@ -256,7 +249,7 @@ export default function Dock() {
   return (
     <>
       <div className={styles.dockWrap}>
-        <div className={styles.dock} data-cat-surface onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+        <div className={styles.dock} data-cat-surface="front" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
           {DOCK_PRIMARY.map(renderItem)}
           <div className={styles.divider} aria-hidden />
           {DOCK_SECONDARY.map(renderItem)}

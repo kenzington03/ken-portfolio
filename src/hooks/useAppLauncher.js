@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import About from '../components/apps/About/About.jsx';
 import Contact from '../components/apps/Contact/Contact.jsx';
 import Finder from '../components/apps/Finder/Finder.jsx';
 import Terminal from '../components/apps/Terminal/Terminal.jsx';
@@ -21,8 +20,9 @@ import { getProjectById } from '../data/projects.js';
 import { RIGHT_DOCK_RESERVE, getCenteredWindowPosition } from '../utils/animationOrigin.js';
 
 const APP_REGISTRY = {
-  about: { title: 'About Ken', component: About, size: { width: 820, height: 520 } },
-  contact: { title: 'Contact', component: Contact, size: { width: 480, height: 620 } },
+  // About and Contact are one card now: Ken in the Mac's Contacts.
+  about: { title: 'Contacts', component: Contact, size: { width: 780, height: 580 } },
+  contact: { title: 'Contacts', component: Contact, size: { width: 780, height: 580 } },
   finder: { title: 'Portfolio', component: Finder, size: { width: 920, height: 580 }, roomy: true },
   terminal: { title: 'Terminal', component: Terminal, size: { width: 640, height: 420 } },
   minesweeper: { title: 'Minesweeper', component: Minesweeper, size: { width: 520, height: 580 } },

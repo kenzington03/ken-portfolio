@@ -1,129 +1,222 @@
-.contact {
+/* The Mac's Contacts: a list on the left, the card on the right. */
+.contacts {
+  display: grid;
+  grid-template-columns: 210px 1fr;
   height: 100%;
-  overflow-y: auto;
-  padding: 36px 28px 32px;
-  background: linear-gradient(
-    180deg,
-    rgba(10, 132, 255, 0.45) 0%,
-    rgba(10, 132, 255, 0.12) 28%,
-    #0a0a0a 62%
-  );
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  background: #1e1e20;
+  color: rgba(255, 255, 255, 0.9);
+  font: 13px/1.35 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
 }
 
-.heroAvatar {
-  width: 120px;
-  height: 120px;
+.list {
+  padding: 10px 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.group {
+  margin: 4px 8px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.rowOn {
+  background: var(--accent, #0a84ff);
+  color: #fff;
+}
+
+.mini {
+  flex: none;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #1c1c1e;
-  border: 3px solid #fff;
-  margin-bottom: 16px;
-  flex-shrink: 0;
+  background: #3a3a3c url('/assets/profile/ken.jpg') center 20% / cover no-repeat;
+}
+
+.meTag {
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.pane {
+  overflow-y: auto;
+}
+
+.card {
+  max-width: 560px;
+  padding: 26px 32px 32px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.avatar {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: #3a3a3c url('/assets/profile/ken.jpg') center 20% / cover no-repeat;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.catAvatar {
+  background: #161616 url('/assets/icons/toothless.png') center / cover no-repeat;
 }
 
 .name {
-  font-size: 28px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 6px;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.subtitle {
-  font-size: 14px;
-  color: var(--accent);
-  margin-bottom: 24px;
+.job {
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.55);
 }
 
+/* The quick actions under the name, as in Contacts. */
 .actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-  margin-bottom: 28px;
-  width: 100%;
-  max-width: 420px;
+  gap: 18px;
+  margin: 20px 0 6px;
 }
 
-.actionBtn {
+.action {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-primary);
+  gap: 5px;
+  font-size: 11px;
+  color: var(--accent, #0a84ff);
   text-decoration: none;
+}
+
+.actionDot {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
   transition: background 150ms ease;
 }
 
-.actionBtn:hover {
-  background: rgba(0, 0, 0, 0.5);
-  color: var(--text-primary);
+.action:hover .actionDot {
+  background: rgba(255, 255, 255, 0.14);
 }
 
-.actionIcon {
-  font-size: 18px;
-  line-height: 1;
+.actionDot svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.fields {
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fields:first-of-type {
+  border-top: 0;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.label {
+  text-align: right;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.value a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.value a:hover {
+  color: var(--accent, #0a84ff);
+}
+
+.role {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+}
+
+.role b {
   font-weight: 600;
 }
 
-.actionLabel {
-  font-size: 9px;
-  margin-top: 4px;
-  color: var(--text-secondary);
-  text-transform: lowercase;
+.role i {
+  flex-basis: 100%;
+  font-style: normal;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.infoList {
-  width: 100%;
-  max-width: 420px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+:global(html[data-appearance='light']) .contacts {
+  background: #fff;
+  color: #1d1d1f;
 }
 
-.infoRow,
-.infoRowStatic {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  text-decoration: none;
-  text-align: left;
-  transition: background 150ms ease;
+:global(html[data-appearance='light']) .list {
+  background: #f5f5f7;
+  border-right-color: rgba(0, 0, 0, 0.08);
 }
 
-.infoRow:hover {
-  background: rgba(10, 132, 255, 0.08);
+:global(html[data-appearance='light']) .group,
+:global(html[data-appearance='light']) .label,
+:global(html[data-appearance='light']) .job,
+:global(html[data-appearance='light']) .role i {
+  color: rgba(0, 0, 0, 0.45);
 }
 
-.infoLabel {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: lowercase;
+:global(html[data-appearance='light']) .fields {
+  border-top-color: rgba(0, 0, 0, 0.08);
 }
 
-.infoValue {
-  font-size: 15px;
-  color: #fff;
-  word-break: break-word;
+:global(html[data-appearance='light']) .actionDot {
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.infoValuePlain {
-  font-size: 15px;
-  color: #fff;
-}
-
-.cta {
-  margin-top: 24px;
-  font-size: 13px;
-  font-style: italic;
-  color: var(--accent);
-  max-width: 360px;
-  line-height: 1.5;
+@media (max-width: 600px) {
+  .contacts {
+    grid-template-columns: 1fr;
+  }
+  .list {
+    display: none;
+  }
+  .card {
+    padding: 20px;
+  }
 }

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
 export function usePetState() {
-  // Kerning, the desktop cat, is home when you arrive.
+  // Toothless, the desktop cat, is home when you arrive.
   const [petVisible, setPetVisible] = useState(true);
   const [petCharacter, setPetCharacter] = useState('cat');
 

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import { createCat } from './catEngine.js';
-import styles from './KerningCat.module.css';
+import styles from './ToothlessCat.module.css';
 
-// Kerning, the desktop cat (after the desktop pets of the early 2000s, like
+// Toothless, the desktop cat (after the desktop pets of the early 2000s, like
 // MyFelix). He is drawn and moved by catEngine.js; this places his canvas,
 // the invisible handle you pick him up by, his speech and his menu.
-export default function KerningCat() {
+export default function ToothlessCat() {
   const { petVisible, togglePet } = useOS();
   const canvasRef = useRef(null);
   const hitRef = useRef(null);
@@ -66,7 +66,7 @@ export default function KerningCat() {
         className={styles.hit}
         role="button"
         tabIndex={0}
-        aria-label="Kerning, the desktop cat. Click to stroke him, drag to pick him up and throw him, right-click for more."
+        aria-label="Toothless, the desktop cat. Click to stroke him, drag to pick him up and throw him, right-click for more."
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           e.preventDefault();
@@ -82,7 +82,7 @@ export default function KerningCat() {
       </div>
       {menu && (
         <div className={styles.menu} style={{ left: menu.x, top: menu.y }} onPointerDown={(e) => e.stopPropagation()} role="menu">
-          <b className={styles.menuHead}>Kerning</b>
+          <b className={styles.menuHead}>Toothless</b>
           <button type="button" role="menuitem" onClick={pick(() => engine.current?.stroke())}>
             Stroke him
           </button>
@@ -100,7 +100,7 @@ export default function KerningCat() {
           </button>
           <i className={styles.sep} />
           <button type="button" role="menuitem" onClick={pick(togglePet)}>
-            Hide Kerning
+            Hide Toothless
           </button>
         </div>
       )}

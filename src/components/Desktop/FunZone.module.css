@@ -1,8 +1,73 @@
+/* Toothless's castle: a cat tree in light oak, sisal and charcoal felt. */
 .funZone {
   position: absolute;
-  bottom: calc(var(--dock-height) + 12px);
-  left: 16px;
+  bottom: calc(var(--dock-height) + 10px);
+  left: 18px;
   z-index: 2;
+}
+
+.post {
+  position: absolute;
+  border-radius: 5px;
+  /* Wound sisal rope. */
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 0.22), transparent 30%, rgb(255 255 255 / 0.12) 55%, rgb(0 0 0 / 0.25)),
+    repeating-linear-gradient(-14deg, #d9c49c 0 2px, #b89c70 2px 4px);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+}
+
+/* A shelf: oak edge, felt on top. */
+.platform,
+.roof {
+  position: absolute;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(#55525a 0 4px, #c9ad84 4px, #a98a60);
+  box-shadow: 0 6px 10px -4px rgb(0 0 0 / 0.45);
+}
+
+.condo {
+  position: absolute;
+  border-radius: 14px 14px 6px 6px;
+  background: linear-gradient(#45424a, #36343b);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05), 0 8px 18px rgb(0 0 0 / 0.35);
+}
+
+.roof {
+  left: -4px;
+  right: -4px;
+  top: -6px;
+}
+
+.door {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  translate: -50% 0;
+  background: radial-gradient(circle at 50% 35%, #1c1b20, #0d0c10);
+  box-shadow: inset 0 3px 8px rgb(0 0 0 / 0.7), 0 0 0 3px #4d4a52;
+}
+
+/* The floor just inside the door: his bed. */
+.condoFloor {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: 50px;
+  height: 8px;
+  translate: -50% 0;
+}
+
+/* The cushion on top. */
+.bed {
+  position: absolute;
+  height: 18px;
+  border-radius: 12px 12px 8px 8px;
+  background: linear-gradient(#ece2d2, #cbbca6);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.12), 0 6px 10px -4px rgb(0 0 0 / 0.45);
 }
 
 .iconButton {
@@ -10,9 +75,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  width: 72px;
-  padding: 6px 4px;
+  gap: 4px;
+  width: 68px;
+  padding: 4px 2px;
   border-radius: 8px;
   border: 2px solid transparent;
   background: transparent;
@@ -27,17 +92,9 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-.iconButton:focus {
-  outline: none;
-}
-
 .iconButton:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.iconButton:hover {
-  transform: translateY(-2px);
 }
 
 .iconSelected {
@@ -46,8 +103,8 @@
 }
 
 .iconGraphic {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,7 +114,7 @@
 .iconLabel {
   font-size: 11px;
   line-height: 1.2;
-  word-break: break-word;
+  white-space: nowrap;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
