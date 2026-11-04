@@ -40,7 +40,7 @@ const APP_REGISTRY = {
   folder: { title: 'untitled folder', component: EmptyFolder, size: { width: 560, height: 360 } },
   bubbleshooter: { title: 'Bubble Shooter', component: BubbleShooter, size: { width: 480, height: 640 } },
   systempreferences: {
-    title: 'System Preferences',
+    title: 'System Settings',
     component: SystemPreferences,
     size: { width: 820, height: 560 },
   },

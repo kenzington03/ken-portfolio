@@ -2,14 +2,11 @@
   position: absolute;
   bottom: calc(var(--dock-height) + 12px);
   left: 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 4px;
   z-index: 2;
 }
 
 .iconButton {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,7 +19,6 @@
   color: var(--text-primary);
   text-align: center;
   transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
-  position: relative;
   outline: none;
 }
 

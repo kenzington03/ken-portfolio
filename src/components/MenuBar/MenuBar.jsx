@@ -14,7 +14,7 @@ const APP_LABELS = {
   projectviewer: 'Project',
   trash: 'Trash',
   claude: 'Claude, Ask me about Ken',
-  systempreferences: 'System Preferences',
+  systempreferences: 'System Settings',
 };
 
 export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }) {
