@@ -33,6 +33,7 @@ const MENU_GLYPHS = {
   tidy: 'M2.5 3h3v3h-3zM6.5 3h3v3h-3zM10.5 3h3v3h-3zM2.5 7.5h3v3h-3zM6.5 7.5h3v3h-3z',
   moon: 'M10 2.2A6 6 0 1 0 13.8 10 4.8 4.8 0 0 1 10 2.2z',
   start: 'M3 8a5 5 0 1 0 1.5-3.6M3 2.5V5h2.5',
+  trash: 'M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.7 9h5.6l.7-9',
 };
 
 function MenuGlyph({ name }) {
@@ -194,7 +195,39 @@ export default function Desktop() {
     saveStoredPositions({});
   };
 
+  // A folder made here can go: right-click it (or select it and press
+  // Delete) for Move to Trash.
+  const trashFolder = (id) => {
+    setFolders((f) => f.filter((x) => x.id !== id));
+    setSelected(null);
+    setContextMenu(null);
+  };
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.key === 'Backspace' || e.key === 'Delete') && selected?.startsWith('folder-') && !e.target.closest('input, textarea')) trashFolder(selected);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+  // An open menu goes the moment anything else is clicked, anywhere.
+  const menuRef = useRef(null);
+  useEffect(() => {
+    if (!contextMenu) return undefined;
+    const close = (e) => {
+      if (!menuRef.current?.contains(e.target)) setContextMenu(null);
+    };
+    window.addEventListener('pointerdown', close, true);
+    return () => window.removeEventListener('pointerdown', close, true);
+  }, [contextMenu]);
+
   const onContextMenu = (e) => {
+    const icon = e.target.closest('[data-icon]');
+    if (icon?.dataset.icon.startsWith('folder-')) {
+      e.preventDefault();
+      setSelected(icon.dataset.icon);
+      setContextMenu({ x: e.clientX, y: e.clientY, folder: icon.dataset.icon });
+      return;
+    }
     if (e.target.closest('button')) return;
     e.preventDefault();
     // Kept on screen, like the Mac's own.
@@ -243,10 +276,32 @@ export default function Desktop() {
       </div>
       {contextMenu && (
         <div
+          ref={menuRef}
           className={styles.contextMenu}
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
+          {contextMenu.folder ? (
+            <>
+              <button
+                type="button"
+                className={styles.contextItem}
+                onClick={fromMenu(() => {
+                  const f = folders.find((x) => x.id === contextMenu.folder);
+                  if (f) launchApp('folder', { title: f.label });
+                })}
+              >
+                <MenuGlyph name="folder" />
+                Open
+              </button>
+              <div className={styles.contextSep} />
+              <button type="button" className={styles.contextItem} onClick={() => trashFolder(contextMenu.folder)}>
+                <MenuGlyph name="trash" />
+                Move to Trash
+              </button>
+            </>
+          ) : (
+          <>
           <button type="button" className={styles.contextItem} onClick={fromMenu(newFolder)}>
             <MenuGlyph name="folder" />
             New Folder
@@ -283,6 +338,8 @@ export default function Desktop() {
             <MenuGlyph name="start" />
             Back to Start
           </button>
+          </>
+          )}
         </div>
       )}
       <div className={styles.windows}>

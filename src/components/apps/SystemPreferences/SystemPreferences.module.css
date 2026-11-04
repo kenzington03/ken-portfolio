@@ -1,128 +1,341 @@
-.prefs {
+/* System Settings (macOS 26): a translucent sidebar, a page of grouped,
+   rounded rows. Tokens follow the OS (light or dark). */
+.settings {
   display: flex;
   height: 100%;
-  min-height: 320px;
+  color: var(--text-primary);
+  font: 13px/1.3 -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
 }
 
-.nav {
-  width: 140px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.16);
-  border-right: 1px solid var(--glass-border);
+.sidebar {
+  width: 230px;
+  flex: none;
+  padding: 10px 10px 16px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-secondary) 55%, transparent);
 }
 
-.navBtn {
-  display: block;
+.search {
   width: 100%;
-  text-align: left;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  color: var(--text-primary);
+  font: inherit;
+  outline: none;
 }
 
-.navBtnActive {
-  background: var(--accent-muted);
-  color: var(--accent);
+.search:focus {
+  box-shadow: 0 0 0 3px var(--accent-muted);
 }
 
-.panel {
-  flex: 1;
-  padding: 16px 20px;
-  overflow: auto;
-}
-
-.panel h2 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.aboutText {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.wallpapers {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.account {
+  display: flex;
+  align-items: center;
   gap: 10px;
-}
-
-.wallOption {
-  aspect-ratio: 16/10;
-  border-radius: var(--radius-md);
-  border: 2px solid transparent;
-  cursor: pointer;
-  overflow: hidden;
-  position: relative;
-  padding: 0;
-  background: #0a0a0a;
-}
-
-.wallOption:hover {
-  border-color: var(--border-strong);
-}
-
-.wallSelected {
-  border-color: var(--accent);
-}
-
-.wallThumbImg {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  margin: 12px 0 8px;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.account img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.account b {
   display: block;
+  font-size: 13px;
 }
 
-.wallThumbCss {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.thumb_default {
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(10, 132, 255, 0.15), transparent),
-    linear-gradient(160deg, #0a0a0a, #121212);
-}
-
-.thumb_aurora {
-  background:
-    radial-gradient(circle at 30% 40%, rgba(10, 132, 255, 0.35), transparent 50%),
-    linear-gradient(180deg, #0a0a0a, #141820);
-}
-
-.wallLabel {
-  position: absolute;
-  bottom: 6px;
-  left: 8px;
+.account small {
+  color: var(--text-secondary);
   font-size: 11px;
-  font-weight: 500;
-  text-shadow: 0 1px 4px #000;
+}
+
+.navGroup {
+  display: grid;
+  gap: 1px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.navOn {
+  background: var(--accent);
   color: #fff;
 }
 
-.thumb_studio {
-  background:
-    radial-gradient(60% 60% at 80% 20%, rgb(255 214 170 / 0.8), transparent 70%),
-    linear-gradient(160deg, #f4ede2, #ead9c6);
+.glyph {
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 5px;
 }
 
-.thumb_poster {
-  position: relative;
+.glyph svg {
+  width: 72%;
+  height: 72%;
+  fill: #fff;
+}
+
+.page {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 24px 28px;
+  overflow-y: auto;
+}
+
+.page h2 {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.page h3 {
+  margin: 18px 0 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.group {
   overflow: hidden;
-  background: #ededea;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  box-shadow: inset 0 0 0 0.5px var(--border);
 }
 
-.thumb_poster::after {
-  content: 'KEN';
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 12px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowText small {
+  display: block;
+  margin-top: 1px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.rowControl {
+  display: flex;
+  align-items: center;
+}
+
+/* The switch: the accent when on. */
+.toggle {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--text-primary) 18%, transparent);
+  transition: background-color 180ms ease;
+}
+
+.toggle i {
   position: absolute;
-  left: -2px;
-  bottom: -8px;
-  font: 900 40px/0.8 'Big Shoulders', sans-serif;
-  color: #e8462c;
-  text-shadow: 1px 1px 0 #16234a;
+  left: 2px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  transition: transform 200ms cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+.toggleOn {
+  background: var(--accent);
+}
+
+.toggleOn i {
+  transform: translateX(16px);
+}
+
+.slider {
+  width: 200px;
+  accent-color: var(--accent);
+}
+
+.check {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.lock {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.dotOn {
+  background: #30d158;
+}
+
+.about {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.about b {
+  font-size: 18px;
+}
+
+.about span {
+  color: var(--text-secondary);
+}
+
+.mac {
+  width: 120px;
+  height: 76px;
+  margin-bottom: 6px;
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(180deg, #2b2b33, #121216) padding-box;
+  box-shadow: inset 0 0 0 4px #3a3a40, 0 12px 0 -6px #9a9aa2;
+}
+
+.modes {
+  display: flex;
+  gap: 12px;
+}
+
+.mode {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 11px;
+}
+
+.mode i {
+  width: 68px;
+  height: 44px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+.modeOn {
+  color: var(--text-primary);
+}
+
+.modeOn i {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.mode_light {
+  background: linear-gradient(180deg, #e6e6ea 0 22%, #fff 22%);
+}
+
+.mode_dark {
+  background: linear-gradient(180deg, #3a3a3e 0 22%, #1c1c1e 22%);
+}
+
+.accents {
+  display: flex;
+  gap: 7px;
+}
+
+.accent {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+}
+
+.accentOn {
+  box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 3.5px currentColor;
+  color: var(--text-primary);
+}
+
+.walls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.wall {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 11px;
+  text-align: center;
+}
+
+.wall img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.wallOn img {
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+.button {
+  margin-top: 14px;
+  height: 26px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
 }

@@ -4,7 +4,20 @@ import { useSyncExternalStore } from 'react';
 // Focus, the display's brightness and light or dark. Shared by the menu bar,
 // Control Center and the desktop, and kept between visits.
 const KEY = 'ken:system';
-const DEFAULTS = { wifi: true, bluetooth: true, airdrop: false, focus: false, brightness: 1, appearance: 'dark' };
+const DEFAULTS = {
+  wifi: true,
+  bluetooth: true,
+  airdrop: false,
+  focus: false,
+  brightness: 1,
+  appearance: 'dark',
+  accent: '#0a84ff',
+  nightShift: false,
+  volume: 0.6,
+  notifications: true,
+  previews: true,
+  dockMagnify: true,
+};
 
 function load() {
   try {
@@ -19,7 +32,12 @@ const listeners = new Set();
 
 function apply() {
   if (typeof document === 'undefined') return;
-  document.documentElement.dataset.appearance = state.appearance;
+  const root = document.documentElement;
+  root.dataset.appearance = state.appearance;
+  // The accent colour, as in System Settings: buttons, selections, toggles.
+  root.style.setProperty('--accent', state.accent);
+  root.style.setProperty('--accent-muted', `${state.accent}33`);
+  root.classList.toggle('night-shift', state.nightShift);
 }
 apply();
 

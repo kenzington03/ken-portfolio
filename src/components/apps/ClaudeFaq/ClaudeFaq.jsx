@@ -28,7 +28,9 @@ export default function ClaudeFaq() {
 
     setTimeout(() => {
       const reply = answer ?? getClaudeResponse(trimmed);
-      setMessages((prev) => [...prev, { role: 'claude', text: reply }]);
+      // A reply is words, or words with buttons (to reach Ken).
+      const msg = typeof reply === 'string' ? { text: reply } : reply;
+      setMessages((prev) => [...prev, { role: 'claude', ...msg }]);
       setTyping(false);
     }, 450);
   };
@@ -88,6 +90,21 @@ export default function ClaudeFaq() {
             >
               <div className={msg.role === 'user' ? styles.userBubble : styles.claudeBubble}>
                 {msg.text}
+                {msg.actions && (
+                  <span className={styles.actions}>
+                    {msg.actions.map((a) =>
+                      a.href ? (
+                        <a key={a.label} className={styles.action} href={a.href}>
+                          {a.label}
+                        </a>
+                      ) : (
+                        <button key={a.label} type="button" className={styles.action} onClick={() => window.dispatchEvent(new CustomEvent(a.event))}>
+                          {a.label}
+                        </button>
+                      )
+                    )}
+                  </span>
+                )}
               </div>
             </div>
           ))}

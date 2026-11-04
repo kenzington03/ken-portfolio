@@ -179,12 +179,21 @@ function tryCoinOrDice(text) {
 // about him quickly. Facts only; anything not known is not invented.
 // The basics, the things anyone might ask first. Personal details stop at
 // what Ken is happy to share; AGE and PRONOUNS are his to fill in.
+// Ken can fill AGE in; PRONOUNS follow how the site already speaks of him.
 const AGE = null; // e.g. 29
-const PRONOUNS = null; // e.g. 'he/him'
+const PRONOUNS = 'he/him';
+// Where an answer is Ken's to give, or a visitor wants him: straight to him.
+export const CONTACT_ACTIONS = [
+  { label: 'Email Ken', href: 'mailto:kennethnathanael@gmail.com' },
+  { label: 'Call Ken', href: 'tel:+917204662258' },
+  { label: 'Start a brief', event: 'ken:brief' },
+];
 const BASICS = {
   name: "Kenneth Nathanael. Most people call him Ken.",
-  age: AGE ? `He's ${AGE}.` : "He's been designing professionally since 2015, so about ten years in.",
-  gender: PRONOUNS ? `Ken uses ${PRONOUNS}.` : "Best to ask Ken directly; he's easy to reach (kennethnathanael@gmail.com).",
+  age: AGE
+    ? `He's ${AGE}.`
+    : { text: "That one's Ken's to tell. He's been designing professionally since 2015, about ten years in. Ask him yourself:", actions: CONTACT_ACTIONS },
+  gender: `Ken's a man; he goes by ${PRONOUNS}.`,
   education: "An Advanced Diploma in Animation and VFX from Wings Creation College of Animation and Media, Bangalore (2018). He's also finishing a B.Com at Sunrise College, expected 2027.",
   years: "About ten years, since 2015: brand, campaigns, video, motion and events.",
   languages: "He works in English.",
@@ -248,7 +257,7 @@ export const CLAUDE_TOPICS = [
   {
     tab: 'Contact',
     questions: [
-      { q: 'How do I reach Ken?', a: ABOUT.contact },
+      { q: 'How do I reach Ken?', a: { text: ABOUT.contact, actions: CONTACT_ACTIONS } },
       { q: 'Where is his resume?', a: ABOUT.resume },
       { q: 'Where else can I see his work?', a: ABOUT.social },
     ],
@@ -282,7 +291,7 @@ const RULES = [
   { keywords: ['motion', 'video', 'animation'], response: ABOUT.motion },
   { keywords: ['brand', 'logo', 'identity'], response: ABOUT.brands },
   { keywords: ['best work', 'look at first', 'portfolio', 'projects', 'case stud'], response: ABOUT.bestWork },
-  { keywords: ['contact', 'reach', 'email', 'phone', 'touch', 'linkedin'], response: ABOUT.contact },
+  { keywords: ['contact', 'reach', 'email', 'phone', 'call', 'touch', 'linkedin', 'hire him'], response: { text: ABOUT.contact, actions: CONTACT_ACTIONS } },
   { keywords: ['location', 'where', 'hyderabad', 'based', 'city', 'bangalore'], response: ABOUT.location },
   { keywords: ['work', 'job', 'company'], response: ABOUT.role },
   { keywords: ['who is', 'who are you', 'introduce', 'kenneth', 'tell me about him', 'tell me about ken', 'about ken'], response: ABOUT.who },
@@ -323,7 +332,8 @@ export function getClaudeResponse(input) {
       return typeof rule.response === 'function' ? rule.response() : rule.response;
     }
   }
-  return pick(DEFAULT_RESPONSES);
+  // Not something I know: Ken does.
+  return { text: `${pick(DEFAULT_RESPONSES)} Or ask Ken directly:`, actions: CONTACT_ACTIONS };
 }
 
 export const CLAUDE_GREETING =

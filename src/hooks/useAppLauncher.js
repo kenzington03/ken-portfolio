@@ -42,7 +42,7 @@ const APP_REGISTRY = {
   systempreferences: {
     title: 'System Preferences',
     component: SystemPreferences,
-    size: { width: 560, height: 420 },
+    size: { width: 820, height: 560 },
   },
 };
 

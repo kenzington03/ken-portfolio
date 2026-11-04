@@ -3,6 +3,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { getOriginFromEvent } from '../../utils/animationOrigin.js';
 import { PORTFOLIO_ICON_SRC } from '../../data/funZone.jsx';
 import { useOS } from '../../context/OSContext.jsx';
+import { useSystemSettings } from '../../hooks/useSystemSettings.js';
 import DockIcon from './DockIcon.jsx';
 import IllustratorIcon from './IllustratorIcon.jsx';
 import PhotoshopIcon from './PhotoshopIcon.jsx';
@@ -91,7 +92,7 @@ const BASE_SIZE = 48;
 const MAX_SIZE = 76;
 const NEIGHBOR_SIZE = 58;
 
-function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, onMenu, showPulse, showNudge }) {
+function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, onMenu, showPulse, showNudge, magnify = true }) {
   const ref = useRef(null);
   const hold = useRef(0);
   const held = useRef(false);
@@ -108,7 +109,7 @@ function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, onMenu, showPulse,
   const sizeSync = useTransform(
     distance,
     [-140, -70, 0, 70, 140],
-    [BASE_SIZE, NEIGHBOR_SIZE, MAX_SIZE, NEIGHBOR_SIZE, BASE_SIZE]
+    magnify ? [BASE_SIZE, NEIGHBOR_SIZE, MAX_SIZE, NEIGHBOR_SIZE, BASE_SIZE] : [BASE_SIZE, BASE_SIZE, BASE_SIZE, BASE_SIZE, BASE_SIZE]
   );
   const size = useSpring(sizeSync, SPRING);
   const radius = useTransform(size, [BASE_SIZE, MAX_SIZE], [12, 18]);
@@ -163,6 +164,7 @@ function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, onMenu, showPulse,
 export default function Dock() {
   const { windows, launchFromDock, launchApp, closeWindow, minimizeWindow, focusWindow, portfolioPulseActive, showEasterEggNudge } = useOS();
   const [activeSplash, setActiveSplash] = useState(null);
+  const sys = useSystemSettings();
   // The right-click (or long-press) menu over an icon, as on the Mac.
   const [menu, setMenu] = useState(null);
   useEffect(() => {
@@ -245,6 +247,7 @@ export default function Dock() {
       isRunning={item.appId ? runningApps.has(item.appId) : false}
       onLaunch={(e) => handleLaunch(item, e)}
       onMenu={(e) => openMenu(item, e)}
+      magnify={sys.dockMagnify}
       showPulse={Boolean(item.pulse && portfolioPulseActive)}
       showNudge={Boolean(item.nudge && showEasterEggNudge)}
     />

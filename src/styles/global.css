@@ -131,3 +131,14 @@ a:hover {
   background: var(--accent-muted);
   color: var(--text-primary);
 }
+
+/* Night Shift (System Settings ▸ Displays): the whole screen, warmer. */
+html.night-shift body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: rgb(255 140 40 / 0.14);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
