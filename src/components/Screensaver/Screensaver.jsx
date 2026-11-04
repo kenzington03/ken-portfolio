@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import { readPalette } from '../Journey/C/palette.js';
 import styles from './Screensaver.module.css';
@@ -569,7 +569,8 @@ function Tides({ reduced }) {
 
 export default function Screensaver() {
   const { screensaverActive, setScreensaverActive, unlock } = useOS();
-  const [saver] = useState(pickSaver);
+  // Read each time it starts, so the one chosen in Settings is the one shown.
+  const saver = useMemo(() => (screensaverActive ? pickSaver() : null), [screensaverActive]);
   const [time, setTime] = useState(() => formatClock(new Date()));
 
   useEffect(() => {
@@ -606,11 +607,24 @@ export default function Screensaver() {
   }, [screensaverActive]);
 
   const since = useRef(0);
+  const from = useRef(null);
   useEffect(() => {
-    if (screensaverActive) since.current = performance.now();
+    if (screensaverActive) {
+      since.current = performance.now();
+      from.current = null;
+    }
   }, [screensaverActive]);
-  const dismiss = () => {
-    if (performance.now() - since.current > 900) setScreensaverActive(false);
+  // A real move wakes it, not the twitch of the hand that just clicked Preview.
+  const dismiss = (e) => {
+    if (performance.now() - since.current < 900) return;
+    if (e.type === 'mousemove') {
+      if (!from.current) {
+        from.current = [e.clientX, e.clientY];
+        return;
+      }
+      if (Math.hypot(e.clientX - from.current[0], e.clientY - from.current[1]) < 12) return;
+    }
+    setScreensaverActive(false);
   };
 
   // Any sign of life wakes it, keys and scrolls included (the overlay itself

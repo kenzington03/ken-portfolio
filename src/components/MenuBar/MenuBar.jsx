@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
+import { useBattery } from '../../hooks/useBattery.js';
 import { useSystemSettings } from '../../hooks/useSystemSettings.js';
 import ControlCenter, { ControlCenterGlyph } from './ControlCenter.jsx';
 import styles from './MenuBar.module.css';
@@ -16,6 +17,25 @@ const APP_LABELS = {
   claude: 'Claude, Ask me about Ken',
   systempreferences: 'System Settings',
 };
+
+/** The battery, the visitor's own where the browser shares it. */
+function BatteryIcon() {
+  const { level, charging } = useBattery();
+  const pct = Math.round(level * 100);
+  const low = pct <= 20 && !charging;
+  return (
+    <span className={styles.battery} title={`Battery ${pct}%${charging ? ', charging' : ''}`} aria-hidden>
+      <span className={styles.batteryBody}>
+        <span className={styles.batteryFill} style={{ '--level': `${pct}%`, '--charge': low ? '#ff453a' : '#0a84ff' }} />
+      </span>
+      <span className={styles.batteryCap} />
+      <span className={styles.batteryPct}>
+        {charging && pct < 100 ? '⚡︎' : ''}
+        {pct}%
+      </span>
+    </span>
+  );
+}
 
 export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }) {
   const { windows, activeWindowId, launchApp } = useOS();
@@ -110,13 +130,7 @@ export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }
           <span className={styles.wifiBar} />
           <span className={styles.wifiBar} />
         </span>
-        <span className={styles.battery} title="Battery" aria-hidden>
-          <span className={styles.batteryBody}>
-            <span className={styles.batteryFill} />
-          </span>
-          <span className={styles.batteryCap} />
-          <span className={styles.batteryPct}>100%</span>
-        </span>
+        <BatteryIcon />
         {onOpenAchievements && (
           <button
             type="button"

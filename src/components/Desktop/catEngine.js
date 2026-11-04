@@ -275,6 +275,8 @@ export function createCat({ canvas, onSay }) {
   const P = { ...POSES.stand };
   const F = { nf: [12, 0], xf: [9.5, 0], nh: [-11, 0], xh: [-13.5, 0] };
   const ta = Array.from({ length: TAIL_N }, (_, i) => -1.95 + i * 0.02);
+  const tv = new Array(TAIL_N).fill(0);
+  let R = null; // this frame's rig
   const sitAnim = lottiePlayer(SIT, { colour: ([r, g2, b]) => (r > 0.9 && g2 > 0.6 && b < 0.1 ? EYE : null) });
   let windows = readWindows();
   let surfaces = readSurfaces(windows);

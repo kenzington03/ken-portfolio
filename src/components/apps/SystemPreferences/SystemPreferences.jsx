@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useOS } from '../../../context/OSContext.jsx';
 import { DESKTOP_BACKGROUNDS } from '../../../data/wallpapers.js';
+import { useBattery } from '../../../hooks/useBattery.js';
 import { setSystem, useSystemSettings } from '../../../hooks/useSystemSettings.js';
 import { wallpaperFor } from '../../MenuBar/ControlCenter.jsx';
 import styles from './SystemPreferences.module.css';
@@ -75,6 +76,7 @@ function Glyph({ id, size = 20 }) {
 
 export default function SystemPreferences({ data }) {
   const { wallpaper, setWallpaper, setScreensaverActive, unlock, petVisible, togglePet } = useOS();
+  const battery = useBattery();
   const sys = useSystemSettings();
   const [section, setSection] = useState(data?.section ?? 'wifi');
   const [query, setQuery] = useState('');
@@ -307,7 +309,7 @@ export default function SystemPreferences({ data }) {
       case 'battery':
         return (
           <div className={styles.group}>
-            <Row label="Battery level" sub="100% · Power adapter" />
+            <Row label="Battery level" sub={`${Math.round(battery.level * 100)}% · ${battery.charging ? 'Power adapter' : 'Battery'}`} />
             <Row label="Low Power Mode" sub="Never" />
             <Row label="Battery health" sub="Normal" />
           </div>

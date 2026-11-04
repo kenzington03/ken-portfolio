@@ -201,11 +201,12 @@
 
 .batteryFill {
   flex: 1;
+  /* --level and --charge come from the visitor's battery. */
   background: linear-gradient(
     90deg,
-    #0a84ff 0%,
-    #0a84ff 75%,
-    rgba(255, 255, 255, 0.15) 75%,
+    var(--charge, #0a84ff) 0%,
+    var(--charge, #0a84ff) var(--level, 100%),
+    rgba(255, 255, 255, 0.15) var(--level, 100%),
     rgba(255, 255, 255, 0.15) 100%
   );
   border-radius: 1px;
