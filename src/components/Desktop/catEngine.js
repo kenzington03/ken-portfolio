@@ -27,6 +27,9 @@
 // stretches and yawns after), gets the zoomies, bats a ball of yarn, chases
 // a mouse and, up high, watches a butterfly and swats at it.
 
+import SIT from './toothlessSit.json';
+import { lottiePlayer } from './lottieMini.js';
+
 const G = 2400; // gravity, px/s²
 const S = 1.2; // his scale: the rig is in units of 1px at S = 1
 const WALK = 58; // px/s
@@ -36,12 +39,18 @@ const MAX_UP = 250; // the highest he will jump, px
 const MAX_ACROSS = 460;
 const EDGE = 14; // how close to a surface's end he will stand
 
-const INK = '#060608';
-// His eyes: a bright green that deepens at the rim.
-const IRIS = ['#e6f9a0', '#a8de4c', '#4c8c2a'];
+const INK = '#000';
+// His eyes: green almonds with a black slit, as in the animation he sits in.
+const EYE = '#9ee05a';
+// Sitting and grooming are the animation itself ("Black cat" by PoPoF,
+// LottieFiles, Lottie Simple License): its scale on screen, the point under
+// him (his feet, the middle of his body), and where the grooming starts.
+const SIT_K = 82 / 735;
+const SIT_AT = [775, 750];
+const GROOM_AT = 97;
 const FORE = [10.5, 11]; // upper arm, forearm
 const HIND = [9, 9.5, 7]; // thigh, shin, foot (paw to hock)
-const PAW = 2.3;
+const PAW = 2;
 const TAIL_N = 14;
 const TAIL_SEG = 3.5;
 const LEASH = 150; // how far the butterfly strays before it fades
@@ -141,53 +150,6 @@ function tube(g, pts, rT, rB, roundAll) {
     g.fill();
   }
   return { top, bot };
-}
-
-const hash = (i) => {
-  const v = Math.sin(i * 12.9898 + 4.1) * 43758.5453;
-  return v - Math.floor(v);
-};
-
-/** Tufts of fur along an edge (its points in order): little spikes of
- *  varied length pointing out (out 1: left of the way the edge runs, -1:
- *  right), swept along the edge (sweep > 0 sweeps them back towards its
- *  start). The same tufts every frame, so the coat doesn't shimmer. */
-function fur(g, edge, out, len, seed, sweep = 0.5, step = 2.2) {
-  g.beginPath();
-  let k = seed;
-  for (let i = 0; i < edge.length - 1; i += 1) {
-    const [ax, ay] = edge[i];
-    const [bx, by] = edge[i + 1];
-    const dx = bx - ax;
-    const dy = by - ay;
-    const L = Math.hypot(dx, dy);
-    if (L < 0.01) continue;
-    const tx = dx / L;
-    const ty = dy / L;
-    const nx = ty * out;
-    const ny = -tx * out;
-    const n = Math.max(1, Math.round(L / step));
-    for (let j = 0; j < n; j += 1) {
-      const u = (j + 0.5) / n;
-      const px = ax + dx * u;
-      const py = ay + dy * u;
-      const h = len * (0.5 + 0.7 * hash(k));
-      k += 1;
-      const w = step * 0.85;
-      g.moveTo(px - tx * w, py - ty * w);
-      g.lineTo(px + nx * h - tx * h * sweep, py + ny * h - ty * h * sweep);
-      g.lineTo(px + tx * w * 0.45, py + ty * w * 0.45);
-    }
-  }
-  g.fill();
-}
-
-/** Points round part of an ellipse, the way its angle grows. */
-function arc(cx, cy, rx, ry, a0, a1, n = 10) {
-  return Array.from({ length: n + 1 }, (_, i) => {
-    const a = a0 + ((a1 - a0) * i) / n;
-    return [cx + Math.cos(a) * rx, cy + Math.sin(a) * ry];
-  });
 }
 
 /** The open windows, front to back, as screen rectangles with their
@@ -305,31 +267,15 @@ export function createCat({ canvas, onSay }) {
     box: [-30, 30, -60],
     layer: -1, // the stacking layer he is on (see readSurfaces)
     goal: null, // the surface he last jumped for
+    lot: 0, // how far he's into the sitting animation (0 skeleton, 1 animation)
+    lotF: 0, // its frame
     collapse: false,
     pending: null,
   };
   const P = { ...POSES.stand };
   const F = { nf: [12, 0], xf: [9.5, 0], nh: [-11, 0], xh: [-13.5, 0] };
   const ta = Array.from({ length: TAIL_N }, (_, i) => -1.95 + i * 0.02);
-  // Fine grain over the black, like a soft print.
-  const grain = document.createElement('canvas');
-  grain.width = 96;
-  grain.height = 96;
-  {
-    const gc = grain.getContext('2d');
-    const img = gc.createImageData(96, 96);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = Math.random() < 0.5 ? 0 : 255;
-      img.data[i] = v;
-      img.data[i + 1] = v;
-      img.data[i + 2] = v;
-      img.data[i + 3] = Math.random() * 255;
-    }
-    gc.putImageData(img, 0, 0);
-  }
-  let grainPattern = null;
-  const tv = new Array(TAIL_N).fill(0);
-  let R = null; // this frame's rig
+  const sitAnim = lottiePlayer(SIT, { colour: ([r, g2, b]) => (r > 0.9 && g2 > 0.6 && b < 0.1 ? EYE : null) });
   let windows = readWindows();
   let surfaces = readSurfaces(windows);
   let pointer = { x: -999, y: -999 };
@@ -400,7 +346,7 @@ export function createCat({ canvas, onSay }) {
     }
     if (r < 0.76) return set('sit', rand(4, 8));
     if (r < 0.84) return set('loaf', rand(6, 10));
-    if (r < 0.93) return set('groom', rand(3.5, 5.5));
+    if (r < 0.93) return set('groom', (sitAnim.frames - GROOM_AT) / sitAnim.fps);
     return set('sleep', rand(12, 22));
   }
 
@@ -686,7 +632,10 @@ export function createCat({ canvas, onSay }) {
         if (t > c.until) set('sit', rand(2, 4));
         break;
       default:
-        if (t > c.until) {
+        if (t > c.until && c.lot > 0.5 && c.lotF > GROOM_AT - 4 && c.lotF < sitAnim.frames - 3) {
+          // Mid-groom: he finishes washing before he does anything else.
+          c.until = t + (sitAnim.frames - c.lotF) / sitAnim.fps;
+        } else if (t > c.until) {
           if (c.mode === 'sleep') {
             // Up, a long front stretch and a yawn.
             set('stretch', 2.1);
@@ -849,8 +798,8 @@ export function createCat({ canvas, onSay }) {
       const m = 1 - u;
       spine.push([m * m * H[0] + 2 * m * u * C[0] + u * u * Sh[0], m * m * H[1] + 2 * m * u * C[1] + u * u * Sh[1]]);
       const s = Math.sin(Math.PI * u);
-      rT.push(lerp(7.6, 8.2, u) - 0.4 * s + breathe * 0.5);
-      rB.push(lerp(8.4, 9.4, u) + 1.2 * s + breathe);
+      rT.push(lerp(6.6, 7.2, u) - 0.4 * s + breathe * 0.5);
+      rB.push(lerp(7.2, 8.4, u) + 0.9 * s + breathe);
     }
     const head = [Sh[0] + P.nx, Sh[1] + P.ny + ndy];
     const Jf = [Sh[0] + 1.5, Sh[1] + 3];
@@ -943,7 +892,7 @@ export function createCat({ canvas, onSay }) {
       if (k[1] === 'f') {
         // (The paw is a ball of radius PAW resting on the ground.)
         const [ex, ey, px, py] = ik(Jf[0], Jf[1], f[0], f[1] - PAW, FORE[0], FORE[1], 1);
-        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -3) : ey], [px, py], [px + 1.4, py]], r: [4.4, 2.9, 2.4, PAW] };
+        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -3) : ey], [px, py], [px + 1.4, py]], r: [3.8, 2.5, 2.1, PAW] };
       } else {
         let mx = lerp(-2.6, -7.5, P.hock);
         let my = lerp(-6.6, -2, P.hock);
@@ -961,7 +910,7 @@ export function createCat({ canvas, onSay }) {
         ky = lerp(ky, Jh[1] - 1, P.hock);
         if (grounded) ky = Math.min(ky, -3);
         const paw = [qx - mx, qy - my];
-        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.4, paw[1]]], r: [6, 3.4, 2.5, 2.3, PAW] };
+        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.4, paw[1]]], r: [5.2, 3, 2.2, 2, PAW] };
       }
     });
 
@@ -1017,10 +966,10 @@ export function createCat({ canvas, onSay }) {
       }
     }
     const tail = [[H[0] - dx * 5 + nx * 3.4, H[1] - dy * 5 + ny * 3.4]];
-    const tailR = [2.3];
+    const tailR = [2.2];
     for (let i = 0; i < TAIL_N; i += 1) {
       const p = tail[i];
-      const r = lerp(2.3, 1.5, (i + 1) / TAIL_N);
+      const r = lerp(2.2, 1.4, (i + 1) / TAIL_N);
       const q = [p[0] + Math.cos(ta[i]) * TAIL_SEG, p[1] + Math.sin(ta[i]) * TAIL_SEG];
       if (grounded) q[1] = Math.min(q[1], -r);
       tail.push(q);
@@ -1115,6 +1064,14 @@ export function createCat({ canvas, onSay }) {
       mouth: Math.max(c.mouth * 0.5, Math.sin(Math.PI * (1 - c.yawn)) * (c.yawn > 0 ? 1 : 0)),
     };
     c.box = [Math.min(H[0] - 10, head[0] - 14), Math.max(Sh[0] + 10, head[0] + 14), head[1] - 24];
+
+    // Sitting (once he's down) and grooming are the animation: crossfade in,
+    // play it (grooming from its paw-licking), crossfade out when he gets up.
+    const seated = (c.mode === 'sit' || c.mode === 'groom') && grounded && P.haunch > 0.85;
+    if (seated && c.lot < 0.02) c.lotF = c.mode === 'groom' ? GROOM_AT : 0;
+    c.lot = approach(c.lot, seated ? 1 : 0, seated ? 9 : 16, dt);
+    if (c.lot > 0.01) c.lotF = (c.lotF + dt * sitAnim.fps) % sitAnim.frames;
+    if (c.lot > 0.5) c.box = [-26 / S, 26 / S, -84 / S];
   }
 
   // ---------- Drawing ----------
@@ -1144,71 +1101,41 @@ export function createCat({ canvas, onSay }) {
   }
 
   // His head, front view (x towards the side he faces); c.tn turns it from
-  // facing you (0) towards profile (1). Round, with tall ears and soft fur
-  // at the cheeks.
+  // facing you (0) towards profile (1). Flat black like the animation he sits
+  // in: a small rounded head, tall ears, almond eyes.
   function headShape() {
     const tn = c.tn;
     const fx = tn * 4;
-    const cx = fx * 0.3;
     g.beginPath();
-    g.ellipse(cx, -0.5, 12, 10.6, 0, 0, Math.PI * 2);
+    g.ellipse(fx * 0.3, -0.5, 10.6, 9.4, 0, 0, Math.PI * 2);
     g.fill();
-    // A little fuller below: the muzzle and cheeks.
     g.beginPath();
-    g.ellipse(fx * 0.6, 3.6, 9.6 - tn * 1.2, 6.6, 0, 0, Math.PI * 2);
+    g.ellipse(fx * 0.6, 3.4, 8 - tn * 1.2, 5.6, 0, 0, Math.PI * 2);
     g.fill();
     earPath(...earPts(-1));
     earPath(...earPts(1));
-    // Fur: tufts at the cheeks, a few on the crown.
-    fur(g, arc(cx, -0.5, 12, 10.6, -0.25, 1.15, 10), 1, 1.9, 11, -0.8, 1.7);
-    fur(g, arc(cx, -0.5, 12 - tn * 2, 10.6, Math.PI - 1.15, Math.PI + 0.25, 10), 1, 1.9, 23, 0.8, 1.7);
-    fur(g, arc(cx, -0.5, 12, 10.6, -2.1, -1.05, 6), 1, 0.9, 37, 0.4, 1.6);
   }
 
-  /** A big round eye: green iris, a tall pupil, a bright catchlight. */
-  function eye(ex, ey, sx, side, open, happy) {
-    const rx = 4.7 * sx;
-    const ry = 5.1;
-    if (open < 0.14) {
-      g.strokeStyle = 'rgba(255,255,255,0.45)';
-      g.lineWidth = 0.8;
-      g.lineCap = 'round';
-      g.beginPath();
-      if (happy) g.arc(ex, ey + 2.4, rx * 0.8, Math.PI * 1.15, Math.PI * 1.85);
-      else g.arc(ex, ey - 1, rx * 0.8, Math.PI * 0.15, Math.PI * 0.85);
-      g.stroke();
-      return;
-    }
+  /** An almond eye, its outer corner (side) lifted: green, a black slit. */
+  function eye(ex, ey, sx, side, open) {
+    if (open < 0.14) return; // shut: just black, like the rest of him
+    const rx = 3.6 * sx;
+    const ry = 2.5;
+    const lift = 0.9;
     g.save();
-    g.translate(ex, ey + ry * 0.4);
+    g.translate(ex, ey);
     g.scale(1, open);
-    g.translate(0, -ry * 0.4);
     g.beginPath();
-    g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-    const gr = g.createRadialGradient(0, ry * 0.3, 0.4, 0, 0, ry * 1.1);
-    gr.addColorStop(0, IRIS[0]);
-    gr.addColorStop(0.55, IRIS[1]);
-    gr.addColorStop(1, IRIS[2]);
-    g.fillStyle = gr;
+    g.moveTo(-rx * side, 0.5);
+    g.bezierCurveTo(-rx * 0.4 * side, -ry * 1.3, rx * 0.5 * side, -ry * 1.3 - lift, rx * side, -lift);
+    g.bezierCurveTo(rx * 0.45 * side, ry * 1.2 - lift * 0.5, -rx * 0.5 * side, ry * 1.2, -rx * side, 0.5);
+    g.closePath();
+    g.fillStyle = EYE;
     g.fill();
     g.clip();
-    g.fillStyle = '#050506';
+    g.fillStyle = INK;
     g.beginPath();
-    g.ellipse(c.lookX * 1.4 * sx, c.lookY * 1.1, rx * 0.5 * c.pupil, ry * 0.9, 0, 0, Math.PI * 2);
-    g.fill();
-    // A soft shade under the upper lid.
-    const lid = g.createLinearGradient(0, -ry, 0, -ry * 0.2);
-    lid.addColorStop(0, 'rgba(0,0,0,0.35)');
-    lid.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = lid;
-    g.fillRect(-rx, -ry, rx * 2, ry);
-    g.fillStyle = '#fff';
-    g.beginPath();
-    g.arc(side * rx * 0.25 + c.lookX * 0.4, -ry * 0.35, 1.35, 0, Math.PI * 2);
-    g.fill();
-    g.fillStyle = 'rgba(255,255,255,0.55)';
-    g.beginPath();
-    g.arc(-side * rx * 0.32, ry * 0.42, 0.55, 0, Math.PI * 2);
+    g.ellipse(c.lookX * 1.3 * sx, c.lookY * 0.6, rx * 0.42 * c.pupil, ry * 1.3, 0, 0, Math.PI * 2);
     g.fill();
     g.restore();
   }
@@ -1216,67 +1143,11 @@ export function createCat({ canvas, onSay }) {
   function face() {
     const tn = c.tn;
     const fx = tn * 4;
-    // Inner ears, dark with a little warmth.
-    g.fillStyle = 'rgba(78,48,58,0.75)';
-    [-1, 1].forEach((side) => {
-      const p = earPts(side);
-      const cx = (p[0][0] + p[1][0] + p[2][0]) / 3;
-      const cy = (p[0][1] + p[1][1] + p[2][1]) / 3 + 1.5;
-      earPath(...p.map(([x, y]) => [cx + (x - cx) * 0.48, cy + (y - cy) * 0.58]));
-    });
-    eye(fx - 5.4 * (1 - tn * 0.4), 0.4, 1 - tn * 0.4, -1, R.open, R.happy);
-    eye(fx + 5.4 * (1 - tn * 0.12), 0.4, 1, 1, R.open, R.happy);
-    const nx = fx * 0.95 + tn * 1.6;
-    const ny = 6;
-    // Nose and mouth: a meow, or the big yawn after a nap.
-    g.fillStyle = '#2a1b22';
-    g.beginPath();
-    g.moveTo(nx - 1.3, ny - 0.7);
-    g.lineTo(nx + 1.3, ny - 0.7);
-    g.lineTo(nx, ny + 0.6);
-    g.closePath();
-    g.fill();
-    if (R.mouth > 0.05) {
-      g.fillStyle = '#3e1420';
-      g.beginPath();
-      g.ellipse(nx, ny + 2.1 + R.mouth * 1.2, 1.3 + R.mouth, 0.5 + R.mouth * 2.3, 0, 0, Math.PI * 2);
-      g.fill();
-      if (R.mouth > 0.5) {
-        g.fillStyle = '#d9788c';
-        g.beginPath();
-        g.ellipse(nx, ny + 3.2 + R.mouth * 1.8, 1.2, 0.9, 0, 0, Math.PI * 2);
-        g.fill();
-      }
-    } else {
-      g.strokeStyle = 'rgba(255,255,255,0.16)';
-      g.lineWidth = 0.45;
-      g.lineCap = 'round';
-      g.beginPath();
-      g.moveTo(nx, ny + 0.6);
-      g.quadraticCurveTo(nx - 0.5, ny + 1.9, nx - 1.6, ny + 1.6);
-      g.moveTo(nx, ny + 0.6);
-      g.quadraticCurveTo(nx + 0.5, ny + 1.9, nx + 1.6, ny + 1.6);
-      g.stroke();
-    }
-    // Whiskers: long and pale.
-    g.strokeStyle = 'rgba(255,255,255,0.32)';
-    g.lineWidth = 0.4;
-    const far = 1 - tn * 0.5;
-    g.beginPath();
-    [
-      [3.4, 15, -1],
-      [3.6, 15.5, 1.8],
-      [3.3, 14, 4.4],
-    ].forEach(([a, b, d]) => {
-      g.moveTo(nx + a, ny + 1);
-      g.lineTo(nx + b, ny + d);
-      g.moveTo(nx - a * far, ny + 1);
-      g.lineTo(nx - b * far, ny + d);
-    });
-    g.stroke();
+    eye(fx - 4.6 * (1 - tn * 0.4), 0.6, 1 - tn * 0.4, -1, R.open);
+    eye(fx + 4.6 * (1 - tn * 0.12), 0.6, 1, 1, R.open);
   }
 
-  function drawCat(t) {
+  function drawCat() {
     // Turning round, the body foreshortens through facing you and swaps
     // sides behind the head, which turns to you and on round: a 3/4 turn.
     const sgn = c.yaw >= 0 ? 1 : -1;
@@ -1302,47 +1173,19 @@ export function createCat({ canvas, onSay }) {
       const l = R.legs[k];
       tube(g, l.pts, l.r, l.r, true);
     });
-    // The coat: soft tufts along the back and a fluffier belly and chest.
-    const body = tube(g, R.spine, R.rT, R.rB, false);
-    fur(g, body.top, 1, 1.5, 1, 1.2, 1.7);
-    fur(g, body.bot, -1, 1.9, 101, 1, 1.7);
+    tube(g, R.spine, R.rT, R.rB, false);
     if (R.haunch > 0.02) {
-      const hx = R.H[0] + 3.5;
-      const hy = Math.min(R.H[1] + 1.5, -7.5 * R.haunch);
       g.beginPath();
-      g.ellipse(hx, hy, 9.5 * R.haunch, 7.5 * R.haunch, -0.3, 0, Math.PI * 2);
+      g.ellipse(R.H[0] + 3.5, Math.min(R.H[1] + 1.5, -7.5 * R.haunch), 9.5 * R.haunch, 7.5 * R.haunch, -0.3, 0, Math.PI * 2);
       g.fill();
-      fur(g, arc(hx, hy, 9.5 * R.haunch, 7.5 * R.haunch, Math.PI * 0.7, Math.PI * 1.45, 10), 1, 1.5 * R.haunch, 201, 0.9, 1.7);
     }
-    const tl = tube(g, R.tail, R.tailR, R.tailR, true);
-    fur(g, tl.top, 1, 0.8, 301, -1.4, 1.6);
-    fur(g, tl.bot, -1, 0.8, 401, -1.4, 1.6);
-    const neck = tube(g, [[R.Sh[0] + 1, R.Sh[1] - 2], [R.head[0], R.head[1] + 4]], [6.4, 6.4], [6.8, 6.8], true);
-    fur(g, neck.bot, -1, 2.1, 501, 0.6, 1.6); // the ruff at his chest
+    tube(g, R.tail, R.tailR, R.tailR, true);
+    tube(g, [[R.Sh[0] + 1, R.Sh[1] - 2], [R.head[0], R.head[1] + 4]], [5.6, 5.6], [6, 6], true);
     g.restore();
     g.save();
     headAt();
     headShape();
-    g.restore();
-    // Pitch black, the faintest light from above, and a fine grain.
-    g.globalCompositeOperation = 'source-atop';
-    const lg = g.createLinearGradient(0, -70, 0, 4);
-    lg.addColorStop(0, '#1c1c22');
-    lg.addColorStop(1, '#040405');
-    g.fillStyle = lg;
-    g.fillRect(-150, -200, 300, 320);
-    if (!grainPattern) {
-      grainPattern = g.createPattern(grain, 'repeat');
-      grainPattern.setTransform?.(new DOMMatrix().scale(0.35)); // fine, not glitter
-    }
-    g.globalAlpha = 0.03;
-    g.fillStyle = grainPattern;
-    g.fillRect(-150, -200, 300, 320);
-    g.globalAlpha = 1;
-    g.globalCompositeOperation = 'source-over';
-    g.save();
-    headAt();
-    face(t);
+    face();
     g.restore();
   }
 
@@ -1499,8 +1342,19 @@ export function createCat({ canvas, onSay }) {
     g.translate(OX, OY);
     g.scale(S, S);
     if (c.mode === 'drag') g.rotate(c.drag.swing * c.face + Math.sin(t * 3) * 0.04);
-    drawCat(t);
+    drawCat();
+    ctx.globalAlpha = 1 - c.lot;
     ctx.drawImage(buf, c.x - OX, oy - OY, BW, BH);
+    ctx.globalAlpha = 1;
+    if (c.lot > 0.01) {
+      ctx.save();
+      ctx.globalAlpha = c.lot;
+      ctx.translate(c.x, c.y);
+      ctx.scale(c.face * SIT_K, SIT_K);
+      ctx.translate(-SIT_AT[0], -SIT_AT[1]);
+      sitAnim.draw(ctx, c.lotF);
+      ctx.restore();
+    }
 
     if (c.mode === 'sleep') {
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
