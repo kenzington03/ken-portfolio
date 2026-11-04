@@ -580,7 +580,7 @@ function Role({ role: r, index, state, at, partsRef, onLogo }) {
     <li className={styles.role} style={{ '--a': at }} aria-current={state === 'on' ? 'step' : undefined} aria-hidden={state === 'ahead' || undefined}>
       <div ref={big} className={`${styles.big} ${r.internship ? styles.intern : ''}`}>
         <h3 className={styles.bigHead}>
-          {line(0, `${styles.company} ${logo ? styles.hasLogo : ''}`, logo ? <img className={styles.logo} src={logo} alt={r.company} onLoad={onLogo} data-key="" /> : <span data-key="">{r.company}</span>)}
+          {line(0, `${styles.company} ${logo ? styles.hasLogo : ''}`, logo ? <img className={styles.logo} data-logo={slug(r.company)} src={logo} alt={r.company} onLoad={onLogo} data-key="" /> : <span data-key="">{r.company}</span>)}
         </h3>
         {/* (A company since renamed says so: "now Phygital24".) */}
         {line(1, styles.jobTitle, <span data-key="">{`${logo ? `${title}, ${r.company}` : title}${r.now ? ` (now ${r.now})` : ''}`}</span>)}

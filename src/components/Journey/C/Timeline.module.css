@@ -272,6 +272,11 @@
   opacity: 0.92;
 }
 
+/* A long wordmark reads bigger than the others at the same height. */
+.logo[data-logo='tandem-digital'] {
+  height: 0.9em;
+}
+
 .jobTitle {
   display: block;
   margin: 0 0 6px;

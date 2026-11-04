@@ -1,42 +1,142 @@
-// Kerning, the desktop cat: drawn and moved live, every frame.
+// Kerning, the desktop cat: a small black cat, drawn and moved live.
 //
-// He is a cartoon cat built for charm: a big round head, a soft bean of a
-// body, stubby legs with white socks, big glossy eyes. Every pose (stand,
-// crouch, sit, loaf, mid-air) is a set of numbers the drawing eases between,
-// so nothing ever cuts; walking and running are real gaits (each paw plants,
-// holds, lifts, swings), and his tail follows his body with lag.
+// How he is built:
+// - One silhouette. Body, legs, tail and head are the same black, so they
+//   merge into one shape the way a black cat reads in life. A soft top light
+//   gives him volume and a faint rim keeps him readable on a dark wallpaper.
+//   His big gold eyes carry the expression.
+// - A skeleton. A curved spine from hip to shoulder; legs solved with inverse
+//   kinematics (front legs bend back at the elbow, hind legs are a cat's
+//   zig-zag: thigh forward, shin back, then the long foot up to the hock);
+//   a tail of sprung segments that lag, overshoot and settle.
+// - Real gaits, driven by distance so a planted paw never slides: a
+//   lateral-sequence walk (hind, fore on one side, then the other; each paw
+//   down about 65% of the stride, hips and shoulders rising over the planted
+//   leg, the head held steady), a trot (diagonal pairs), and at speed a
+//   bounding gallop (the spine gathers and stretches, with moments in the air).
+// - Jumps the way cats jump: stop and look at the target, crouch, wiggle the
+//   hind feet, freeze, then the hind legs throw him. Forelegs reach, he lands
+//   front paws first and the landing compresses through him like a spring.
 //
 // His world is the desktop's real surfaces, read from the page every frame:
 // the floor, the Dock's top, window title bars and desktop icons (anything
 // marked [data-cat-surface] or [data-window-titlebar]). He stands on them,
-// rides them when they move, falls when they go, and plans his own jumps
-// between them (walk to the take-off, crouch and wiggle, leap, squash).
+// rides them when they move, falls when they go, and plans his own jumps.
 //
-// Left to himself he wanders, climbs, naps, grooms, gets the zoomies (off
-// one side of the screen and back in from the other), bats a ball of yarn
-// about, chases a mouse along the floor, and on a high perch is distracted
-// by a butterfly.
+// Left to himself he wanders, climbs, sits, loafs, grooms, naps (and
+// stretches and yawns after), gets the zoomies, bats a ball of yarn, chases
+// a mouse and, up high, watches a butterfly and swats at it.
 
 const G = 2400; // gravity, px/s²
-const S = 1.3; // his scale (the drawing is in units of ~1px at S = 1)
-const WALK = 64; // px/s
-const RUN = 250;
+const S = 1.25; // his scale: the rig is in units of 1px at S = 1
+const WALK = 58; // px/s
+const RUN = 280;
 const ZOOM = 520;
 const MAX_UP = 250; // the highest he will jump, px
 const MAX_ACROSS = 460;
 const EDGE = 14; // how close to a surface's end he will stand
 
-const FUR = ['#3a3a45', '#15151b']; // a soft gradient, lit from the top left
-const FAR = '#0d0d11';
-const WHITE = '#f7f3ec';
-const PINK = '#f2a7b4';
-const IRIS = ['#d9f08a', '#79b443'];
+const INK = '#0c0c10';
+const IRIS = ['#fff3b0', '#ffc93a', '#cf820c'];
+const FORE = [10, 10.5]; // upper arm, forearm
+const HIND = [8, 8.5, 6.5]; // thigh, shin, foot (paw to hock)
+const PAW = 2.3;
+const TAIL_N = 12;
+const TAIL_SEG = 3.6;
+const LEGS = ['xh', 'xf', 'nh', 'nf']; // far hind, far fore, near hind, near fore
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const approach = (cur, target, rate, dt) => cur + (target - cur) * (1 - Math.exp(-rate * dt));
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const ss = (a, b, v) => {
+  const x = clamp((v - a) / (b - a), 0, 1);
+  return x * x * (3 - 2 * x);
+};
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
+// Poses, in his own space: x forward, y down, the ground at y = 0.
+// hip/shoulder centres (hx hy, sx sy), how much the back arches, the head
+// from the shoulder (nx ny) with its tilt and turn (0 faces you, 1 profile),
+// the rest positions of the paws (fx front, bx hind, from the shoulder and
+// hip), hock (1 = sitting on the hind foot), hs (1 = foot in line with the
+// shin, as in the air), haunch (the round thigh of a sitting cat), tuck (paws
+// folded under), the tail (ta its angle at the root, tc its curl per segment,
+// th the hook at its tip), eye openness and how far back the ears are.
+const BASE = { hx: -11, hy: -19, sx: 11, sy: -21, arch: 2.5, nx: 7, ny: -12, tilt: 0, turn: 0.3, fx: 1, bx: 0, hock: 0, hs: 0, haunch: 0, tuck: 0, ta: -1.95, tc: 0.02, th: 0.3, lid: 1, ears: 0 };
+const POSES = {
+  stand: BASE,
+  aim: { ...BASE, hy: -17, sy: -19, nx: 8, ny: -12, tilt: -0.2, turn: 0.55, ta: 2.95, tc: 0.03, th: 0.12 },
+  crouch: { ...BASE, hx: -9, hy: -12, sx: 10, sy: -12.5, arch: 0.5, nx: 9, ny: -9, tilt: -0.12, turn: 0.6, fx: -1, bx: 5, ta: 3.05, tc: 0, th: 0.1 },
+  land: { ...BASE, hx: -10, hy: -15, sx: 10, sy: -13, arch: 1.5, nx: 8, ny: -10, turn: 0.45, fx: 2, bx: 2, ta: -2.5, tc: 0.05, th: 0.2 },
+  sit: { ...BASE, hx: -6, hy: -8, sx: 6, sy: -22, arch: 4, nx: 5, ny: -12, turn: 0.12, fx: 3, bx: 8, hock: 1, haunch: 1, ta: 1.9, tc: -0.3, th: 0 },
+  loaf: { ...BASE, hx: -10, hy: -9, sx: 9, sy: -9.5, arch: 5, nx: 7, ny: -9, turn: 0.15, tuck: 1, ta: 2.6, tc: -0.22, th: 0, lid: 0.55 },
+  sleep: { ...BASE, hx: -7, hy: -8, sx: 6, sy: -8, arch: 9, nx: 6, ny: -1, tilt: 0.35, turn: 0, tuck: 1, ta: 2.3, tc: -0.3, th: 0, lid: 0 },
+  stretch: { ...BASE, hx: -9, hy: -24, sx: 9, sy: -10, arch: -3, nx: 11, ny: -5, tilt: -0.25, turn: 0.35, fx: 19, bx: -1, ta: -1.85, tc: 0.04, th: 0.25, lid: 0.25 },
+  air: { ...BASE, hx: -13, hy: -21, sx: 13, sy: -22, arch: 0, nx: 8, ny: -11, turn: 0.6, hs: 1, ta: 3.35, tc: 0.03, th: 0.05 },
+  drag: { ...BASE, hx: 0, hy: 38, sx: 1, sy: 14, arch: -2, nx: 2, ny: -12, turn: 0, hs: 0.8, ta: 1.65, tc: 0.06, th: 0.15, lid: 0.6, ears: 0.6 },
+};
+POSES.groom = { ...POSES.sit, nx: 6, ny: -10, tilt: 0.3, lid: 0.25 };
+// How quickly he moves into each (sleep curls up slowly, landings are fast).
+const RATES = { crouch: 14, land: 20, air: 12, drag: 12, aim: 8, stretch: 5, sleep: 3.5, loaf: 4, sit: 7, groom: 7, stand: 8 };
+
+// The gaits: when each paw lands (fraction of the stride), how long it stays
+// down, how high the front and hind paws lift.
+const GAITS = {
+  walk: { duty: 0.64, off: { nh: 0, nf: 0.25, xh: 0.5, xf: 0.75 }, lift: [5.5, 4] },
+  trot: { duty: 0.42, off: { nh: 0, xf: 0, xh: 0.5, nf: 0.5 }, lift: [7, 6] },
+  gallop: { duty: 0.24, off: { nh: 0, xh: 0.07, nf: 0.5, xf: 0.57 }, lift: [9, 7.5] },
+};
+
+/** Two-bone IK: the joint between a and b for bones l1, l2. bend 1 puts the
+ *  joint behind the line (an elbow), -1 in front (a knee). */
+function ik(ax, ay, bx, by, l1, l2, bend) {
+  let dx = bx - ax;
+  let dy = by - ay;
+  let d = Math.hypot(dx, dy) || 1e-3;
+  const reach = l1 + l2 - 0.01;
+  if (d > reach) {
+    dx *= reach / d;
+    dy *= reach / d;
+    d = reach;
+  }
+  const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  const ux = dx / d;
+  const uy = dy / d;
+  return [ax + ux * a - uy * h * bend, ay + uy * a + ux * h * bend, ax + dx, ay + dy];
+}
+
+/** A soft tube through points, its top and bottom radii given per point. */
+function tube(g, pts, rT, rB, roundAll) {
+  const n = pts.length;
+  const top = [];
+  const bot = [];
+  for (let i = 0; i < n; i += 1) {
+    const a = pts[Math.max(0, i - 1)];
+    const b = pts[Math.min(n - 1, i + 1)];
+    let tx = b[0] - a[0];
+    let ty = b[1] - a[1];
+    const m = Math.hypot(tx, ty) || 1;
+    tx /= m;
+    ty /= m;
+    top.push([pts[i][0] + ty * rT[i], pts[i][1] - tx * rT[i]]);
+    bot.push([pts[i][0] - ty * rB[i], pts[i][1] + tx * rB[i]]);
+  }
+  g.beginPath();
+  g.moveTo(top[0][0], top[0][1]);
+  for (let i = 1; i < n; i += 1) g.lineTo(top[i][0], top[i][1]);
+  for (let i = n - 1; i >= 0; i -= 1) g.lineTo(bot[i][0], bot[i][1]);
+  g.closePath();
+  g.fill();
+  for (let i = 0; i < n; i += roundAll ? 1 : n - 1) {
+    const r = (rT[i] + rB[i]) / 2;
+    g.beginPath();
+    g.arc((top[i][0] + bot[i][0]) / 2, (top[i][1] + bot[i][1]) / 2, r, 0, Math.PI * 2);
+    g.fill();
+  }
+}
 
 /** Every surface he can stand on, as screen-space segments. */
 function readSurfaces() {
@@ -51,11 +151,21 @@ function readSurfaces() {
 
 export function createCat({ canvas, onSay }) {
   const ctx = canvas.getContext('2d');
+  // He is drawn into his own small canvas first, then laid on the screen in
+  // one piece, so the rim light outlines the whole silhouette.
+  const buf = document.createElement('canvas');
+  const g = buf.getContext('2d');
+  const BW = 300;
+  const BH = 300;
+  const OX = 150;
+  const OY = 190;
   let dpr = 1;
   const size = () => {
     dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(window.innerWidth * dpr);
     canvas.height = Math.round(window.innerHeight * dpr);
+    buf.width = BW * dpr;
+    buf.height = BH * dpr;
   };
   size();
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -66,33 +176,50 @@ export function createCat({ canvas, onSay }) {
     vx: 0,
     vy: 0,
     face: 1,
+    faceVis: 1,
     on: { key: 'floor', dx: 0 },
     mode: 'walk',
     until: 0,
     plan: { tx: 180 },
     phase: 0,
     speed: 0,
-    look: 0,
+    prevV: 0,
+    accel: 0,
+    pitch: 0,
+    sq: 0, // the landing spring: + compressed
+    sqv: 0,
+    turn: 0.3,
+    lookX: 0,
+    lookY: 0,
+    lookTilt: 0,
+    pupil: 0.62,
     blink: 0,
     nextBlink: 2,
+    slow: 0,
+    nextSlow: 8,
+    ears: 0,
+    earTw: 0,
+    nextEar: 3,
+    mouth: 0,
+    yawn: 0,
     purr: 0,
+    groom: 0,
     drag: null,
     laser: false,
     impact: 0,
     bat: 0, // a paw swipe, 1 .. 0
     count: 0,
+    aimAt: null,
+    swat: false,
+    thrown: false,
+    quick: false,
+    box: [-30, 30, -60],
   };
-  // The poses: body centre and radii, head centre, how folded the legs are.
-  const POSES = {
-    stand: { bx: 0, by: -16, brx: 19, bry: 11.5, rot: 0, hx: 19, hy: -30, sit: 0, loaf: 0, crouch: 0 },
-    crouch: { bx: -1, by: -11, brx: 21, bry: 9.5, rot: -0.12, hx: 21, hy: -20, sit: 0, loaf: 0, crouch: 1 },
-    sit: { bx: -3, by: -17, brx: 12, bry: 16, rot: 0, hx: 3, hy: -40, sit: 1, loaf: 0, crouch: 0 },
-    loaf: { bx: 0, by: -10, brx: 20, bry: 10, rot: 0, hx: 17, hy: -18, sit: 0, loaf: 1, crouch: 0 },
-  };
-  const pose = { ...POSES.stand };
-  let poseName = 'stand';
-  const TAIL_N = 9;
-  const tail = Array.from({ length: TAIL_N }, (_, i) => 1.0 + i * 0.12);
+  const P = { ...POSES.stand };
+  const F = { nf: [12, 0], xf: [9.5, 0], nh: [-11, 0], xh: [-13.5, 0] };
+  const ta = Array.from({ length: TAIL_N }, (_, i) => -1.95 + i * 0.02);
+  const tv = new Array(TAIL_N).fill(0);
+  let R = null; // this frame's rig
   let surfaces = readSurfaces();
   let pointer = { x: -999, y: -999 };
   const hearts = [];
@@ -101,7 +228,10 @@ export function createCat({ canvas, onSay }) {
 
   const surfaceOf = (on) => (on ? surfaces.find((s) => s.key === on.key) : null);
   const span = (s) => [Math.max(s.x0 + EDGE, -60), Math.min(s.x1 - EDGE, window.innerWidth + 60)];
-  const say = (t) => onSay?.(t);
+  const say = (t) => {
+    c.mouth = 1;
+    onSay?.(t);
+  };
   const set = (mode, secs = 0) => {
     c.mode = mode;
     c.until = performance.now() / 1000 + secs;
@@ -148,8 +278,9 @@ export function createCat({ canvas, onSay }) {
       c.plan = { tx: clamp(c.x + rand(-260, 260), a, b) };
       return set('walk');
     }
-    if (r < 0.84) return set('sit', rand(4, 8));
-    if (r < 0.92) return set('groom', rand(3, 5));
+    if (r < 0.8) return set('sit', rand(4, 8));
+    if (r < 0.86) return set('loaf', rand(6, 10));
+    if (r < 0.93) return set('groom', rand(3, 5));
     return set('sleep', rand(12, 22));
   }
 
@@ -194,6 +325,8 @@ export function createCat({ canvas, onSay }) {
     c.vy = vy0;
     c.face = Math.sign(c.vx) || c.face;
     c.on = null;
+    c.sqv = -55; // the hind legs throw him: the body extends
+    c.quick = false;
     set('air');
   }
 
@@ -257,9 +390,12 @@ export function createCat({ canvas, onSay }) {
           c.y = hit.y;
           c.on = { key: hit.key, dx: c.x - hit.x0 };
           c.impact = clamp(c.vy / 1400, 0.3, 1);
+          c.sqv += 70 + 70 * c.impact; // the landing runs through him
           c.vx = 0;
           c.vy = 0;
-          set('land', 0.3);
+          c.swat = false;
+          c.thrown = false;
+          set('land', 0.22 + 0.14 * c.impact);
         }
       }
       c.speed = 0;
@@ -281,12 +417,17 @@ export function createCat({ canvas, onSay }) {
                 .sort((a, b) => a.y - b.y)[0];
               if (s && s.key !== c.on?.key && c.y - s.y < MAX_UP) {
                 c.plan = { jump: { s, lx: pointer.x } };
+                c.aimAt = { x: pointer.x, y: s.y };
+                c.quick = true;
                 set('crouch', 0.3);
               }
             }
           } else if (c.plan?.jump) {
-            c.face = Math.sign(c.plan.jump.lx - c.x) || c.face;
-            set('crouch', 0.42);
+            // Stop, look at where he's going, and only then get down.
+            const j = c.plan.jump;
+            c.face = Math.sign(j.lx - c.x) || c.face;
+            c.aimAt = { x: j.lx, y: j.s.y };
+            set('aim', rand(0.4, 0.8));
           } else {
             c.plan = null;
             set('idle', rand(0.8, 2.2));
@@ -345,15 +486,21 @@ export function createCat({ canvas, onSay }) {
         if (Math.abs(mo.x - c.x) < 120 && !c.pounced) {
           c.pounced = true;
           c.plan = { jump: { s: { y: window.innerHeight - 1 }, lx: mo.x + mo.dir * 40 } };
+          c.quick = true;
           set('crouch', 0.18);
         }
         break;
       }
+      case 'aim':
+        if (t > c.until) set('crouch', rand(0.5, 0.75));
+        break;
       case 'crouch':
         if (t > c.until) {
           const j = c.plan?.jump;
           if (j) launch({ x: j.lx, y: j.s.y });
+          else set('idle', 0.5);
           c.plan = null;
+          c.aimAt = null;
         }
         break;
       case 'land':
@@ -371,10 +518,11 @@ export function createCat({ canvas, onSay }) {
             c.pounced = false;
             set('hunt');
           } else if (c.watch === 'fly' && toys.fly) {
-            // A swat: a little hop straight up at it.
+            // A swat: up on the hind legs and a hop at it.
             c.vx = 0;
-            c.vy = -Math.sqrt(2 * G * 70);
+            c.vy = -Math.sqrt(2 * G * 60);
             c.on = null;
+            c.swat = true;
             set('air');
             toys.fly.flee = true;
           } else set('idle', 1);
@@ -386,13 +534,18 @@ export function createCat({ canvas, onSay }) {
         break;
       default:
         if (t > c.until) {
-          if (c.laser) set('chase');
+          if (c.mode === 'sleep') {
+            // Up, a long front stretch and a yawn.
+            set('stretch', 2.1);
+            c.yawn = 1;
+          } else if (c.laser) set('chase');
           else decide();
         }
     }
-    c.speed = approach(c.speed, speed, 10, dt);
-    const stride = c.speed > 300 ? 60 : c.speed > 120 ? 44 : 22;
-    c.phase = (c.phase + (c.speed * dt) / stride) % 1;
+    c.speed = approach(c.speed, speed, 8, dt);
+    c.accel = approach(c.accel, (c.speed - c.prevV) / Math.max(dt, 1e-3), 10, dt);
+    c.prevV = c.speed;
+    c.phase = (c.phase + (c.speed * dt) / clamp(28 + c.speed * 0.17, 30, 110)) % 1;
     c.bat = Math.max(0, c.bat - dt * 3);
   }
 
@@ -442,333 +595,544 @@ export function createCat({ canvas, onSay }) {
     }
   }
 
-  // ---------- Drawing ----------
-  function updatePose(dt) {
-    const want =
-      c.mode === 'crouch' || c.mode === 'land'
-        ? 'crouch'
-        : ['sit', 'groom', 'pet', 'watch'].includes(c.mode)
-          ? 'sit'
-          : c.mode === 'sleep'
-            ? 'loaf'
-            : 'stand';
-    poseName = want;
-    const p = POSES[want];
-    const rate = c.mode === 'land' ? 18 : want === 'crouch' ? 14 : 6;
-    Object.keys(pose).forEach((k) => {
-      pose[k] = approach(pose[k], p[k], rate, dt);
+  // ---------- The rig ----------
+  function poseOf() {
+    switch (c.mode) {
+      case 'aim':
+      case 'crouch':
+      case 'land':
+      case 'sit':
+      case 'groom':
+      case 'loaf':
+      case 'sleep':
+      case 'stretch':
+      case 'air':
+      case 'drag':
+        return c.mode;
+      case 'pet':
+      case 'watch':
+        return 'sit';
+      default:
+        return 'stand';
+    }
+  }
+
+  /** A paw's place in a gait: ahead of or behind its hip/shoulder, and its lift. */
+  function footRel(gait, k, L) {
+    const d = gait.duty;
+    const q = (((c.phase + gait.off[k]) % 1) + 1) % 1;
+    if (q < d) return [L * (d / 2 - q), 0];
+    const u = (q - d) / (1 - d);
+    const e = u * u * (3 - 2 * u);
+    return [L * (-d / 2 + d * e), -(k[1] === 'f' ? gait.lift[0] : gait.lift[1]) * Math.sin(Math.PI * u)];
+  }
+
+  function updateRig(dt, t) {
+    const name = poseOf();
+    const want = POSES[name];
+    const rate = RATES[name] ?? 8;
+    Object.keys(want).forEach((k) => {
+      if (k === 'ta') P.ta += wrap(want.ta - P.ta) * (1 - Math.exp(-rate * dt));
+      else P[k] = approach(P[k], want[k], rate, dt);
     });
+    const grounded = name !== 'air' && name !== 'drag';
+    const v = grounded ? c.speed : 0;
+    const w = ss(3, 25, v);
+    const wW = 1 - ss(85, 115, v);
+    const wG = ss(230, 275, v);
+    const wT = Math.max(0, 1 - wW - wG);
+    const TAU = Math.PI * 2;
+    const ph = c.phase;
+
+    // The body over the gait: in the walk, the hips rise as a hind leg passes
+    // under them and the shoulders as a foreleg does; the trot bounces once
+    // per step; the gallop gathers, stretches and rocks.
+    let hdx = 0;
+    let hdy = 0;
+    let sdx = 0;
+    let sdy = 0;
+    let arch = 0;
+    let ndy = 0;
+    if (w > 0.001) {
+      const trot = 1.4 * Math.cos(2 * TAU * (ph - 0.21));
+      const gal = -2.2 * Math.cos(2 * TAU * (ph - 0.38)) + 1.5;
+      const flex = Math.cos(TAU * (ph - 0.3));
+      const rock = 1.6 * Math.sin(TAU * (ph - 0.05));
+      hdy = w * (wW * -Math.cos(2 * TAU * (ph - 0.32)) + wT * trot + wG * (gal + rock));
+      sdy = w * (wW * -Math.cos(2 * TAU * (ph - 0.57)) + wT * trot + wG * (gal - rock));
+      hdx = -w * wG * (3.5 * flex + 2);
+      sdx = w * wG * (3.5 * flex + 2);
+      arch = -w * wG * 5 * flex;
+      ndy = sdy * (0.3 + 0.25 * wG); // the head stays steady
+    }
+    c.sqv += (-300 * c.sq - 18 * c.sqv) * dt;
+    c.sq += c.sqv * dt;
+    hdy += c.sq;
+    sdy += c.sq * 1.15;
+    ndy += c.sq * 0.6;
+    // Before a jump: the hind end shuffles, then freezes.
+    const wig = c.mode === 'crouch' && !c.quick && c.until - t > 0.12 ? Math.sin(t * 21) : 0;
+
+    const H = [P.hx + hdx + wig * 1.3, P.hy + hdy];
+    const Sh = [P.sx + sdx, P.sy + sdy];
+    let dx = Sh[0] - H[0];
+    let dy = Sh[1] - H[1];
+    const len = Math.hypot(dx, dy) || 1;
+    dx /= len;
+    dy /= len;
+    const nx = dy;
+    const ny = -dx;
+    const A = P.arch + arch;
+    const C = [(H[0] + Sh[0]) / 2 + nx * A, (H[1] + Sh[1]) / 2 + ny * A];
+    const breathe = (1 - w) * Math.sin(t * 2.3) * 0.35;
+    const spine = [];
+    const rT = [];
+    const rB = [];
+    for (let i = 0; i < 12; i += 1) {
+      const u = i / 11;
+      const m = 1 - u;
+      spine.push([m * m * H[0] + 2 * m * u * C[0] + u * u * Sh[0], m * m * H[1] + 2 * m * u * C[1] + u * u * Sh[1]]);
+      const s = Math.sin(Math.PI * u);
+      rT.push(lerp(7.8, 8.6, u) - 0.6 * s + breathe * 0.5);
+      rB.push(lerp(8.4, 9.4, u) + 1.6 * s + breathe);
+    }
+    const head = [Sh[0] + P.nx, Sh[1] + P.ny + ndy];
+    const Jf = [Sh[0] + 1.5, Sh[1] + 3];
+    const Jh = [H[0] + 1, H[1] + 2.5];
+
+    // Where the paws want to be.
+    const rest = {
+      nf: [P.sx + P.fx, 0],
+      xf: [P.sx + P.fx - 2.5, 0],
+      nh: [P.hx + P.bx, 0],
+      xh: [P.hx + P.bx - 2.5 * (1 - P.hock), 0],
+    };
+    if (name === 'air') {
+      if (c.thrown) {
+        Object.assign(rest, { nf: [P.sx + 7, 3], xf: [P.sx + 3, 3], nh: [P.hx - 3, 3], xh: [P.hx + 1, 3] });
+      } else if (c.swat) {
+        const s = Math.sin(t * 16) * 4;
+        Object.assign(rest, { nf: [P.sx + 9 + s, P.sy - 14], xf: [P.sx + 6 - s, P.sy - 11], nh: [P.hx + 1, 0], xh: [P.hx - 1.5, 0] });
+      } else {
+        // Rising: forelegs reach for the target, hind legs trail from the push.
+        // Falling: forelegs reach down to land first, hind legs come under.
+        const k = clamp((c.vy + 200) / 700, 0, 1);
+        const mix = (a, b) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k)];
+        Object.assign(rest, {
+          nf: mix([P.sx + 14, -15], [P.sx + 8, 2]),
+          xf: mix([P.sx + 11, -13], [P.sx + 5, 1]),
+          nh: mix([P.hx - 13, -7], [P.hx + 4, -4]),
+          xh: mix([P.hx - 11, -5], [P.hx + 2, -3]),
+        });
+      }
+    } else if (name === 'drag') {
+      const s = Math.sin(t * 2.5) * 1.5;
+      Object.assign(rest, { nf: [6, 30], xf: [3, 29], nh: [2 + s, 57], xh: [-2 + s, 56] });
+    }
+    const L = clamp(28 + c.speed * 0.17, 30, 110) / S;
+    const gaits = [
+      [GAITS.walk, wW],
+      [GAITS.trot, wT],
+      [GAITS.gallop, wG],
+    ];
+    c.groom = approach(c.groom, c.mode === 'groom' ? 1 : 0, 5, dt);
+    LEGS.forEach((k) => {
+      const fore = k[1] === 'f';
+      let [x, y] = rest[k];
+      if (P.tuck > 0.01) {
+        const j = fore ? Jf : Jh;
+        x = lerp(x, j[0] + 2, P.tuck);
+        y = lerp(y, j[1] + 3, P.tuck);
+      }
+      if (w > 0.001) {
+        let gx = 0;
+        let gy = 0;
+        gaits.forEach(([gait, wt]) => {
+          if (wt <= 0) return;
+          const [r, yy] = footRel(gait, k, L);
+          gx += r * wt;
+          gy += yy * wt;
+        });
+        const base = (fore ? P.sx + 2 : P.hx + 1) - (k[0] === 'x' ? 2.5 : 0);
+        x = lerp(x, base + gx, w);
+        y = lerp(y, gy, w);
+      }
+      if (wig && !fore) y -= Math.max(0, wig * (k === 'nh' ? 1 : -1)) * 1.6;
+      if (k === 'nf' && c.bat > 0) {
+        const b = Math.sin(Math.PI * c.bat);
+        x += 10 * b;
+        y -= 13 * b;
+      }
+      if (k === 'nf' && c.groom > 0.01) {
+        // A paw up to the mouth, licked, wiped over the face.
+        const s = Math.sin(t * 7);
+        x = lerp(x, head[0] + 3 + s, c.groom);
+        y = lerp(y, head[1] + 8 + 2.5 * s, c.groom);
+      }
+      const f = F[k];
+      if (grounded && w > 0.02) {
+        f[0] = x;
+        f[1] = y;
+      } else {
+        const r = name === 'land' ? 30 : name === 'air' ? 14 : 12;
+        f[0] = approach(f[0], x, r, dt);
+        f[1] = approach(f[1], y, r, dt);
+      }
+      if (grounded) f[1] = Math.min(f[1], 0);
+    });
+
+    const legs = {};
+    LEGS.forEach((k) => {
+      const f = F[k];
+      if (k[1] === 'f') {
+        // (The paw is a ball of radius PAW resting on the ground.)
+        const [ex, ey, px, py] = ik(Jf[0], Jf[1], f[0], f[1] - PAW, FORE[0], FORE[1], 1);
+        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -3) : ey], [px, py], [px + 1.4, py]], r: [4.6, 3.1, 2.5, PAW] };
+      } else {
+        let mx = lerp(-2.5, -7, P.hock);
+        let my = lerp(-6.2, -1.9, P.hock);
+        if (P.hs > 0.01) {
+          const ddx = Jh[0] - f[0];
+          const ddy = Jh[1] - f[1];
+          const dd = Math.hypot(ddx, ddy) || 1;
+          mx = lerp(mx, (ddx / dd) * HIND[2], P.hs);
+          my = lerp(my, (ddy / dd) * HIND[2], P.hs);
+        }
+        let [kx, ky, qx, qy] = ik(Jh[0], Jh[1], f[0] + mx, f[1] - PAW + my, HIND[0], HIND[1], -1);
+        // Sitting, the thigh folds forward and up into the haunch; and a
+        // knee never goes through the floor.
+        kx = lerp(kx, Jh[0] + 6.5, P.hock);
+        ky = lerp(ky, Jh[1] - 1, P.hock);
+        if (grounded) ky = Math.min(ky, -3);
+        const paw = [qx - mx, qy - my];
+        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.4, paw[1]]], r: [6.2, 3.6, 2.6, 2.4, PAW] };
+      }
+    });
+
+    // The tail: each segment sprung toward the pose's curve plus a slow wave
+    // (or the tip's twitch when he's intent), thrown about by his moves.
+    let amp = 0.07;
+    let om = 2.2;
+    let tip = false;
+    if (name === 'sleep' || name === 'loaf') {
+      amp = 0.02;
+      om = 1;
+    } else if (['watch', 'aim', 'crouch', 'hunt'].includes(c.mode)) {
+      amp = 0.3;
+      om = 8;
+      tip = true;
+    } else if (c.mode === 'pet') {
+      amp = 0.06;
+      om = 28;
+      tip = true;
+    } else if (name === 'drag') {
+      amp = 0.35;
+      om = 5;
+    } else if (wG > 0.5 && w > 0.5) {
+      amp = 0.12;
+      om = 7;
+    } else if (name === 'sit' || name === 'groom') {
+      amp = 0.12;
+      om = 1.6;
+      tip = true;
+    }
+    const push = grounded ? c.accel : 0;
+    for (let i = 0; i < TAIL_N; i += 1) {
+      const hook = i >= TAIL_N - 4 ? P.th * (i - (TAIL_N - 5)) : 0;
+      const wave = amp * Math.sin(om * t - i * 0.55) * (tip ? ss(TAIL_N - 6, TAIL_N - 1, i) : (i + 1) / TAIL_N);
+      const tgt = P.ta + P.tc * i + hook + wave;
+      const K = 170 - i * 8;
+      const torque = (push * Math.sin(ta[i]) * 0.012 + c.sqv * Math.cos(ta[i]) * 0.06) * ((i + 1) / TAIL_N);
+      tv[i] += (K * wrap(tgt - ta[i]) - 8.5 * tv[i] + torque) * dt;
+      ta[i] += tv[i] * dt;
+    }
+    const tail = [[H[0] - dx * 5.5 + nx * 3.8, H[1] - dy * 5.5 + ny * 3.8]];
+    const tailR = [3.3];
+    for (let i = 0; i < TAIL_N; i += 1) {
+      const p = tail[i];
+      const r = lerp(3.3, 2.4, (i + 1) / TAIL_N);
+      const q = [p[0] + Math.cos(ta[i]) * TAIL_SEG, p[1] + Math.sin(ta[i]) * TAIL_SEG];
+      if (grounded) q[1] = Math.min(q[1], -r);
+      tail.push(q);
+      tailR.push(r);
+    }
+
+    // Where he looks: a toy, the jump he's sizing up, else you when near.
+    const hw = [c.x + c.face * head[0] * S, c.y + head[1] * S];
+    let tgt = null;
+    let toy = true;
+    if (toys.fly) tgt = [toys.fly.x, toys.fly.y];
+    else if (toys.mouse) tgt = [toys.mouse.x, c.y - 6];
+    else if (toys.yarn) tgt = [toys.yarn.x, toys.yarn.y - 8];
+    else if (c.aimAt && (c.mode === 'aim' || c.mode === 'crouch')) tgt = [c.aimAt.x, c.aimAt.y];
+    else {
+      toy = false;
+      if (c.laser || Math.hypot(pointer.x - hw[0], pointer.y - hw[1]) < 380) tgt = [pointer.x, pointer.y];
+    }
+    let lx = 0;
+    let ly = 0;
+    let tilt = 0;
+    let turn = lerp(P.turn, 0.55, w);
+    const resting = ['stand', 'sit', 'loaf'].includes(name) && w < 0.2;
+    if (tgt && name !== 'sleep' && name !== 'drag') {
+      const ddx = (tgt[0] - hw[0]) * c.face;
+      const ddy = tgt[1] - hw[1];
+      lx = clamp(ddx / 90, -1, 1);
+      ly = clamp(ddy / 90, -1, 1);
+      tilt = clamp(Math.atan2(ddy, Math.abs(ddx) + 60) * 0.4, -0.35, 0.25);
+      if (!toy && resting) turn = 0.06; // he looks round at you
+    }
+    c.lookX = approach(c.lookX, lx, 10, dt);
+    c.lookY = approach(c.lookY, ly, 10, dt);
+    c.lookTilt = approach(c.lookTilt, tilt, 6, dt);
+    c.turn = approach(c.turn, turn, 6, dt);
+
+    // Eyes: blinks (sometimes a double), the slow blink a cat gives someone
+    // it trusts, pupils wide when he's excited.
     c.nextBlink -= dt;
     if (c.nextBlink < 0) {
       c.blink = 1;
-      c.nextBlink = rand(2.5, 6);
+      c.nextBlink = Math.random() < 0.2 ? 0.28 : rand(2.5, 6);
     }
-    c.blink = Math.max(0, c.blink - dt * 7);
+    c.blink = Math.max(0, c.blink - dt * 6);
+    c.nextSlow -= dt;
+    if (c.nextSlow < 0) {
+      if (resting && tgt && !toy) c.slow = 1;
+      c.nextSlow = rand(6, 12);
+    }
+    c.slow = Math.max(0, c.slow - dt / 1.6);
+    const excited = ['watch', 'aim', 'crouch', 'hunt', 'zoom', 'chase', 'yarn', 'air'].includes(c.mode);
+    c.pupil = approach(c.pupil, excited ? 0.88 : 0.62, 5, dt);
     c.purr = approach(c.purr, c.mode === 'pet' ? 1 : 0, 6, dt);
-  }
-
-  const fur = (x, y, r) => {
-    const g = ctx.createRadialGradient(x - r * 0.4, y - r * 0.5, r * 0.1, x, y, r * 1.2);
-    g.addColorStop(0, FUR[0]);
-    g.addColorStop(1, FUR[1]);
-    return g;
-  };
-
-  /** A stubby leg: a rounded column from its top to its foot, a white sock. */
-  function leg(tx, ty, fx, fy, w, color) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = w;
-    ctx.beginPath();
-    ctx.moveTo(tx, ty);
-    ctx.lineTo(fx, fy - w * 0.35);
-    ctx.stroke();
-    ctx.fillStyle = color === FAR ? '#cfc9bf' : WHITE;
-    ctx.beginPath();
-    ctx.ellipse(fx + 0.8, fy - 2.2, w * 0.58, 2.9, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  /** Where each paw is, in his own space, for the gait and the pose. */
-  function paws() {
-    const run = c.speed > 120;
-    const moving = c.speed > 4;
-    const stance = run ? 0.45 : 0.62;
-    const stride = c.speed > 300 ? 20 : run ? 15 : 9;
-    const lift = run ? 7 : 4.5;
-    const offs = run ? { nh: 0, fh: 0.12, nf: 0.5, ff: 0.62 } : { nh: 0, nf: 0.25, fh: 0.5, ff: 0.75 };
-    const tops = { nh: [-11, -10], fh: [-14, -11], nf: [11, -10], ff: [8, -11] };
-    const out = {};
-    Object.keys(tops).forEach((k) => {
-      const [tx] = tops[k];
-      let fx = tx;
-      let fy = 0;
-      if (moving) {
-        const q = (c.phase + offs[k]) % 1;
-        if (q < stance) fx += stride * (0.5 - q / stance);
-        else {
-          const u = (q - stance) / (1 - stance);
-          fx += stride * (-0.5 + u);
-          fy -= lift * Math.sin(Math.PI * u);
-        }
-      }
-      if (c.mode === 'air') {
-        const up = c.vy < 0;
-        const hind = k.endsWith('h');
-        fx = hind ? tx - (up ? 10 : 4) : tx + (up ? 9 : 5);
-        fy = up ? -5 : -1;
-      }
-      // A swipe: the near front paw comes up and out.
-      if (k === 'nf' && c.bat > 0) {
-        const b = Math.sin(Math.PI * c.bat);
-        fx += 10 * b;
-        fy -= 12 * b;
-      }
-      fy = lerp(fy, Math.min(fy, -1), pose.crouch);
-      out[k] = [fx, fy, tops[k][0], tops[k][1] * (1 - pose.crouch * 0.45)];
-    });
-    return out;
-  }
-
-  function drawTail(rx, ry, t, dt) {
-    // (Angles: 0 straight back, up is positive.)
-    const base = poseName === 'loaf' ? -0.2 : poseName === 'sit' ? -0.5 : c.mode === 'crouch' ? 0.1 : c.mode === 'air' ? 0.45 : c.speed > 300 ? 0.2 : 1.05;
-    const curl = poseName === 'loaf' ? -0.34 : poseName === 'sit' ? -0.26 : c.mode === 'crouch' ? 0.02 : 0.13;
-    const swish = c.mode === 'crouch' ? 0.4 * Math.sin(t * 16) : c.mode === 'watch' ? 0.25 * Math.sin(t * 5) : 0.12 * Math.sin(t * 1.7);
-    for (let i = 0; i < TAIL_N; i += 1) {
-      tail[i] = approach(tail[i], base + i * curl + swish * (i / TAIL_N), 9 - i * 0.7, dt);
+    c.ears = approach(c.ears, P.ears + (c.mode === 'zoom' || c.thrown ? 0.7 : 0), 8, dt);
+    c.nextEar -= dt;
+    if (c.nextEar < 0) {
+      c.earTw = 1;
+      c.nextEar = rand(3, 8);
     }
-    let x = rx;
-    let y = ry;
-    ctx.lineCap = 'round';
-    for (let i = 0; i < TAIL_N; i += 1) {
-      const a = Math.PI + tail[i];
-      const nx = x + Math.cos(a) * 4.4;
-      const ny = y + Math.sin(a) * 4.4;
-      ctx.strokeStyle = i >= TAIL_N - 2 ? WHITE : FUR[1];
-      ctx.lineWidth = lerp(7, 4.6, i / TAIL_N);
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(nx, ny);
-      ctx.stroke();
-      x = nx;
-      y = ny;
-    }
-  }
+    c.earTw = Math.max(0, c.earTw - dt * 5);
+    c.mouth = Math.max(0, c.mouth - dt * 2.5);
+    c.yawn = Math.max(0, c.yawn - dt / 1.8);
 
-  function drawHead(hx, hy, t, { annoyed = false } = {}) {
-    // He looks at what interests him: a toy, else the pointer when near.
-    let tx = pointer.x;
-    let ty = pointer.y;
-    if (toys.fly) [tx, ty] = [toys.fly.x, toys.fly.y];
-    else if (toys.mouse) [tx, ty] = [toys.mouse.x, c.y];
-    else if (toys.yarn) [tx, ty] = [toys.yarn.x, toys.yarn.y];
-    const dx = (tx - c.x) * c.face;
-    const dy = ty - (c.y + hy * S);
-    const near = Math.hypot(dx, dy) < 460 && c.mode !== 'sleep';
-    const want = near ? clamp(Math.atan2(dy, Math.max(40, Math.abs(dx))) * 0.45, -0.4, 0.35) : 0;
-    c.look = approach(c.look, want, 5, 1 / 60);
-    const groom = c.mode === 'groom' ? 0.5 + 0.12 * Math.sin(t * 9) : 0;
-    const sleepy = poseName === 'loaf' ? 0.25 : 0;
-    ctx.save();
-    ctx.translate(hx, hy);
-    ctx.rotate(c.look + groom + sleepy);
-    // Ears: rounded, the far one behind.
-    const ear = (bx0, tipx, tipy, bx1, by, col, inner) => {
-      ctx.fillStyle = col;
-      ctx.beginPath();
-      ctx.moveTo(bx0, by);
-      ctx.quadraticCurveTo(tipx - 2, tipy - 2, tipx, tipy);
-      ctx.quadraticCurveTo(tipx + 2, tipy + 1, bx1, by + 2);
-      ctx.closePath();
-      ctx.fill();
-      if (inner) {
-        ctx.fillStyle = PINK;
-        ctx.globalAlpha = 0.75;
-        ctx.beginPath();
-        ctx.moveTo(bx0 + 2.5, by);
-        ctx.quadraticCurveTo(tipx - 1, tipy + 3, tipx, tipy + 4);
-        ctx.quadraticCurveTo(tipx + 1, tipy + 4, bx1 - 2.5, by + 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }
+    // Facing: turning round squeezes through the middle rather than snapping.
+    c.faceVis = approach(c.faceVis, c.face, 16, dt);
+    let pitch = 0;
+    if (name === 'air') {
+      pitch = c.swat ? -0.55 : c.thrown ? clamp(c.vx / 1500, -0.4, 0.4) : clamp(Math.atan2(c.vy, Math.abs(c.vx) + 60), -0.9, 0.9) * 0.55;
+    }
+    c.pitch = approach(c.pitch, pitch, name === 'air' ? 8 : 12, dt);
+
+    const groomNod = c.groom * 0.12 * Math.sin(t * 7);
+    const sleeping = name === 'sleep';
+    let open = P.lid * (1 - Math.sin(Math.PI * c.blink)) * (1 - 0.92 * Math.sin(Math.PI * c.slow) ** 0.6);
+    if (c.purr > 0.5) open = 0;
+    R = {
+      grounded,
+      spine,
+      rT,
+      rB,
+      H,
+      Sh,
+      head,
+      headTilt: P.tilt + c.lookTilt + groomNod,
+      haunch: P.haunch,
+      legs,
+      tail,
+      tailR,
+      open: sleeping ? 0 : open,
+      happy: c.purr > 0.5,
+      mouth: Math.max(c.mouth * 0.5, Math.sin(Math.PI * (1 - c.yawn)) * (c.yawn > 0 ? 1 : 0)),
     };
-    const back = c.speed > 300 || annoyed ? 4 : 0; // ears back at speed
-    ear(-11, -10 - back, -17 + back * 0.6, -1, -8, FAR, false);
-    ctx.fillStyle = fur(0, 0, 15);
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 15, 13.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ear(1, 7 - back, -21 + back * 0.6, 12, -8, FUR[1], true);
-    // Muzzle and blush.
-    ctx.fillStyle = WHITE;
-    ctx.beginPath();
-    ctx.ellipse(6.5, 6, 8.5, 5.8, 0.05, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(242,140,160,0.35)';
-    ctx.beginPath();
-    ctx.ellipse(-1.5, 6.5, 3, 1.8, 0, 0, Math.PI * 2);
-    ctx.ellipse(14, 6.5, 2.6, 1.6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Eyes: big and glossy; shut asleep, happy arcs when stroked, flat and
-    // unimpressed when held.
-    const shut = poseName === 'loaf' ? 1 : Math.max(c.blink, c.purr);
-    [
-      [1.5, -2.2, 3.8, 4.6],
-      [10.5, -1.8, 3.5, 4.3],
-    ].forEach(([ex, ey, rx, ry]) => {
-      if (shut > 0.6) {
-        ctx.strokeStyle = WHITE;
-        ctx.lineWidth = 1.4;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        if (c.purr > 0.6) ctx.arc(ex, ey + 1.5, rx * 0.8, Math.PI * 1.15, Math.PI * 1.85);
-        else ctx.arc(ex, ey - 1, rx * 0.8, Math.PI * 0.2, Math.PI * 0.8);
-        ctx.stroke();
-        return;
-      }
-      const h = ry * (1 - shut) * (annoyed ? 0.55 : 1);
-      const g = ctx.createLinearGradient(0, ey - h, 0, ey + h);
-      g.addColorStop(0, IRIS[0]);
-      g.addColorStop(1, IRIS[1]);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(ex, ey, rx, h, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#101010';
-      ctx.beginPath();
-      ctx.ellipse(ex + 0.6, ey + 0.3, rx * (c.mode === 'crouch' || c.mode === 'watch' ? 0.75 : 0.42), h * 0.82, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(ex + 1.6, ey - h * 0.4, 1.1, 0, Math.PI * 2);
-      ctx.arc(ex - 0.8, ey + h * 0.35, 0.55, 0, Math.PI * 2);
-      ctx.fill();
+    c.box = [Math.min(H[0] - 10, head[0] - 14), Math.max(Sh[0] + 10, head[0] + 14), head[1] - 20];
+  }
+
+  // ---------- Drawing ----------
+  function earPts(side) {
+    const fx = c.turn * 4.5;
+    const e = c.ears + (side > 0 ? c.earTw * 0.45 : 0);
+    const sh = fx * (side > 0 ? 0.45 : 0.25);
+    return [
+      [side * 3.2 + sh, -10.4],
+      [side * (10.2 + 5 * e) + sh, -19.6 + 7 * e],
+      [side * 12.6 + sh, -3.6],
+    ];
+  }
+
+  function earPath(b0, tip, b1) {
+    const k = 0.24;
+    g.beginPath();
+    g.moveTo(b0[0], b0[1]);
+    g.lineTo(tip[0] + (b0[0] - tip[0]) * k, tip[1] + (b0[1] - tip[1]) * k);
+    g.quadraticCurveTo(tip[0], tip[1], tip[0] + (b1[0] - tip[0]) * k, tip[1] + (b1[1] - tip[1]) * k);
+    g.lineTo(b1[0], b1[1]);
+    g.closePath();
+    g.fill();
+  }
+
+  function headShape() {
+    const fx = c.turn * 4.5;
+    g.beginPath();
+    g.ellipse(fx * 0.3, 0, 13.6, 11.6, 0, 0, Math.PI * 2);
+    g.fill();
+    // Round cheeks: the soft, wide lower face that makes a kitten.
+    g.beginPath();
+    g.ellipse(fx * 0.5 - 6.8 + c.turn * 1.5, 4.4, 7.2 - c.turn * 1.2, 6.2, 0.2, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.ellipse(fx * 0.5 + 6.8, 4.4, 7.2, 6.2, -0.2, 0, Math.PI * 2);
+    g.fill();
+    earPath(...earPts(-1));
+    earPath(...earPts(1));
+  }
+
+  function eye(ex, ey, sx, open, happy) {
+    const rx = 4.3 * sx;
+    const ry = 4.9;
+    if (open < 0.14) {
+      g.strokeStyle = 'rgba(255,255,255,0.5)';
+      g.lineWidth = 0.9;
+      g.lineCap = 'round';
+      g.beginPath();
+      if (happy) g.arc(ex, ey + 2.2, rx * 0.85, Math.PI * 1.15, Math.PI * 1.85);
+      else g.arc(ex, ey - 1, rx * 0.85, Math.PI * 0.15, Math.PI * 0.85);
+      g.stroke();
+      return;
+    }
+    g.save();
+    g.translate(ex, ey + ry * 0.45);
+    g.scale(1, open);
+    g.translate(0, -ry * 0.45);
+    const gr = g.createRadialGradient(0, ry * 0.35, 0.5, 0, 0, ry * 1.05);
+    gr.addColorStop(0, IRIS[0]);
+    gr.addColorStop(0.5, IRIS[1]);
+    gr.addColorStop(1, IRIS[2]);
+    g.fillStyle = gr;
+    g.beginPath();
+    g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    g.fill();
+    g.clip();
+    g.fillStyle = '#060608';
+    g.beginPath();
+    g.ellipse(c.lookX * 1.3 * sx, c.lookY * 1.1, rx * c.pupil, ry * 0.92, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = '#fff';
+    g.beginPath();
+    g.arc(1.4 * sx + c.lookX * 0.4, -2.0, 1.45, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.arc(-1.5 * sx, 1.9, 0.65, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  }
+
+  function face() {
+    const tn = c.turn;
+    const fx = tn * 4.5;
+    // Inner ears, a dusky pink.
+    g.fillStyle = 'rgba(92,52,72,0.85)';
+    [-1, 1].forEach((side) => {
+      const p = earPts(side);
+      const cx = (p[0][0] + p[1][0] + p[2][0]) / 3;
+      const cy = (p[0][1] + p[1][1] + p[2][1]) / 3 + 1.2;
+      earPath(...p.map(([x, y]) => [cx + (x - cx) * 0.5, cy + (y - cy) * 0.55]));
     });
-    ctx.fillStyle = PINK;
-    ctx.beginPath();
-    ctx.moveTo(8, 3.6);
-    ctx.lineTo(11.4, 3.6);
-    ctx.lineTo(9.7, 5.4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#3a2a2a';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(9.7, 5.4);
-    ctx.quadraticCurveTo(8.8, 7.4, 7.4, 6.8);
-    ctx.moveTo(9.7, 5.4);
-    ctx.quadraticCurveTo(10.8, 7.4, 12.2, 6.8);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(247,243,236,0.8)';
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.moveTo(14, 5);
-    ctx.lineTo(25, 3);
-    ctx.moveTo(14, 6.5);
-    ctx.lineTo(25, 7);
-    ctx.moveTo(-1, 6);
-    ctx.lineTo(-10, 5);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawCat(t, dt) {
-    const run = c.speed > 120;
-    const moving = c.speed > 4;
-    // The body bounces with each stride (more running), breathes at rest.
-    const bob = moving ? Math.abs(Math.sin(c.phase * Math.PI * 2)) * (run ? 4 : 1.4) : Math.sin(t * 2) * 0.4;
-    const stretch = run ? Math.sin(c.phase * Math.PI * 2) * 0.08 : 0;
-    const sq = c.mode === 'land' ? Math.max(0, (c.until - t) / 0.3) * c.impact : 0;
-    const wiggle = c.mode === 'crouch' ? Math.sin(t * 24) * 1.4 : 0;
-    const purr = c.purr * Math.sin(t * 70) * 0.25;
-    const p = paws();
-    const bx = pose.bx;
-    const by = pose.by - bob + sq * 5;
-    const brx = pose.brx * (1 + stretch + sq * 0.15);
-    const bry = pose.bry * (1 - stretch * 0.6 - sq * 0.25);
-
-    ctx.lineCap = 'round';
-    const legsOn = 1 - Math.max(pose.loaf, pose.sit);
-    if (legsOn > 0.3) {
-      leg(p.fh[2], p.fh[3] + by + 16, p.fh[0], p.fh[1], 8.5, FAR);
-      leg(p.ff[2], p.ff[3] + by + 16, p.ff[0], p.ff[1], 8, FAR);
-    }
-    drawTail(bx - brx * 0.85, by - bry * 0.1 + (poseName === 'sit' ? 14 : 0), t, dt);
-    // The body: a soft bean, lit from above.
-    ctx.save();
-    ctx.translate(bx + wiggle * 0.3, by);
-    ctx.rotate(pose.rot);
-    ctx.fillStyle = fur(0, 0, Math.max(brx, bry));
-    ctx.beginPath();
-    ctx.ellipse(0, 0, brx, bry, 0, 0, Math.PI * 2);
-    ctx.fill();
-    // Sitting: the haunch, round on the ground.
-    if (pose.sit > 0.05) {
-      ctx.globalAlpha = Math.min(1, pose.sit * 1.4);
-      ctx.fillStyle = fur(-2, 9, 13);
-      ctx.beginPath();
-      ctx.ellipse(-2, 8 * pose.sit, 13 * pose.sit + 2, 9 * pose.sit + 1, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = WHITE;
-      ctx.beginPath();
-      ctx.ellipse(8, 16, 5, 2.8, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-    // The white bib.
-    ctx.fillStyle = WHITE;
-    ctx.beginPath();
-    ctx.ellipse(brx * 0.62, bry * 0.15, brx * 0.32, bry * 0.62, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    if (legsOn > 0.3) {
-      leg(p.nh[2], p.nh[3] + by + 16, p.nh[0], p.nh[1], 9, FUR[1]);
-      leg(p.nf[2], p.nf[3] + by + 16, p.nf[0], p.nf[1], 8.5, FUR[1]);
-    } else if (pose.sit > 0.5) {
-      leg(3, by + 6, 3.5, 0, 7.5, FAR);
-      leg(8, by + 6, 8.5, 0, 8, FUR[1]);
+    eye(fx - 5.6 * (1 - tn * 0.4), 0.4, 1 - tn * 0.4, R.open, R.happy);
+    eye(fx + 5.6 * (1 - tn * 0.12), 0.4, 1, R.open, R.happy);
+    const nx = fx + tn * 2.2;
+    const ny = 5.4;
+    // Blush.
+    g.fillStyle = 'rgba(255,120,150,0.14)';
+    g.beginPath();
+    g.ellipse(fx - 6 * (1 - tn * 0.4), 6.2, 2.6 * (1 - tn * 0.4), 1.3, 0, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.ellipse(fx + 6.4, 6.2, 2.8, 1.4, 0, 0, Math.PI * 2);
+    g.fill();
+    // Nose and mouth: a meow, or the big yawn after a nap.
+    g.fillStyle = '#5a3444';
+    g.beginPath();
+    g.moveTo(nx - 1.4, ny - 0.8);
+    g.lineTo(nx + 1.4, ny - 0.8);
+    g.lineTo(nx, ny + 0.7);
+    g.closePath();
+    g.fill();
+    if (R.mouth > 0.05) {
+      g.fillStyle = '#4a1626';
+      g.beginPath();
+      g.ellipse(nx, ny + 2.4 + R.mouth * 1.4, 1.5 + R.mouth * 1.1, 0.6 + R.mouth * 2.6, 0, 0, Math.PI * 2);
+      g.fill();
+      if (R.mouth > 0.5) {
+        g.fillStyle = '#e8798f';
+        g.beginPath();
+        g.ellipse(nx, ny + 3.6 + R.mouth * 2, 1.4, 1, 0, 0, Math.PI * 2);
+        g.fill();
+      }
     } else {
-      ctx.fillStyle = WHITE;
-      ctx.beginPath();
-      ctx.ellipse(16, -2.5, 5, 2.8, 0, 0, Math.PI * 2);
-      ctx.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.22)';
+      g.lineWidth = 0.5;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(nx, ny + 0.7);
+      g.quadraticCurveTo(nx - 0.6, ny + 2.2, nx - 1.9, ny + 1.9);
+      g.moveTo(nx, ny + 0.7);
+      g.quadraticCurveTo(nx + 0.6, ny + 2.2, nx + 1.9, ny + 1.9);
+      g.stroke();
     }
-    drawHead(pose.hx + wiggle * 0.2, pose.hy - bob * 0.6 + sq * 6 + purr, t);
-    if (c.mode === 'sleep') {
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.font = '600 9px -apple-system, sans-serif';
-      const k = (t % 2.4) / 2.4;
-      ctx.globalAlpha = Math.sin(Math.PI * k);
-      ctx.fillText('z', 20 + k * 8, -34 - k * 14);
-      ctx.globalAlpha = 1;
-    }
+    // Whiskers.
+    g.strokeStyle = 'rgba(255,255,255,0.3)';
+    g.lineWidth = 0.45;
+    const far = 1 - tn * 0.5;
+    g.beginPath();
+    [
+      [4.2, 15, -2],
+      [4.5, 15.5, 0.8],
+      [4.2, 14.3, 3.4],
+    ].forEach(([a, b, d]) => {
+      g.moveTo(nx + a, ny + 1);
+      g.lineTo(nx + b, ny + d);
+      g.moveTo(nx - a * far, ny + 1);
+      g.lineTo(nx - b * far, ny + d);
+    });
+    g.stroke();
   }
 
-  function drawDangling(t) {
-    const d = c.drag;
-    ctx.rotate(d.swing + Math.sin(t * 3) * 0.04);
-    ctx.lineCap = 'round';
-    leg(-5, 30, -6, 48, 7.5, FAR);
-    leg(6, 14, 7, 32, 7.5, FAR);
-    ctx.strokeStyle = FUR[1];
-    ctx.lineWidth = 6.5;
-    ctx.beginPath();
-    ctx.moveTo(-2, 40);
-    ctx.quadraticCurveTo(-10, 56, -4, 68);
-    ctx.stroke();
-    ctx.fillStyle = fur(0, 24, 18);
-    ctx.beginPath();
-    ctx.ellipse(0, 26, 11.5, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = WHITE;
-    ctx.beginPath();
-    ctx.ellipse(3, 18, 5.5, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    leg(1, 30, 2, 50, 8, FUR[1]);
-    leg(5, 16, 6, 34, 8, FUR[1]);
-    c.look = -0.15;
-    drawHead(0, 0, t, { annoyed: true });
+  function drawCat(t) {
+    g.fillStyle = INK;
+    LEGS.forEach((k) => {
+      const l = R.legs[k];
+      tube(g, l.pts, l.r, l.r, true);
+    });
+    tube(g, R.spine, R.rT, R.rB, false);
+    if (R.haunch > 0.02) {
+      g.beginPath();
+      g.ellipse(R.H[0] + 3.5, Math.min(R.H[1] + 1.5, -7.5 * R.haunch), 9.5 * R.haunch, 7.5 * R.haunch, -0.3, 0, Math.PI * 2);
+      g.fill();
+    }
+    tube(g, R.tail, R.tailR, R.tailR, true);
+    tube(g, [[R.Sh[0] + 1, R.Sh[1] - 2], [R.head[0], R.head[1] + 4]], [7, 7], [7, 7], true);
+    g.save();
+    g.translate(R.head[0], R.head[1]);
+    g.rotate(R.headTilt);
+    headShape();
+    g.restore();
+    // Light from above, over the whole silhouette: still black, but round.
+    g.globalCompositeOperation = 'source-atop';
+    const lg = g.createLinearGradient(0, -62, 0, 4);
+    lg.addColorStop(0, '#2b2b36');
+    lg.addColorStop(1, '#08080b');
+    g.fillStyle = lg;
+    g.fillRect(-140, -160, 280, 300);
+    const hl = g.createRadialGradient(R.head[0] - 3, R.head[1] - 7, 0, R.head[0] - 3, R.head[1] - 7, 13);
+    hl.addColorStop(0, 'rgba(255,255,255,0.09)');
+    hl.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = hl;
+    g.fillRect(R.head[0] - 20, R.head[1] - 24, 40, 40);
+    g.globalCompositeOperation = 'source-over';
+    g.save();
+    g.translate(R.head[0], R.head[1]);
+    g.rotate(R.headTilt);
+    face(t);
+    g.restore();
   }
 
   function drawToys(t) {
@@ -783,10 +1147,10 @@ export function createCat({ canvas, onSay }) {
       ctx.save();
       ctx.translate(y.x, y.y - r);
       ctx.rotate(y.spin);
-      const g = ctx.createRadialGradient(-3, -3, 1, 0, 0, r);
-      g.addColorStop(0, '#f27b8e');
-      g.addColorStop(1, '#b3304a');
-      ctx.fillStyle = g;
+      const gr = ctx.createRadialGradient(-3, -3, 1, 0, 0, r);
+      gr.addColorStop(0, '#f27b8e');
+      gr.addColorStop(1, '#b3304a');
+      ctx.fillStyle = gr;
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
@@ -818,7 +1182,7 @@ export function createCat({ canvas, onSay }) {
       ctx.beginPath();
       ctx.arc(2, -10 - bob, 3, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = PINK;
+      ctx.fillStyle = '#f2a7b4';
       ctx.beginPath();
       ctx.arc(9, -5 - bob, 1.2, 0, Math.PI * 2);
       ctx.fill();
@@ -859,30 +1223,45 @@ export function createCat({ canvas, onSay }) {
     const t = now / 1000;
     if (document.hidden) return;
     step(dt, now);
-    updatePose(dt);
+    updateRig(dt, t);
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     drawToys(t);
-    if (c.mode !== 'drag' && c.mode !== 'air') {
-      ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    if (R.grounded) {
+      const mid = ((R.H[0] + R.Sh[0]) / 2) * S * c.face;
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
       ctx.beginPath();
-      ctx.ellipse(c.x, c.y, (poseName === 'sit' ? 18 : 26) * S, 3.2 * S, 0, 0, Math.PI * 2);
+      ctx.ellipse(c.x + mid, c.y, ((R.Sh[0] - R.H[0]) / 2 + 13) * S, 3 * S, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.save();
-    ctx.translate(c.x, c.y);
-    if (c.mode === 'drag') {
-      ctx.translate(0, -46 * S);
-      ctx.scale(S * c.face, S);
-      drawDangling(t);
-    } else {
-      ctx.scale(S * c.face, S);
-      if (c.mode === 'air') ctx.rotate(clamp(c.vy / 2600, -0.4, 0.5) * (c.vx === 0 ? 0 : 1));
-      drawCat(t, dt);
+    const oy = c.mode === 'drag' ? c.y - 46 * S : c.y;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, BW, BH);
+    g.translate(OX, OY);
+    g.scale(c.faceVis * S, S);
+    if (c.mode === 'drag') g.rotate(c.drag.swing + Math.sin(t * 3) * 0.04);
+    else if (Math.abs(c.pitch) > 0.001) {
+      g.translate(0, -18);
+      g.rotate(c.pitch);
+      g.translate(0, 18);
     }
+    drawCat(t);
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,255,255,0.24)';
+    ctx.shadowBlur = 5 * dpr;
+    ctx.drawImage(buf, c.x - OX, oy - OY, BW, BH);
     ctx.restore();
-    if (c.mode === 'pet' && Math.random() < dt * 2.5) hearts.push({ x: c.x + c.face * 16, y: c.y - 62, t: 0 });
+
+    if (c.mode === 'sleep') {
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = '600 11px -apple-system, sans-serif';
+      const k = (t % 2.4) / 2.4;
+      ctx.globalAlpha = Math.sin(Math.PI * k);
+      ctx.fillText('z', c.x + c.face * (R.head[0] + 10 + k * 8) * S, c.y + (R.head[1] - 16 - k * 14) * S);
+      ctx.globalAlpha = 1;
+    }
+    if (c.mode === 'pet' && Math.random() < dt * 2.5) hearts.push({ x: c.x + c.face * R.head[0] * S, y: c.y + (R.head[1] - 22) * S, t: 0 });
     for (let i = hearts.length - 1; i >= 0; i -= 1) {
       const h = hearts[i];
       h.t += dt;
@@ -906,10 +1285,16 @@ export function createCat({ canvas, onSay }) {
       ctx.shadowBlur = 0;
     }
     if (hitbox) {
-      const h = c.mode === 'drag' ? { x: c.x - 26, y: c.y - 62 * S, w: 52, h: 84 * S } : { x: c.x - 30 * S, y: c.y - 60 * S, w: 60 * S, h: 60 * S };
+      let h;
+      if (c.mode === 'drag') h = { x: c.x - 26, y: c.y - 62 * S, w: 52, h: 84 * S };
+      else {
+        const [a, b, top] = c.box;
+        const x0 = c.x + Math.min(a * c.face, b * c.face) * S;
+        h = { x: x0, y: c.y + top * S, w: (b - a) * S, h: -top * S };
+      }
       hitbox.style.transform = `translate3d(${h.x.toFixed(1)}px, ${h.y.toFixed(1)}px, 0)`;
-      hitbox.style.width = `${h.w}px`;
-      hitbox.style.height = `${h.h}px`;
+      hitbox.style.width = `${h.w.toFixed(1)}px`;
+      hitbox.style.height = `${h.h.toFixed(1)}px`;
     }
   };
   raf = requestAnimationFrame(frame);
@@ -928,6 +1313,7 @@ export function createCat({ canvas, onSay }) {
     if (moved) {
       c.vx = clamp(c.vx, -900, 900);
       c.vy = clamp(c.vy, -900, 600);
+      c.thrown = true;
       set('air');
     } else {
       set('pet', 2.8);
@@ -938,7 +1324,7 @@ export function createCat({ canvas, onSay }) {
   window.addEventListener('pointerup', onUp);
   window.addEventListener('resize', size);
 
-  if (import.meta.env?.DEV) window.__kerning = { c, set, launch, toys, surfaces: () => surfaces, startZoomies, startYarn, startMouse, startButterfly };
+  if (import.meta.env?.DEV) window.__kerning = { c, rig: () => R, set, launch, toys, surfaces: () => surfaces, startZoomies, startYarn, startMouse, startButterfly };
 
   return {
     setHitbox(el) {
