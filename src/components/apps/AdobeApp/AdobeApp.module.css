@@ -1,5 +1,6 @@
 /* Adobe's dark UI: #535353 pasteboard, #323232 chrome, 11px labels. */
 .app {
+  position: relative;
   --chrome: #323232;
   --panel: #282828;
   --line: #1e1e1e;
@@ -286,4 +287,327 @@
   margin-bottom: 4px;
   color: #fff;
   font-weight: 600;
+}
+
+/* ---------- Home ---------- */
+.home {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: #1e1e1e;
+}
+
+.homeNav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 190px;
+  padding: 22px 16px;
+  border-right: 1px solid var(--line);
+}
+
+.primary,
+.secondary {
+  height: 30px;
+  padding: 0 16px;
+  border-radius: 16px;
+  font: 600 12px/1 -apple-system, sans-serif;
+  cursor: default;
+}
+
+.primary {
+  border: 0;
+  background: #3b63fb;
+  color: #fff;
+}
+
+.secondary {
+  border: 1.5px solid #8a8a8a;
+  background: none;
+  color: #e6e6e6;
+}
+
+.homeLink,
+.homeLinkDim {
+  margin-top: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.homeLink {
+  margin-top: 18px;
+  background: #383838;
+  color: #fff;
+}
+
+.homeLinkDim {
+  margin-top: 0;
+  color: var(--dim);
+}
+
+.homeMain {
+  flex: 1;
+  min-width: 0;
+  padding: 26px 30px;
+  overflow-y: auto;
+}
+
+.homeMain h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.homeMain h3 {
+  margin: 26px 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.quick,
+.recent {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.quick button,
+.recent button {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #2b2b2b;
+  color: #e6e6e6;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.quick button:hover,
+.recent button:hover {
+  background: #353535;
+}
+
+.quick i {
+  height: 54px;
+  max-width: 100%;
+  border: 1px solid #777;
+  background: #fff;
+}
+
+.quick small,
+.recent small {
+  color: var(--dim);
+}
+
+.thumbBig {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #111;
+}
+
+.thumbBig img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.homeTab {
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+}
+
+/* ---------- Drawing ---------- */
+.draw {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.drawing {
+  cursor: crosshair;
+}
+
+.colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+
+.colors button {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #111;
+  border-radius: 3px;
+}
+
+.colors .colorOn {
+  outline: 2px solid var(--acc);
+  outline-offset: 1px;
+}
+
+.textEdit {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  border: 1px solid #555;
+  border-radius: 3px;
+  background: #1e1e1e;
+  color: #fff;
+  font: inherit;
+}
+
+/* ---------- New Document ---------- */
+.dialogBack {
+  position: absolute;
+  inset: 28px 0 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.45);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(92%, 860px);
+  max-height: 92%;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #2b2b2b;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.6);
+}
+
+.dialog header {
+  padding: 6px;
+  background: #3a3a3a;
+  font-size: 11px;
+  text-align: center;
+  color: #ddd;
+}
+
+.dialog nav {
+  display: flex;
+  justify-content: center;
+  gap: 26px;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dialog nav button {
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--dim);
+  font: inherit;
+  cursor: default;
+}
+
+.dialog nav .catOn {
+  border-bottom-color: #fff;
+  color: #fff;
+}
+
+.dialogBody {
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dialogBody section {
+  flex: 1;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.dialogBody small {
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.presets button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 8px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 4px;
+  background: #383838;
+  color: #e6e6e6;
+  font: inherit;
+  cursor: default;
+}
+
+.presets .presetOn {
+  border-color: #3b8cff;
+}
+
+.presets i {
+  height: 46px;
+  max-width: 80%;
+  border: 1px solid #aaa;
+}
+
+.dialogBody aside {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 230px;
+  padding: 14px;
+  border-left: 1px solid var(--line);
+  background: #262626;
+}
+
+.nameInput {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: 500 20px/1.2 -apple-system, sans-serif;
+  outline: none;
+}
+
+.dialogBody label {
+  display: grid;
+  gap: 4px;
+  color: var(--dim);
+}
+
+.dialogBody label input,
+.dialogBody label select {
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid #555;
+  border-radius: 3px;
+  background: #1e1e1e;
+  color: #fff;
+  font: inherit;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
 }
