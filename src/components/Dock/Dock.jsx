@@ -249,7 +249,7 @@ export default function Dock() {
   return (
     <>
       <div className={styles.dockWrap}>
-        <div className={styles.dock} data-cat-surface="front" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+        <div className={styles.dock} data-cat-floor onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
           {DOCK_PRIMARY.map(renderItem)}
           <div className={styles.divider} aria-hidden />
           {DOCK_SECONDARY.map(renderItem)}

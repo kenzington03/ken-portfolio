@@ -87,8 +87,9 @@ function trace(ctx, path) {
 
 /**
  * A player for one animation. `colour(rgb)` may restyle a fill (it gets the
- * fill's [r, g, b] in 0..1 and returns a CSS colour). draw(ctx, frame) paints
- * that frame in the animation's own coordinates.
+ * fill's [r, g, b] in 0..1 and returns a CSS colour, or a function giving one
+ * at each draw, for a colour that changes). draw(ctx, frame) paints that frame
+ * in the animation's own coordinates.
  */
 export function lottiePlayer(data, { colour } = {}) {
   const layers = [...data.layers].reverse(); // the first layer is on top
@@ -127,7 +128,8 @@ export function lottiePlayer(data, { colour } = {}) {
           });
           if (fl) {
             ctx.globalAlpha *= op * ((valueAt(fl.o, f) ?? 100) / 100);
-            ctx.fillStyle = fillOf(valueAt(fl.c, f));
+            const fill = fillOf(valueAt(fl.c, f));
+            ctx.fillStyle = typeof fill === 'function' ? fill() : fill;
             ctx.fill();
           }
           ctx.restore();

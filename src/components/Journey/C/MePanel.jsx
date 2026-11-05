@@ -11,7 +11,7 @@ import styles from './MePanel.module.css';
 // The statement, a line per array, broken where it reads aloud.
 export const STATEMENT = [['Nothing', 'in', 'good', 'design'], ['is', 'there', 'by', 'accident.']];
 // Under it, the question he asks of every design.
-export const ASIDE = "I'm Ken. For ten years I've turned complicated products into brands people get at a glance, and campaigns they remember.";
+export const ASIDE = "Hi, I'm Ken. I make brands easy on the eyes, and hard to forget.";
 // What he specialises in: each in a line, what it covers.
 export const PILLARS = [
   { name: 'Brands', line: 'Identities, logos and guidelines that hold up wherever the brand goes.' },
