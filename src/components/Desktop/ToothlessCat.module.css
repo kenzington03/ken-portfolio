@@ -94,3 +94,104 @@
   margin: 5px 10px;
   background: rgba(255, 255, 255, 0.1);
 }
+
+/* The first-visit hello: rides above his head (placed by the engine). */
+.hint {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1402;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.hintBubble {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: 236px;
+  padding: 12px 12px 10px 14px;
+  border-radius: 14px;
+  background: rgba(28, 28, 30, 0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.86);
+  font: 12px/1.4 -apple-system, BlinkMacSystemFont, sans-serif;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  animation: hintIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Its point, down to him. */
+.hintBubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: rgba(28, 28, 30, 0.88);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transform: rotate(45deg);
+}
+
+.hintText {
+  margin: 0 0 10px;
+}
+
+.hintText b {
+  color: #fff;
+  font-weight: 600;
+}
+
+.hintActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.hintActions button {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font: 600 11px -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+}
+
+.hintHide {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hintOk {
+  border: 1px solid rgba(10, 132, 255, 0.4);
+  background: rgba(10, 132, 255, 0.2);
+  color: #4aa3ff;
+}
+
+.hintHide:hover,
+.hintOk:hover {
+  filter: brightness(1.2);
+}
+
+@keyframes hintIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hintBubble {
+    animation: none;
+  }
+}

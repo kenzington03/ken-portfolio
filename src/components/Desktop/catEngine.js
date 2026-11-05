@@ -34,7 +34,7 @@ import SIT from './toothlessSit.json';
 import { lottiePlayer } from './lottieMini.js';
 
 const G = 2400; // gravity, px/s²
-const S = 1.2; // his scale: the rig is in units of 1px at S = 1
+const S = 1.5; // his scale: the rig is in units of 1px at S = 1
 const WALK = 58; // px/s
 const RUN = 280;
 const ZOOM = 520;
@@ -48,20 +48,21 @@ const EYE = '#9ee05a';
 // Sitting and grooming are the animation itself ("Black cat" by PoPoF,
 // LottieFiles, Lottie Simple License): its scale on screen, the point under
 // him (his feet, the middle of his body), and where the grooming starts.
-const SIT_K = 82 / 735;
+const SIT_K = 0.14;
 const SIT_AT = [775, 750];
 const GROOM_AT = 97;
 // Super Saiyan: the aura's colours, top to bottom, which his eyes cycle through.
 const SSJ = ['#4f8bff', '#9b6bff', '#ffc94d'];
-// Legs short enough that he stands up on them: the forelegs nearly straight
-// under the shoulder, the hind knee near a right angle (longer legs had to
-// fold to reach the ground, and he walked in a crouch).
-const FORE = [10, 10.5]; // upper arm, forearm
-const HIND = [8, 8.6]; // thigh, shin
-const HOCK = [-2.8, -8]; // the hock from the paw, standing (the long foot)
-const PAW = 2;
+// He is built like the cat he sits as: a deep, round body, a small head with
+// small ears, sturdy legs on round paws, a thick tail. Legs short enough that
+// he stands up on them: the forelegs nearly straight under the shoulder, the
+// hind knee near a right angle.
+const FORE = [10.8, 10.8]; // upper arm, forearm
+const HIND = [7.8, 7.8]; // thigh, shin
+const HOCK = [-3, -9]; // the hock from the paw, standing (the long foot)
+const PAW = 3;
 const TAIL_N = 14;
-const TAIL_SEG = 3.5;
+const TAIL_SEG = 4;
 const LEASH = 150; // how far the butterfly strays before it fades
 const WIDE = 420; // the least room, px, he needs to play with the yarn
 const LEGS = ['xh', 'xf', 'nh', 'nf']; // far hind, far fore, near hind, near fore
@@ -95,19 +96,19 @@ const cycle = (list, k) => {
 // shin, as in the air), haunch (the round thigh of a sitting cat), tuck (paws
 // folded under), the tail (ta its angle at the root, tc its curl per segment,
 // th the hook at its tip), eye openness and how far back the ears are.
-const BASE = { hx: -12, hy: -23, sx: 12, sy: -24, arch: 2.5, nx: 8, ny: -13, tilt: 0, turn: 0.3, fx: 1, bx: 0, hock: 0, hs: 0, haunch: 0, tuck: 0, ta: -1.95, tc: 0.02, th: 0.3, lid: 1, ears: 0 };
+const BASE = { hx: -14, hy: -27, sx: 14, sy: -28, arch: 3, nx: 11, ny: -12, tilt: 0, turn: 0.3, fx: 1, bx: 0, hock: 0, hs: 0, haunch: 0, tuck: 0, ta: -1.95, tc: 0.02, th: 0.3, lid: 1, ears: 0 };
 const POSES = {
   stand: BASE,
-  aim: { ...BASE, hy: -18, sy: -20, nx: 9, ny: -13, tilt: -0.2, turn: 0.55, ta: 2.95, tc: 0.03, th: 0.12 },
-  crouch: { ...BASE, hx: -10, hy: -12.5, sx: 11, sy: -13, arch: 0.5, nx: 9, ny: -10, tilt: -0.12, turn: 0.6, fx: -1, bx: 5, ta: 3.05, tc: 0, th: 0.1 },
-  land: { ...BASE, hx: -11, hy: -15, sx: 11, sy: -13, arch: 1.5, nx: 8, ny: -11, turn: 0.45, fx: 2, bx: 2, ta: -2.5, tc: 0.05, th: 0.2 },
-  // Sitting tall, like a little black cat on a doorstep: the tail up behind.
-  sit: { ...BASE, hx: -5, hy: -8, sx: 5, sy: -23.5, arch: 3.5, nx: 3, ny: -14, turn: 0.1, fx: 3, bx: 8, hock: 1, haunch: 1, ta: -2.3, tc: 0.05, th: 0.38 },
-  loaf: { ...BASE, hx: -11, hy: -9, sx: 9.5, sy: -9.5, arch: 4.5, nx: 7, ny: -10, turn: 0.15, tuck: 1, ta: 2.6, tc: -0.22, th: 0, lid: 0.55 },
-  sleep: { ...BASE, hx: -8, hy: -8, sx: 7, sy: -8, arch: 9, nx: 7, ny: -2, tilt: 0.35, turn: 0, tuck: 1, ta: 2.3, tc: -0.3, th: 0, lid: 0 },
-  stretch: { ...BASE, hx: -10, hy: -25, sx: 10, sy: -10, arch: -3, nx: 11, ny: -6, tilt: -0.25, turn: 0.35, fx: 19, bx: -1, ta: -1.85, tc: 0.04, th: 0.25, lid: 0.25 },
-  air: { ...BASE, hx: -14, hy: -22, sx: 14, sy: -23, arch: 0, nx: 9, ny: -12, turn: 0.6, hs: 1, ta: 3.35, tc: 0.03, th: 0.05 },
-  drag: { ...BASE, hx: 0, hy: 40, sx: 1, sy: 15, arch: -2, nx: 2, ny: -13, turn: 0, hs: 0.8, ta: 1.65, tc: 0.06, th: 0.15, lid: 0.6, ears: 0.6 },
+  aim: { ...BASE, hy: -24, sy: -25, nx: 12, ny: -11, tilt: -0.2, turn: 0.55, ta: 2.95, tc: 0.03, th: 0.12 },
+  crouch: { ...BASE, hx: -12, hy: -16, sx: 13, sy: -16.5, arch: 1, nx: 12, ny: -9, tilt: -0.12, turn: 0.6, fx: -1, bx: 6, ta: 3.05, tc: 0, th: 0.1 },
+  land: { ...BASE, hx: -13, hy: -19, sx: 13, sy: -17, arch: 2, nx: 11, ny: -10, turn: 0.45, fx: 2, bx: 2, ta: -2.5, tc: 0.05, th: 0.2 },
+  // Sitting tall, as in the animation he sits in: the tail round his feet.
+  sit: { ...BASE, hx: -6, hy: -11, sx: 6, sy: -30, arch: 4, nx: 4, ny: -13, turn: 0.1, fx: 4, bx: 9, hock: 1, haunch: 1, ta: -2.3, tc: 0.05, th: 0.38 },
+  loaf: { ...BASE, hx: -13, hy: -12, sx: 11, sy: -12.5, arch: 5.5, nx: 9, ny: -9, turn: 0.15, tuck: 1, ta: 2.6, tc: -0.22, th: 0, lid: 0.55 },
+  sleep: { ...BASE, hx: -10, hy: -11, sx: 9, sy: -11, arch: 10, nx: 9, ny: -2, tilt: 0.35, turn: 0, tuck: 1, ta: 2.3, tc: -0.3, th: 0, lid: 0 },
+  stretch: { ...BASE, hx: -12, hy: -31, sx: 12, sy: -13, arch: -3, nx: 13, ny: -6, tilt: -0.25, turn: 0.35, fx: 23, bx: -1, ta: -1.85, tc: 0.04, th: 0.25, lid: 0.25 },
+  air: { ...BASE, hx: -16, hy: -27, sx: 16, sy: -28, arch: 0, nx: 11, ny: -11, turn: 0.6, hs: 1, ta: 3.35, tc: 0.03, th: 0.05 },
+  drag: { ...BASE, hx: 0, hy: 50, sx: 1, sy: 19, arch: -2, nx: 2, ny: -16, turn: 0, hs: 0.8, ta: 1.65, tc: 0.06, th: 0.15, lid: 0.6, ears: 0.6 },
 };
 POSES.groom = { ...POSES.sit, nx: 5, ny: -12, tilt: 0.3, lid: 0.25 };
 // How quickly he moves into each (sleep curls up slowly, landings are fast).
@@ -116,9 +117,9 @@ const RATES = { crouch: 14, land: 20, air: 12, drag: 12, aim: 8, stretch: 5, sle
 // The gaits: when each paw lands (fraction of the stride), how long it stays
 // down, how high the front and hind paws lift.
 const GAITS = {
-  walk: { duty: 0.64, off: { nh: 0, nf: 0.25, xh: 0.5, xf: 0.75 }, lift: [6.5, 5] },
-  trot: { duty: 0.42, off: { nh: 0, xf: 0, xh: 0.5, nf: 0.5 }, lift: [8, 7] },
-  gallop: { duty: 0.24, off: { nh: 0, xh: 0.07, nf: 0.5, xf: 0.57 }, lift: [10, 9] },
+  walk: { duty: 0.64, off: { nh: 0, nf: 0.25, xh: 0.5, xf: 0.75 }, lift: [7, 6] },
+  trot: { duty: 0.42, off: { nh: 0, xf: 0, xh: 0.5, nf: 0.5 }, lift: [9, 8] },
+  gallop: { duty: 0.24, off: { nh: 0, xh: 0.07, nf: 0.5, xf: 0.57 }, lift: [11, 10] },
 };
 
 /** Two-bone IK: the joint between a and b for bones l1, l2. bend 1 puts the
@@ -156,10 +157,17 @@ function tube(g, pts, rT, rB, roundAll) {
     top.push([pts[i][0] + ty * rT[i], pts[i][1] - tx * rT[i]]);
     bot.push([pts[i][0] - ty * rB[i], pts[i][1] + tx * rB[i]]);
   }
+  // The outline curves through the points (no corners at the joints).
+  const through = (ps) => {
+    for (let i = 1; i < ps.length - 1; i += 1) g.quadraticCurveTo(ps[i][0], ps[i][1], (ps[i][0] + ps[i + 1][0]) / 2, (ps[i][1] + ps[i + 1][1]) / 2);
+    g.lineTo(ps[ps.length - 1][0], ps[ps.length - 1][1]);
+  };
   g.beginPath();
   g.moveTo(top[0][0], top[0][1]);
-  for (let i = 1; i < n; i += 1) g.lineTo(top[i][0], top[i][1]);
-  for (let i = n - 1; i >= 0; i -= 1) g.lineTo(bot[i][0], bot[i][1]);
+  through(top);
+  const back = [...bot].reverse();
+  g.lineTo(back[0][0], back[0][1]);
+  through(back);
   g.closePath();
   g.fill();
   for (let i = 0; i < n; i += roundAll ? 1 : n - 1) {
@@ -188,17 +196,21 @@ function readWindows() {
 /** Is a point on a surface of `layer` under a window in front of it? */
 const coveredAt = (wins, layer, x, y) => wins.some((w) => w.z > layer && x > w.r.left && x < w.r.right && y > w.r.top && y < w.r.bottom);
 
+/** How high a surface is under x: the floor steps up over the Dock. */
+const yAt = (s, x) => (s.step && x > s.step.x0 && x < s.step.x1 ? s.step.y : s.y);
+
 /**
  * Every surface he can stand on, as screen-space segments, each on a layer:
  * the desktop's things behind every window, a window's things on that
  * window's layer. A surface hidden behind a window in front of it can't be
- * jumped to (`hidden`). The floor runs level with the top of the Dock (the
- * element marked [data-cat-floor]), so he walks above it, never through it.
+ * jumped to (`hidden`). The floor is the bottom of the screen, with the Dock
+ * (the element marked [data-cat-dock]) a step up in it: he hops up onto it
+ * and down off it, and never goes behind it.
  */
 function readSurfaces(wins) {
-  const dock = document.querySelector('[data-cat-floor]')?.getBoundingClientRect();
-  const floorY = dock && dock.height > 0 ? dock.top : window.innerHeight - 1;
-  const out = [{ key: 'floor', el: null, x0: -200, x1: window.innerWidth + 200, y: floorY, layer: -1 }];
+  const dock = document.querySelector('[data-cat-dock]')?.getBoundingClientRect();
+  const step = dock && dock.height > 0 ? { x0: dock.left + 8, x1: dock.right - 8, y: dock.top } : null;
+  const out = [{ key: 'floor', el: null, x0: -200, x1: window.innerWidth + 200, y: window.innerHeight - 1, layer: -1, step }];
   document.querySelectorAll('[data-cat-surface], [data-window-titlebar]').forEach((el) => {
     const r = el.getBoundingClientRect();
     if (r.width < 30 || r.height < 8 || r.bottom < 0 || r.top > window.innerHeight) return;
@@ -234,10 +246,10 @@ export function createCat({ canvas, onSay }) {
   const lg = lbuf.getContext('2d');
   const aura = document.createElement('canvas');
   const ag = aura.getContext('2d');
-  const BW = 300;
-  const BH = 300;
-  const OX = 150;
-  const OY = 190;
+  const BW = 380;
+  const BH = 360;
+  const OX = 190;
+  const OY = 240;
   let dpr = 1;
   const size = () => {
     dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -305,7 +317,7 @@ export function createCat({ canvas, onSay }) {
     zoomNext: false, // on landing, straight into the zoomies
     chargeNext: false, // on landing, power up
   };
-  const P = { ...POSES.stand };
+  const P = { ...POSES.sit }; // he starts out sitting
   const F = { nf: [12, 0], xf: [9.5, 0], nh: [-11, 0], xh: [-13.5, 0] };
   const ta = Array.from({ length: TAIL_N }, (_, i) => -1.95 + i * 0.02);
   const tv = new Array(TAIL_N).fill(0);
@@ -334,9 +346,34 @@ export function createCat({ canvas, onSay }) {
     c.until = performance.now() / 1000 + secs;
   };
   const onFloor = () => c.on?.key === 'floor';
-  const floorY = () => surfaces[0].y;
+  const floorY = () => surfaces[0].y; // the floor proper, below the Dock
+  // On the floor proper, not up on the Dock.
+  const onBase = () => onFloor() && yAt(surfaces[0], c.x) === surfaces[0].y;
+  /** The stretch of floor at one level around x: beside the Dock, or on it. */
+  function level(x) {
+    const st = surfaces[0].step;
+    if (!st) return [0, window.innerWidth];
+    if (x <= st.x0) return [0, st.x0];
+    if (x >= st.x1) return [st.x1, window.innerWidth];
+    return [st.x0, st.x1];
+  }
+  /** Where he can play on what he's on: a level of the floor, or the surface. */
+  const room = (s) => (s.key === 'floor' ? level(c.x) : span(s));
   // Room to bat a ball of yarn about: the floor, the Dock, a wide window.
-  const roomy = (s) => !!s && (s.key === 'floor' || s.x1 - s.x0 >= WIDE);
+  const roomy = (s) => !!s && room(s)[1] - room(s)[0] >= WIDE;
+
+  // He's there when you arrive: sitting on the Dock, at his ease.
+  {
+    const st = surfaces[0].step;
+    c.x = st ? rand(st.x0 + 80, st.x1 - 80) : 160;
+    c.y = yAt(surfaces[0], c.x);
+    c.face = Math.random() < 0.5 ? 1 : -1;
+    c.yaw = c.face;
+    c.lot = 1;
+    c.lotF = rand(0, 80);
+    c.plan = null;
+    set('sit', rand(8, 12));
+  }
 
   // ---------- Thinking ----------
   function reachable() {
@@ -349,9 +386,10 @@ export function createCat({ canvas, onSay }) {
       const [s0, s1] = span(s);
       if (s1 < s0) return;
       const lx = rand(s0, s1);
-      if (coveredAt(windows, s.layer, lx, s.y)) return;
+      const sy = yAt(s, lx);
+      if (coveredAt(windows, s.layer, lx, sy)) return;
       const tx = clamp(lx - Math.sign(lx - c.x || 1) * 90, h0, h1);
-      const up = here.y - s.y;
+      const up = c.y - sy;
       const across = Math.abs(lx - tx);
       if (up > MAX_UP || across > MAX_ACROSS || across < 12) return;
       out.push({ s, lx, tx, up });
@@ -362,12 +400,12 @@ export function createCat({ canvas, onSay }) {
   function decide() {
     if (still) return set('sit', 1e6);
     const here = surfaceOf(c.on);
-    const high = here && here.y < window.innerHeight * 0.62;
+    const high = here && c.y < window.innerHeight * 0.62;
     const r = Math.random();
     const options = reachable();
     if (high && r < 0.22) return startButterfly();
-    if (onFloor() && r < 0.1) return startZoomies();
-    if (onFloor() && r < 0.18) return startMouse();
+    if (onBase() && r < 0.1) return startZoomies();
+    if (onBase() && r < 0.18) return startMouse();
     if (roomy(here) && r < 0.28) return startYarn();
     if (here?.bed && r < 0.75) return set(Math.random() < 0.6 ? 'sleep' : 'loaf', rand(10, 20));
     // Bed time: somewhere cosy, if one is in reach.
@@ -404,9 +442,13 @@ export function createCat({ canvas, onSay }) {
   }
 
   function startZoomies() {
-    // Off one side of the screen at full tilt, back in from the other.
+    // Off one side of the screen at full tilt, back in from the other, up
+    // over the Dock and down again on the way. Starting up on the Dock, he
+    // makes for its nearer end and gets down first.
     c.count = 0;
-    c.plan = { tx: c.x < window.innerWidth / 2 ? window.innerWidth + 120 : -120 };
+    const st = surfaces[0].step;
+    const toRight = onFloor() && !onBase() && st ? st.x1 - c.x < c.x - st.x0 : c.x < window.innerWidth / 2;
+    c.plan = { tx: toRight ? window.innerWidth + 120 : -120 };
     if (!c.super) say(pick(['!!!', 'zoomies.', 'brb.']));
     set('zoom');
   }
@@ -432,17 +474,20 @@ export function createCat({ canvas, onSay }) {
   function startYarn() {
     const here = surfaceOf(c.on);
     if (!roomy(here)) return set('sit', 3);
-    const [a, b] = span(here);
+    const [a, b] = room(here);
     // Towards the side with more room.
     if ((c.face > 0 ? b - c.x : c.x - a) < 160) c.face = -c.face;
     const x = clamp(c.x + c.face * rand(70, 140), a + 10, b - 10);
-    toys.yarn = { x, vx: 0, on: c.on.key, spin: 0, trail: [] };
+    toys.yarn = { x, vx: 0, on: c.on.key, lo: a + 8, hi: b - 8, spin: 0, trail: [] };
     c.count = Math.round(rand(3, 5));
     set('yarn');
   }
 
   function startMouse() {
-    const left = Math.random() < 0.5;
+    // From the open end of his stretch of floor: it makes for the Dock, and
+    // under it (where he can't follow).
+    const st = surfaces[0].step;
+    const left = st ? c.x <= st.x0 : Math.random() < 0.5;
     toys.mouse = { x: left ? -30 : window.innerWidth + 30, dir: left ? 1 : -1, t: 0 };
     say('!');
     set('watch', 0.6);
@@ -458,8 +503,8 @@ export function createCat({ canvas, onSay }) {
     set('watch', rand(3, 4.5));
   }
 
-  function launch(target) {
-    const apex = Math.min(c.y, target.y) - 34 - Math.abs(target.x - c.x) * 0.12;
+  function launch(target, lift = 34) {
+    const apex = Math.min(c.y, target.y) - lift - Math.abs(target.x - c.x) * 0.12;
     const vy0 = -Math.sqrt(2 * G * Math.max(8, c.y - apex));
     const tUp = -vy0 / G;
     const tDown = Math.sqrt((2 * Math.max(4, target.y - apex)) / G);
@@ -479,9 +524,31 @@ export function createCat({ canvas, onSay }) {
     const d = goal - c.x;
     const speed = Math.min(max, Math.abs(d) * 4 + 10);
     if (Math.abs(d) > 1) c.face = Math.sign(d);
-    c.x += Math.sign(d) * Math.min(Math.abs(d), speed * dt);
+    const nx = c.x + Math.sign(d) * Math.min(Math.abs(d), speed * dt);
+    // Coming to the Dock's end with somewhere to go past it: a hop up onto
+    // it, or down off it (taking off a stride short, so he clears its side),
+    // and on he goes.
+    const st = surfaces[0].step;
+    if (onFloor() && st) {
+      const sg = Math.sign(d);
+      const ends = [st.x0, st.x1].filter((e) => (e - c.x) * sg > 0 && (goal - e) * sg > 0);
+      const end = sg > 0 ? Math.min(...ends) : Math.max(...ends);
+      if (ends.length && Math.abs(end - nx) < 32) {
+        hop(sg, end);
+        return { d, speed: 0 };
+      }
+    }
+    c.x = nx;
     if (here?.el) c.on.dx = c.x - here.x0;
     return { d: goal - c.x, speed: Math.abs(d) > 1 ? speed : 0 };
+  }
+
+  /** Up onto the Dock or down off it, a short spring, then carry on with
+   *  whatever he was doing. */
+  function hop(dir, edge) {
+    const x = edge + dir * 30;
+    c.resume = { mode: c.mode, plan: c.plan, count: c.count };
+    launch({ x, y: yAt(surfaces[0], x) }, 20);
   }
 
   function step(dt, now) {
@@ -501,7 +568,7 @@ export function createCat({ canvas, onSay }) {
         c.plan = null;
         set('air');
       } else {
-        c.y = here.y;
+        c.y = here.el ? here.y : yAt(here, c.x);
         if (here.el) c.x = clamp(here.x0 + c.on.dx, here.x0 + 4, here.x1 - 4);
       }
     }
@@ -515,13 +582,14 @@ export function createCat({ canvas, onSay }) {
       d.py = d.y;
       d.swing = approach(d.swing, clamp(-c.vx / 900, -0.9, 0.9), 6, dt);
       c.x = d.x;
-      c.y = d.y + 46 * S;
+      c.y = d.y + 58 * S;
       c.speed = 0;
       return;
     }
 
     if (c.mode === 'air') {
       c.vy += G * dt;
+      const px = c.x;
       const py = c.y;
       c.x += c.vx * dt;
       c.y += c.vy * dt;
@@ -529,12 +597,24 @@ export function createCat({ canvas, onSay }) {
         c.vx *= -0.4;
         c.x = clamp(c.x, 20, window.innerWidth - 20);
       }
+      // The Dock's side is a wall: below its top, he bumps off it.
+      const st = surfaces[0].step;
+      const inside = (x) => st && x > st.x0 && x < st.x1;
+      if (st && c.y > st.y + 2 && inside(c.x) && !inside(px)) {
+        c.x = px;
+        c.vx *= -0.3;
+      }
       if (c.vy > 0) {
+        // (The floor is solid: anything below it is on it.)
         const hit = surfaces
-          .filter((s) => (c.collapse ? s.key === 'floor' : !s.el || !coveredAt(windows, s.layer, c.x, s.y)) && c.x > s.x0 + 4 && c.x < s.x1 - 4 && py <= s.y + 1 && c.y >= s.y)
+          .filter((s) =>
+            s.key === 'floor'
+              ? c.y >= yAt(s, c.x)
+              : !c.collapse && !coveredAt(windows, s.layer, c.x, s.y) && c.x > s.x0 + 4 && c.x < s.x1 - 4 && py <= s.y + 1 && c.y >= s.y,
+          )
           .sort((a, b) => a.y - b.y)[0];
         if (hit) {
-          c.y = hit.y;
+          c.y = hit.el ? hit.y : yAt(hit, c.x);
           c.on = { key: hit.key, dx: c.x - hit.x0 };
           c.impact = clamp(c.vy / 1400, 0.3, 1);
           c.sqv += 70 + 70 * c.impact; // the landing runs through him
@@ -557,6 +637,7 @@ export function createCat({ canvas, onSay }) {
         const run = c.mode === 'chase';
         const m = walkTo(run ? pointer.x : c.plan?.tx ?? c.x, run ? RUN : WALK, dt, here);
         speed = m.speed;
+        if (c.mode === 'air') break; // a hop onto or off the Dock
         if (Math.abs(m.d) < 1.5) {
           if (run) {
             if (c.laser && Math.abs(pointer.y - c.y) > 30) {
@@ -574,7 +655,7 @@ export function createCat({ canvas, onSay }) {
             // Stop, look at where he's going, and only then get down.
             const j = c.plan.jump;
             c.face = Math.sign(j.lx - c.x) || c.face;
-            c.aimAt = { x: j.lx, y: j.s.y };
+            c.aimAt = { x: j.lx, y: yAt(j.s, j.lx) };
             set('aim', rand(0.4, 0.8));
           } else {
             c.plan = null;
@@ -587,6 +668,7 @@ export function createCat({ canvas, onSay }) {
         // Flat out along the floor; off the edge, back in from the other side.
         const m = walkTo(c.plan.tx, c.super ? ZOOM * 1.4 : ZOOM, dt, null);
         speed = m.speed;
+        if (c.mode === 'air') break;
         if (Math.abs(m.d) < 2) {
           if (c.count === 0) {
             c.count = 1;
@@ -609,7 +691,7 @@ export function createCat({ canvas, onSay }) {
           break;
         }
         if (Math.abs(y.vx) < 25) {
-          const m = walkTo(y.x - c.face * 22, RUN * 0.6, dt, here);
+          const m = walkTo(clamp(y.x - c.face * 22, y.lo + 4, y.hi - 4), RUN * 0.6, dt, here);
           speed = m.speed;
           c.face = Math.sign(y.x - c.x) || c.face;
           if (Math.abs(m.d) < 2 && c.bat <= 0) {
@@ -632,9 +714,11 @@ export function createCat({ canvas, onSay }) {
         }
         const m = walkTo(mo.x - c.face * 60, RUN * 1.15, dt, null);
         speed = m.speed;
+        if (c.mode === 'air') break;
         if (Math.abs(mo.x - c.x) < 120 && !c.pounced) {
           c.pounced = true;
-          c.plan = { jump: { s: { y: floorY() }, lx: mo.x + mo.dir * 40 } };
+          const [a, b] = level(c.x);
+          c.plan = { jump: { s: surfaces[0], lx: clamp(mo.x + mo.dir * 40, a + 10, b - 10) } };
           c.quick = true;
           set('crouch', 0.18);
         }
@@ -642,10 +726,15 @@ export function createCat({ canvas, onSay }) {
       }
       case 'charge':
         if (t > c.until) {
+          // On the floor, off he goes (from the Dock, he runs off its end).
           if (onFloor()) startZoomies();
           else {
-            // Down from wherever he is, landing a little ahead, and off.
-            const x = clamp(c.x + c.face * rand(60, 140), 40, window.innerWidth - 40);
+            // Down from wherever he is to the floor proper, not the Dock,
+            // landing a little ahead, and off.
+            const st = surfaces[0].step;
+            let x = clamp(c.x + c.face * rand(60, 140), 40, window.innerWidth - 40);
+            if (st && x > st.x0 - 30 && x < st.x1 + 30) x = x - st.x0 < st.x1 - x ? st.x0 - rand(40, 90) : st.x1 + rand(40, 90);
+            x = clamp(x, 30, window.innerWidth - 30);
             launch({ x, y: floorY() });
             c.collapse = true; // straight down past everything to the floor
             c.zoomNext = true;
@@ -665,7 +754,7 @@ export function createCat({ canvas, onSay }) {
         if (t > c.until) {
           const j = c.plan?.jump;
           if (j) {
-            launch({ x: j.lx, y: j.s.y });
+            launch({ x: j.lx, y: yAt(j.s, j.lx) });
           }
           else set('idle', 0.5);
           c.plan = null;
@@ -673,12 +762,21 @@ export function createCat({ canvas, onSay }) {
         }
         break;
       case 'land':
-        if (c.zoomNext) {
-          c.zoomNext = false;
-          startZoomies();
-        } else if (c.chargeNext) {
+        if (c.chargeNext) {
           c.chargeNext = false;
+          c.resume = null;
           set('charge', 1.1);
+        } else if (c.zoomNext) {
+          c.zoomNext = false;
+          c.resume = null;
+          startZoomies();
+        } else if (c.resume) {
+          // Down from a hop: straight on with what he was doing.
+          const r = c.resume;
+          c.resume = null;
+          c.plan = r.plan;
+          c.count = r.count;
+          set(r.mode);
         } else if (t > c.until) {
           if (toys.mouse && c.pounced) {
             say(pick(['missed.', 'next time.', '…']));
@@ -711,6 +809,8 @@ export function createCat({ canvas, onSay }) {
         if (t > c.until && c.lot > 0.5 && c.lotF > GROOM_AT - 4 && c.lotF < sitAnim.frames - 3) {
           // Mid-groom: he finishes washing before he does anything else.
           c.until = t + (sitAnim.frames - c.lotF) / sitAnim.fps;
+        } else if (t > c.until && held) {
+          c.until = t + 0.5;
         } else if (t > c.until) {
           if (c.mode === 'sleep') {
             // Up, a long front stretch and a yawn.
@@ -735,12 +835,12 @@ export function createCat({ canvas, onSay }) {
       else {
         y.x += y.vx * dt;
         y.vx *= Math.exp(-dt * 2.2);
-        if (y.x < s.x0 + 8 || y.x > s.x1 - 8) {
+        if (y.x < y.lo || y.x > y.hi) {
           y.vx *= -0.6;
-          y.x = clamp(y.x, s.x0 + 8, s.x1 - 8);
+          y.x = clamp(y.x, y.lo, y.hi);
         }
         y.spin += (y.vx * dt) / 9;
-        y.y = s.y;
+        y.y = yAt(s, y.x);
         y.trail.unshift([y.x, y.y]);
         y.trail.length = Math.min(y.trail.length, 22);
       }
@@ -749,7 +849,8 @@ export function createCat({ canvas, onSay }) {
     if (mo) {
       mo.t += dt;
       mo.x += mo.dir * (mo.t < 0.6 ? 60 : 300) * dt;
-      if (mo.x < -60 || mo.x > window.innerWidth + 60) {
+      const st = surfaces[0].step;
+      if (mo.x < -60 || mo.x > window.innerWidth + 60 || (st && mo.x > st.x0 + 6 && mo.x < st.x1 - 6)) {
         toys.mouse = null;
         if (c.mode === 'hunt') {
           say('…');
@@ -876,12 +977,13 @@ export function createCat({ canvas, onSay }) {
       const m = 1 - u;
       spine.push([m * m * H[0] + 2 * m * u * C[0] + u * u * Sh[0], m * m * H[1] + 2 * m * u * C[1] + u * u * Sh[1]]);
       const s = Math.sin(Math.PI * u);
-      rT.push(lerp(6.6, 7.2, u) - 0.4 * s + breathe * 0.5);
-      rB.push(lerp(7.2, 8.4, u) + 0.9 * s + breathe);
+      // A deep chest, a round belly: the body is most of him.
+      rT.push(lerp(8.6, 9, u) - 0.6 * s + breathe * 0.5);
+      rB.push(lerp(10, 10.6, u) + 1.6 * s + breathe);
     }
     const head = [Sh[0] + P.nx, Sh[1] + P.ny + ndy];
-    const Jf = [Sh[0] + 1.5, Sh[1] + 3];
-    const Jh = [H[0] + 1, H[1] + 2.5];
+    const Jf = [Sh[0] + 2, Sh[1] + 5];
+    const Jh = [H[0] + 1, H[1] + 4];
 
     // Where the paws want to be.
     const rest = {
@@ -910,7 +1012,7 @@ export function createCat({ canvas, onSay }) {
       }
     } else if (name === 'drag') {
       const s = Math.sin(t * 2.5) * 1.5;
-      Object.assign(rest, { nf: [6, 32], xf: [3, 31], nh: [2 + s, 61], xh: [-2 + s, 60] });
+      Object.assign(rest, { nf: [8, 40], xf: [4, 39], nh: [2 + s, 76], xh: [-2 + s, 75] });
     }
     const L = clamp(32 + c.speed * 0.18, 34, 120) / S;
     const gaits = [
@@ -919,13 +1021,14 @@ export function createCat({ canvas, onSay }) {
       [GAITS.gallop, wG],
     ];
     c.groom = approach(c.groom, c.mode === 'groom' ? 1 : 0, 5, dt);
+    const swing = {}; // 0 planted .. 1 at the top of a step
     LEGS.forEach((k) => {
       const fore = k[1] === 'f';
       let [x, y] = rest[k];
       if (P.tuck > 0.01) {
         const j = fore ? Jf : Jh;
-        x = lerp(x, j[0] + 2, P.tuck);
-        y = lerp(y, j[1] + 3, P.tuck);
+        x = lerp(x, j[0] + 3, P.tuck);
+        y = lerp(y, j[1] + 5, P.tuck);
       }
       if (w > 0.001) {
         let gx = 0;
@@ -940,17 +1043,18 @@ export function createCat({ canvas, onSay }) {
         x = lerp(x, base + gx, w);
         y = lerp(y, gy, w);
       }
+      swing[k] = grounded ? clamp(-y / 6, 0, 1) * w : 0;
       if (wig && !fore) y -= Math.max(0, wig * (k === 'nh' ? 1 : -1)) * 1.6;
       if (k === 'nf' && c.bat > 0) {
         const b = Math.sin(Math.PI * c.bat);
-        x += 10 * b;
-        y -= 13 * b;
+        x += 12 * b;
+        y -= 16 * b;
       }
       if (k === 'nf' && c.groom > 0.01) {
         // A paw up to the mouth, licked, wiped over the face.
         const s = Math.sin(t * 7);
-        x = lerp(x, head[0] + 3 + s, c.groom);
-        y = lerp(y, head[1] + 8 + 2.5 * s, c.groom);
+        x = lerp(x, head[0] + 4 + s, c.groom);
+        y = lerp(y, head[1] + 10 + 2.5 * s, c.groom);
       }
       const f = F[k];
       if (grounded && w > 0.02) {
@@ -969,11 +1073,19 @@ export function createCat({ canvas, onSay }) {
       const f = F[k];
       if (k[1] === 'f') {
         // (The paw is a ball of radius PAW resting on the ground.)
+        // Lifted, the wrist folds and the paw hangs back under it.
         const [ex, ey, px, py] = ik(Jf[0], Jf[1], f[0], f[1] - PAW, FORE[0], FORE[1], 1);
-        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -3) : ey], [px, py], [px + 1.4, py]], r: [3.8, 2.5, 2.1, PAW] };
+        const sw = swing[k];
+        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -PAW - 1) : ey], [px, py], [px + lerp(1.8, -1.2, sw), py + 1.4 * sw]], r: [5.2, 3.6, 3.2, PAW] };
       } else {
-        let mx = lerp(HOCK[0], -7.5, P.hock);
-        let my = lerp(HOCK[1], -2, P.hock);
+        // The long hind foot: slanting down to the paw when it's planted;
+        // lifted, it folds, the paw swinging back under the hock (a cat
+        // picks its hind feet up, it doesn't drag them); far behind, at the
+        // end of a push, the hock rises onto the toes.
+        const sw = swing[k];
+        const push = grounded ? clamp((Jh[0] - f[0] - 4) / 8, 0, 1) * (1 - sw) * w : 0;
+        let mx = lerp(lerp(HOCK[0], 2.5, sw), -7.5, P.hock);
+        let my = lerp(lerp(HOCK[1] - 1.5 * push, -8, sw), -2, P.hock);
         if (P.hs > 0.01) {
           const ddx = Jh[0] - f[0];
           const ddy = Jh[1] - f[1];
@@ -985,11 +1097,11 @@ export function createCat({ canvas, onSay }) {
         let [kx, ky, qx, qy] = ik(Jh[0], Jh[1], f[0] + mx, f[1] - PAW + my, HIND[0], HIND[1], -1);
         // Sitting, the thigh folds forward and up into the haunch; and a
         // knee never goes through the floor.
-        kx = lerp(kx, Jh[0] + 6.5, P.hock);
+        kx = lerp(kx, Jh[0] + 8, P.hock);
         ky = lerp(ky, Jh[1] - 1, P.hock);
-        if (grounded) ky = Math.min(ky, -3);
+        if (grounded) ky = Math.min(ky, -4);
         const paw = [qx - mx, qy - my];
-        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.4, paw[1]]], r: [5.2, 3, 2.2, 2, PAW] };
+        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.8, paw[1]]], r: [8, 4.4, 3.2, 3, PAW] };
       }
     });
 
@@ -1044,11 +1156,11 @@ export function createCat({ canvas, onSay }) {
         ta[i] += tv[i] * sub;
       }
     }
-    const tail = [[H[0] - dx * 5 + nx * 3.4, H[1] - dy * 5 + ny * 3.4]];
-    const tailR = [2.2];
+    const tail = [[H[0] - dx * 7 + nx * 4.5, H[1] - dy * 7 + ny * 4.5]];
+    const tailR = [3];
     for (let i = 0; i < TAIL_N; i += 1) {
       const p = tail[i];
-      const r = lerp(2.2, 1.4, (i + 1) / TAIL_N);
+      const r = lerp(3, 1.9, (i + 1) / TAIL_N);
       const q = [p[0] + Math.cos(ta[i]) * TAIL_SEG, p[1] + Math.sin(ta[i]) * TAIL_SEG];
       if (grounded) q[1] = Math.min(q[1], -r);
       tail.push(q);
@@ -1149,7 +1261,7 @@ export function createCat({ canvas, onSay }) {
       happy: c.purr > 0.5,
       mouth: Math.max(c.mouth * 0.5, Math.sin(Math.PI * (1 - c.yawn)) * (c.yawn > 0 ? 1 : 0)),
     };
-    c.box = [Math.min(H[0] - 10, head[0] - 14), Math.max(Sh[0] + 10, head[0] + 14), head[1] - 24];
+    c.box = [Math.min(H[0] - 12, head[0] - 14), Math.max(Sh[0] + 12, head[0] + 14), head[1] - 20];
 
     // Sitting (once he's down) and grooming are the animation: crossfade in,
     // play it (grooming from its paw-licking), crossfade out when he gets up.
@@ -1157,7 +1269,7 @@ export function createCat({ canvas, onSay }) {
     if (seated && c.lot < 0.02) c.lotF = c.mode === 'groom' ? GROOM_AT : 0;
     c.lot = approach(c.lot, seated ? 1 : 0, seated ? 9 : 16, dt);
     if (c.lot > 0.01) c.lotF = (c.lotF + dt * sitAnim.fps) % sitAnim.frames;
-    if (c.lot > 0.5) c.box = [-26 / S, 26 / S, -84 / S];
+    if (c.lot > 0.5) c.box = [-40 / S, 40 / S, -100 / S];
   }
 
   // ---------- Drawing ----------
@@ -1169,14 +1281,14 @@ export function createCat({ canvas, onSay }) {
     const e = c.ears + (side > 0 ? c.earTw * 0.45 : 0);
     const sh = fx * (side > 0 ? 0.45 : 0.2);
     return [
-      [side * 2 + sh, -8.2],
-      [side * (11.4 + 5 * e) + sh, -22.5 + 8 * e],
-      [side * 12.2 + sh, -1.5],
+      [side * 2.6 + sh, -6.5],
+      [side * (9.4 + 4 * e) + sh, -16.5 + 6 * e],
+      [side * 10 + sh, -1.5],
     ];
   }
 
   function earPath(b0, tip, b1) {
-    const k = 0.26;
+    const k = 0.34; // a softly rounded tip
     g.beginPath();
     g.moveTo(b0[0], b0[1]);
     g.lineTo(tip[0] + (b0[0] - tip[0]) * k, tip[1] + (b0[1] - tip[1]) * k);
@@ -1188,15 +1300,15 @@ export function createCat({ canvas, onSay }) {
 
   // His head, front view (x towards the side he faces); c.tn turns it from
   // facing you (0) towards profile (1). Flat black like the animation he sits
-  // in: a small rounded head, tall ears, almond eyes.
+  // in: small and round, full cheeks, small ears set wide.
   function headShape() {
     const tn = c.tn;
     const fx = tn * 4;
     g.beginPath();
-    g.ellipse(fx * 0.3, -0.5, 10.6, 9.4, 0, 0, Math.PI * 2);
+    g.ellipse(fx * 0.3, -0.5, 9.4, 8.2, 0, 0, Math.PI * 2);
     g.fill();
     g.beginPath();
-    g.ellipse(fx * 0.6, 3.4, 8 - tn * 1.2, 5.6, 0, 0, Math.PI * 2);
+    g.ellipse(fx * 0.6, 2.6, 8.8 - tn * 1.2, 5.8, 0, 0, Math.PI * 2);
     g.fill();
     earPath(...earPts(-1));
     earPath(...earPts(1));
@@ -1235,8 +1347,8 @@ export function createCat({ canvas, onSay }) {
   function face() {
     const tn = c.tn;
     const fx = tn * 4;
-    eye(fx - 4.5 * (1 - tn * 0.4), 0.4, 1 - tn * 0.4, -1, R.open);
-    eye(fx + 4.5 * (1 - tn * 0.12), 0.4, 1, 1, R.open);
+    eye(fx - 4.2 * (1 - tn * 0.4), 0.2, 1 - tn * 0.4, -1, R.open);
+    eye(fx + 4.2 * (1 - tn * 0.12), 0.2, 1, 1, R.open);
   }
 
   function drawCat() {
@@ -1263,16 +1375,16 @@ export function createCat({ canvas, onSay }) {
     }
     LEGS.forEach((k) => {
       const l = R.legs[k];
-      tube(g, l.pts, l.r, l.r, true);
+      tube(g, l.pts, l.r, l.r, false); // smooth through the joints, round at the ends
     });
     tube(g, R.spine, R.rT, R.rB, false);
     if (R.haunch > 0.02) {
       g.beginPath();
-      g.ellipse(R.H[0] + 3.5, Math.min(R.H[1] + 1.5, -7.5 * R.haunch), 9.5 * R.haunch, 7.5 * R.haunch, -0.3, 0, Math.PI * 2);
+      g.ellipse(R.H[0] + 4, Math.min(R.H[1] + 2, -9.5 * R.haunch), 12.5 * R.haunch, 9.5 * R.haunch, -0.3, 0, Math.PI * 2);
       g.fill();
     }
     tube(g, R.tail, R.tailR, R.tailR, true);
-    tube(g, [[R.Sh[0] + 1, R.Sh[1] - 2], [R.head[0], R.head[1] + 4]], [5.6, 5.6], [6, 6], true);
+    tube(g, [[R.Sh[0] + 1, R.Sh[1] - 2], [R.head[0], R.head[1] + 4]], [7.2, 7.2], [7.6, 7.6], true);
     g.restore();
     g.save();
     headAt();
@@ -1518,6 +1630,8 @@ export function createCat({ canvas, onSay }) {
   let raf = 0;
   let last = performance.now();
   let hitbox = null;
+  let follower = null; // something that rides along above his head (a hint)
+  let held = false; // kept sitting where he is (until you're on the desktop)
   const frame = (now) => {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(0.033, (now - last) / 1000);
@@ -1534,10 +1648,10 @@ export function createCat({ canvas, onSay }) {
       const mid = ((R.H[0] + R.Sh[0]) / 2) * S * c.face;
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
       ctx.beginPath();
-      ctx.ellipse(c.x + mid, c.y, ((R.Sh[0] - R.H[0]) / 2 + 13) * S, 3 * S, 0, 0, Math.PI * 2);
+      ctx.ellipse(c.x + mid, c.y, ((R.Sh[0] - R.H[0]) / 2 + 16) * S, 3 * S, 0, 0, Math.PI * 2);
       ctx.fill();
     }
-    const oy = c.mode === 'drag' ? c.y - 46 * S : c.y;
+    const oy = c.mode === 'drag' ? c.y - 58 * S : c.y;
     // Charging, he shakes with it.
     const bx = c.x - OX + (c.mode === 'charge' ? (Math.random() - 0.5) * 2 * c.ssj : 0);
     const by = oy - OY;
@@ -1598,7 +1712,7 @@ export function createCat({ canvas, onSay }) {
     }
     if (hitbox) {
       let h;
-      if (c.mode === 'drag') h = { x: c.x - 26, y: c.y - 62 * S, w: 52, h: 84 * S };
+      if (c.mode === 'drag') h = { x: c.x - 32, y: c.y - 78 * S, w: 64, h: 100 * S };
       else {
         const [a, b, top] = c.box;
         const x0 = c.x + Math.min(a * c.face, b * c.face) * S;
@@ -1608,6 +1722,7 @@ export function createCat({ canvas, onSay }) {
       hitbox.style.width = `${h.w.toFixed(1)}px`;
       hitbox.style.height = `${h.h.toFixed(1)}px`;
     }
+    if (follower) follower.style.transform = `translate3d(${c.x.toFixed(1)}px, ${(oy + c.box[2] * S).toFixed(1)}px, 0)`;
   };
   raf = requestAnimationFrame(frame);
 
@@ -1642,6 +1757,15 @@ export function createCat({ canvas, onSay }) {
     setHitbox(el) {
       hitbox = el;
     },
+    setFollower(el) {
+      follower = el;
+    },
+    /** Keep him sitting where he is (on the Dock, as you arrive); let go,
+     *  he stays a while longer before he wanders. */
+    hold(on) {
+      if (held && !on && c.mode === 'sit') c.until = performance.now() / 1000 + rand(8, 12);
+      held = on;
+    },
     grab(e) {
       c.drag = { x: e.clientX, y: e.clientY, px: e.clientX, py: e.clientY, swing: 0, moved: false, sx: e.clientX, sy: e.clientY };
       const check = (ev) => {
@@ -1649,6 +1773,7 @@ export function createCat({ canvas, onSay }) {
         if (Math.hypot(ev.clientX - c.drag.sx, ev.clientY - c.drag.sy) > 5) {
           c.drag.moved = true;
           c.on = null;
+          c.resume = null;
           c.mode = 'drag';
           window.removeEventListener('pointermove', check);
         }

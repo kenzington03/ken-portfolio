@@ -3,11 +3,13 @@ import { useOS } from '../../context/OSContext.jsx';
 import { createCat } from './catEngine.js';
 import styles from './ToothlessCat.module.css';
 
+const MET = 'toothless-met'; // he's been introduced (once per browser)
+
 // Toothless, the desktop cat (after the desktop pets of the early 2000s, like
 // MyFelix). He is drawn and moved by catEngine.js; this places his canvas,
 // the invisible handle you pick him up by, his speech and his menu.
 export default function ToothlessCat() {
-  const { petVisible, togglePet } = useOS();
+  const { petVisible, togglePet, helloDismissed } = useOS();
   const canvasRef = useRef(null);
   const hitRef = useRef(null);
   const engine = useRef(null);
@@ -15,6 +17,8 @@ export default function ToothlessCat() {
   const [menu, setMenu] = useState(null);
   const [laser, setLaser] = useState(false);
   const sayTimer = useRef(0);
+  const hintRef = useRef(null);
+  const [hint, setHint] = useState(false);
 
   useEffect(() => {
     if (!petVisible || !canvasRef.current) return undefined;
@@ -33,6 +37,37 @@ export default function ToothlessCat() {
       engine.current = null;
     };
   }, [petVisible]);
+
+  // He waits on the Dock until you're on the desktop.
+  useEffect(() => {
+    engine.current?.hold(!helloDismissed);
+  }, [helloDismissed, petVisible]);
+
+  // The first time you're on the Mac, a word about him, over his head.
+  useEffect(() => {
+    if (!petVisible || !helloDismissed) return undefined;
+    try {
+      if (localStorage.getItem(MET)) return undefined;
+    } catch {
+      return undefined;
+    }
+    const t = setTimeout(() => setHint(true), 1800);
+    return () => clearTimeout(t);
+  }, [petVisible, helloDismissed]);
+  useEffect(() => {
+    engine.current?.setFollower(hint ? hintRef.current : null);
+    if (!hint) return undefined;
+    const t = setTimeout(() => met(), 15000);
+    return () => clearTimeout(t);
+  }, [hint]);
+  const met = () => {
+    setHint(false);
+    try {
+      localStorage.setItem(MET, '1');
+    } catch {
+      // (private mode: he'll say hello again next time)
+    }
+  };
 
   // The laser pointer: ten seconds of chasing the dot, then he gives up.
   useEffect(() => {
@@ -80,6 +115,30 @@ export default function ToothlessCat() {
       >
         {say && <span className={styles.say}>{say}</span>}
       </div>
+      {hint && (
+        <div ref={hintRef} className={styles.hint} role="dialog" aria-label="Meet Toothless">
+          <div className={styles.hintBubble}>
+            <p className={styles.hintText}>
+              <b>Hey, this is Toothless.</b> He lives on this Mac. Right-click him for tricks.
+            </p>
+            <div className={styles.hintActions}>
+              <button
+                type="button"
+                className={styles.hintHide}
+                onClick={() => {
+                  met();
+                  togglePet();
+                }}
+              >
+                Hide him
+              </button>
+              <button type="button" className={styles.hintOk} onClick={met}>
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {menu && (
         <div className={styles.menu} style={{ left: menu.x, top: menu.y }} onPointerDown={(e) => e.stopPropagation()} role="menu">
           <b className={styles.menuHead}>Toothless</b>
