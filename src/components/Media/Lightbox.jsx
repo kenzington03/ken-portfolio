@@ -52,7 +52,8 @@ export default function Lightbox({ items = [], index = null, onIndex, onClose })
       aria-modal="true"
       onClick={onClose}
       onTouchStart={(e) => {
-        swipe.current = e.touches[0].clientX;
+        // (Not on a video: sliding along its timeline isn't a swipe.)
+        swipe.current = e.target.tagName === 'VIDEO' ? null : e.touches[0].clientX;
       }}
       onTouchEnd={(e) => {
         const dx = e.changedTouches[0].clientX - (swipe.current ?? e.changedTouches[0].clientX);
