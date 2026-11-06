@@ -5,15 +5,18 @@ import { normalizeVideoEntry } from '../../utils/sectionAssets.js';
 import styles from './MasonryGallery.module.css';
 
 export default function MasonryGallery({ images = [], videos = [] }) {
-  const [lightboxItem, setLightboxItem] = useState(null);
+  const [open, setOpen] = useState(null); // which piece is big, by its place in `items`
 
   const normalizedVideos = videos.map(normalizeVideoEntry).filter(Boolean);
   const hasMedia = images.length > 0 || normalizedVideos.length > 0;
   if (!hasMedia) return null;
 
-  const openVideo = (video) => {
-    setLightboxItem({ type: 'video', src: video.src, poster: video.poster });
-  };
+  // Everything here, in the order shown, so the big view can go through it.
+  const items = [
+    ...normalizedVideos.map((v) => ({ type: 'video', src: v.src, poster: v.poster })),
+    ...images.map((src) => ({ type: 'image', src })),
+  ];
+  const openVideo = (video) => setOpen(normalizedVideos.indexOf(video));
 
   return (
     <>
@@ -21,18 +24,18 @@ export default function MasonryGallery({ images = [], videos = [] }) {
         {normalizedVideos.map((video) => (
           <VideoCard key={video.src} video={video} onOpen={openVideo} />
         ))}
-        {images.map((src) => (
+        {images.map((src, i) => (
           <button
             key={src}
             type="button"
             className={styles.item}
-            onClick={() => setLightboxItem({ type: 'image', src })}
+            onClick={() => setOpen(normalizedVideos.length + i)}
           >
             <img src={src} alt="" loading="lazy" />
           </button>
         ))}
       </div>
-      <Lightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />
+      <Lightbox items={items} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />
     </>
   );
 }

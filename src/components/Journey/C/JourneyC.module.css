@@ -1780,11 +1780,18 @@
   color: #efeeea;
 }
 
+/* Low on the screen, under the laptop. */
 .openCue {
+  position: absolute;
+  left: 50%;
+  bottom: max(28px, 5vh);
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin: 4px 0 0;
+  margin: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
   font: 600 12px/1 var(--text);
   letter-spacing: 0.14em;
   text-transform: uppercase;

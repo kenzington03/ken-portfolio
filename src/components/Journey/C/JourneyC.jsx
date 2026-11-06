@@ -2337,27 +2337,28 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     <div ref={introOuterRef} className={styles.storyOuter}>
       <div className={styles.storyLineWrap}>
         <RiseWords text={STORY_LINE} reveal={sayT} className={styles.bridgeLine} />
-        {flat ? (
+        {flat && (
           <button type="button" className={styles.btnLight} onClick={() => onReachScreen?.()}>
             See my work
           </button>
-        ) : (
-          // (Only once there is a Mac to open.)
-          <motion.p className={styles.openCue} style={{ opacity: revealed ? cueOpacity : 0, transition: 'opacity 400ms ease' }}>
-            {/* A ripple of light runs along the words, letter by letter. */}
-            <span className={styles.cueText} aria-label="Scroll to open">
-              {[...'Scroll to open'].map((ch, i) => (
-                <span key={i} style={{ '--i': i }} aria-hidden>
-                  {ch === ' ' ? '\u00A0' : ch}
-                </span>
-              ))}
-            </span>
-            <svg viewBox="0 0 16 16" aria-hidden>
-              <path d="M8 3v10M4 9l4 4 4-4" />
-            </svg>
-          </motion.p>
         )}
       </div>
+      {!flat && (
+        // (Only once there is a Mac to open; low, under the laptop.)
+        <motion.p className={styles.openCue} style={{ opacity: revealed ? cueOpacity : 0, transition: 'opacity 400ms ease' }}>
+          {/* A ripple of light runs along the words, letter by letter. */}
+          <span className={styles.cueText} aria-label="Scroll to open">
+            {[...'Scroll to open'].map((ch, i) => (
+              <span key={i} style={{ '--i': i }} aria-hidden>
+                {ch === ' ' ? '\u00A0' : ch}
+              </span>
+            ))}
+          </span>
+          <svg viewBox="0 0 16 16" aria-hidden>
+            <path d="M8 3v10M4 9l4 4 4-4" />
+          </svg>
+        </motion.p>
+      )}
     </div>
   );
 
