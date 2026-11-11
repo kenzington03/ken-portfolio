@@ -207,29 +207,85 @@ const yAt = (s, x) => (s.step && x > s.step.x0 && x < s.step.x1 ? s.step.y : s.y
  * (the element marked [data-cat-dock]) a step up in it: he hops up onto it
  * and down off it, and never goes behind it.
  */
+// Inside any window, the same rule everywhere: its toolbars, section heads
+// and dividers, buttons, cards, headings and images are ledges he can climb
+// (top edges, the way a cat climbs shelves). Marked [data-cat-surface]
+// elements count anywhere; [data-cat-skip] opts something out.
+const LEDGES = [
+  'nav', 'header', 'button', 'h1', 'h2', 'h3', 'li', 'figure', 'img',
+  '[class*="toolbar"]', '[class*="Toolbar"]', '[class*="navBar"]',
+  '[class*="ivider"]', '[class*="sidebarSection"]', '[class*="card"]', '[class*="Card"]',
+].map((q) => `[role="dialog"] ${q}`).join(', ');
+
+// The element each ledge scrolls inside (found once, kept), so a ledge
+// scrolled under a header or out of view is not one.
+const clipOf = new WeakMap();
+function clipFor(el, win) {
+  if (clipOf.has(el)) return clipOf.get(el);
+  let box = null;
+  for (let p = el.parentElement; p && p !== win; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY;
+    if (o === 'auto' || o === 'scroll' || o === 'hidden') {
+      box = p;
+      break;
+    }
+  }
+  clipOf.set(el, box);
+  return box;
+}
+
 function readSurfaces(wins) {
   const dock = document.querySelector('[data-cat-dock]')?.getBoundingClientRect();
   const step = dock && dock.height > 0 ? { x0: dock.left + 8, x1: dock.right - 8, y: dock.top } : null;
   const out = [{ key: 'floor', el: null, x0: -200, x1: window.innerWidth + 200, y: window.innerHeight - 1, layer: -1, step }];
-  document.querySelectorAll('[data-cat-surface], [data-window-titlebar]').forEach((el) => {
-    const r = el.getBoundingClientRect();
-    if (r.width < 30 || r.height < 8 || r.bottom < 0 || r.top > window.innerHeight) return;
+  const seen = new Set();
+  const add = (el, r, host, thin) => {
+    // (el is always an element here; the window feet are added below.)
+    if (r.width < 40 || (!thin && r.height < 8) || r.bottom < 0 || r.top > window.innerHeight) return;
     let x0 = r.left;
     let x1 = r.right;
     const y = r.top;
-    const inWindow = el.closest('[role="dialog"]');
-    const host = inWindow && wins.find((w) => w.el === inWindow);
-    if (inWindow && !host) return; // its window is closing
     if (host) {
       // Only what shows inside its window (not scrolled out of it).
       if (y < host.r.top - 1 || y > host.r.bottom - 8) return;
       x0 = Math.max(x0, host.r.left);
       x1 = Math.min(x1, host.r.right);
-      if (x1 - x0 < 30) return;
+      const clip = el && clipFor(el, host.el);
+      if (clip) {
+        const c = clip.getBoundingClientRect();
+        if (y < c.top - 1 || y > c.bottom - 8) return;
+        x0 = Math.max(x0, c.left);
+        x1 = Math.min(x1, c.right);
+      }
+      if (x1 - x0 < 40) return;
+      // Two ledges at the same height, side by side, are one he walks along.
+      const k = `${host.z}:${Math.round(y)}:${Math.round(x0)}`;
+      if (seen.has(k)) return;
+      seen.add(k);
     }
     const layer = host ? host.z : -1;
     const hidden = coveredAt(wins, layer, (x0 + x1) / 2, y);
     out.push({ key: el, el, x0, x1, y, layer, hidden, bed: el.dataset.catSurface === 'bed' });
+  };
+  document.querySelectorAll('[data-cat-surface], [data-window-titlebar]').forEach((el) => {
+    const inWindow = el.closest('[role="dialog"]');
+    const host = inWindow && wins.find((w) => w.el === inWindow);
+    if (inWindow && !host) return; // its window is closing
+    add(el, el.getBoundingClientRect(), host, false);
+  });
+  document.querySelectorAll(LEDGES).forEach((el) => {
+    if (el.hasAttribute('data-cat-surface') || el.closest('[data-cat-skip]')) return;
+    const host = wins.find((w) => w.el === el.closest('[role="dialog"]'));
+    if (!host) return;
+    add(el, el.getBoundingClientRect(), host, /ivider/.test(el.className));
+  });
+  // And each window's bottom edge, a ledge along its foot, on its layer.
+  wins.forEach((w) => {
+    const y = w.r.bottom;
+    if (y > window.innerHeight - 4) return;
+    const x0 = w.r.left + 6;
+    const x1 = w.r.right - 6;
+    out.push({ key: w.el, el: w.el, x0, x1, y, layer: w.z, hidden: coveredAt(wins, w.z, (x0 + x1) / 2, y), bed: false });
   });
   return out;
 }

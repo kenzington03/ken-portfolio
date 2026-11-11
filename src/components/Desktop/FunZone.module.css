@@ -17,7 +17,7 @@
   border-radius: 8px;
   border: 2px solid transparent;
   background: transparent;
-  color: var(--text-primary);
+  color: #fff;
   text-align: center;
   transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
   outline: none;

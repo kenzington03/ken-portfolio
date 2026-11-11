@@ -1,7 +1,7 @@
 .viewer {
   height: 100%;
   overflow: hidden;
-  background: #0a0a0a;
+  background: #1c1c1e; /* charcoal, never true black: Toothless is black */
 }
 
 .scroll {
@@ -19,7 +19,7 @@
   top: 0;
   z-index: 2;
   padding: 20px 32px 16px;
-  background: rgba(10, 10, 10, 0.94);
+  background: rgba(28, 28, 30, 0.94);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }

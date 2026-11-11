@@ -131,29 +131,14 @@
 }
 
 .wifi {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 12px;
-  padding-bottom: 1px;
+  display: grid;
+  place-items: center;
 }
 
-.wifiBar {
-  width: 3px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 1px;
-}
-
-.wifiBar:nth-child(1) {
-  height: 4px;
-}
-
-.wifiBar:nth-child(2) {
-  height: 7px;
-}
-
-.wifiBar:nth-child(3) {
-  height: 10px;
+.wifiGlyph {
+  width: 17px;
+  height: 12.5px;
+  display: block;
 }
 
 .wifiOff {
@@ -186,42 +171,24 @@
 .battery {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 5px;
 }
 
-.batteryBody {
-  width: 22px;
-  height: 10px;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
-  border-radius: 2px;
-  padding: 1px;
-  display: flex;
+.batteryGlyph {
+  width: 27px;
+  height: 13px;
+  display: block;
 }
 
-.batteryFill {
-  flex: 1;
-  /* --level and --charge come from the visitor's battery. */
-  background: linear-gradient(
-    90deg,
-    var(--charge, #0a84ff) 0%,
-    var(--charge, #0a84ff) var(--level, 100%),
-    rgba(255, 255, 255, 0.15) var(--level, 100%),
-    rgba(255, 255, 255, 0.15) 100%
-  );
-  border-radius: 1px;
-}
-
-.batteryCap {
-  width: 2px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 0 1px 1px 0;
-  margin-left: 1px;
+/* The bolt is cut out of the fill: it takes the bar's colour. */
+.bolt {
+  fill: #fff;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.6;
 }
 
 .batteryPct {
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -261,10 +228,21 @@
 }
 
 .trophy {
-  font-size: 13px;
-  line-height: 1;
-  padding: 0 2px;
-  opacity: 0.9;
+  display: grid;
+  place-items: center;
+  height: 20px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.92;
+}
+
+.trophyGlyph {
+  width: 15px;
+  height: 14px;
+  display: block;
 }
 
 .trophy:hover {
@@ -282,15 +260,6 @@
   background: rgba(246, 246, 248, 0.62);
   border-bottom-color: rgba(0, 0, 0, 0.08);
   color: rgba(0, 0, 0, 0.85);
-}
-
-:global(html[data-appearance='light']) .wifiBar,
-:global(html[data-appearance='light']) .batteryCap {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-:global(html[data-appearance='light']) .batteryBody {
-  border-color: rgba(0, 0, 0, 0.7);
 }
 
 :global(html[data-appearance='light']) .logoActive,

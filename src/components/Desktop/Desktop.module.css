@@ -40,7 +40,7 @@
   border-radius: 8px;
   border: 2px solid transparent;
   background: transparent;
-  color: var(--text-primary);
+  color: #fff; /* labels stay white on both appearances (the wallpaper is always photographic) */
   text-align: center;
   transition: background 150ms ease, border-color 150ms ease;
   outline: none;

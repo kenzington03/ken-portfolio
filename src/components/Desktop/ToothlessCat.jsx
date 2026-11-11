@@ -17,6 +17,7 @@ export default function ToothlessCat() {
   const [menu, setMenu] = useState(null);
   const [laser, setLaser] = useState(false);
   const sayTimer = useRef(0);
+  const lastTip = useRef(0);
   const hintRef = useRef(null);
   const [hint, setHint] = useState(false);
 
@@ -48,6 +49,8 @@ export default function ToothlessCat() {
     if (!petVisible || !helloDismissed) return undefined;
     try {
       if (localStorage.getItem(MET)) return undefined;
+      // A first visit's tour introduces him; his own bubble would double it.
+      if (localStorage.getItem('kenos:seen:onboarding-tour-v3') !== '1') return undefined;
     } catch {
       return undefined;
     }
@@ -99,6 +102,7 @@ export default function ToothlessCat() {
       <div
         ref={hitRef}
         className={styles.hit}
+        data-tour="cat"
         role="button"
         tabIndex={0}
         aria-label="Toothless, the desktop cat. Click to stroke him, drag to pick him up and throw him, right-click for more."
@@ -112,6 +116,16 @@ export default function ToothlessCat() {
           setMenu({ x: Math.min(e.clientX, window.innerWidth - 220), y: Math.max(40, e.clientY - 200) });
         }}
         onKeyDown={(e) => e.key === 'Enter' && engine.current?.stroke()}
+        onPointerEnter={(e) => {
+          // A reminder, now and then, of what a right-click does.
+          if (e.pointerType !== 'mouse' || say || menu) return;
+          const now = Date.now();
+          if (now - lastTip.current < 45000) return;
+          lastTip.current = now;
+          setSay('Right-click for tricks');
+          clearTimeout(sayTimer.current);
+          sayTimer.current = setTimeout(() => setSay(''), 2200);
+        }}
       >
         {say && <span className={styles.say}>{say}</span>}
       </div>

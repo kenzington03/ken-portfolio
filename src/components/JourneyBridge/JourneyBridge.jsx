@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import { getOriginFromElement } from '../../utils/animationOrigin.js';
+import { BEST_WORK_ID } from '../../data/projects.js';
 
 // Arriving on the desk: a beat to see it, then Portfolio opens on its own,
 // out of its icon. One window, not a pile of them.
 const OPEN_AFTER_MS = 1100;
+const BEST_AFTER_MS = 650;
 
 /* Safety net: if the tour never resolves (target missing, race, etc.),
    don't leave a first-time visitor without the Portfolio window forever. */
@@ -12,12 +14,14 @@ const TOUR_GATE_TIMEOUT_MS = 60_000;
 
 /** Opens Portfolio, from its icon, once the desk has said hello. */
 export default function JourneyBridge() {
-  const { helloDismissed, shouldAutoOpenPortfolio, tourBlocking, launchApp } = useOS();
+  const { helloDismissed, shouldAutoOpenPortfolio, tourBlocking, launchApp, openProject } = useOS();
   const didAutoOpen = useRef(false);
   // launchApp changes with every window that opens; the sequence must not
   // restart (or be cancelled) because of that.
   const launchRef = useRef(launchApp);
   launchRef.current = launchApp;
+  const openRef = useRef(openProject);
+  openRef.current = openProject;
   useEffect(() => {
     if (!helloDismissed || !shouldAutoOpenPortfolio) {
       if (!helloDismissed) didAutoOpen.current = false;
@@ -31,6 +35,8 @@ export default function JourneyBridge() {
       didAutoOpen.current = true;
       const icon = document.querySelector('[data-icon="portfolio"] [data-animation-origin]');
       launch('finder', { auto: true, animationOrigin: getOriginFromElement(icon) });
+      // Then Best Work, over it: the first thing anyone sees is the best.
+      setTimeout(() => openRef.current(BEST_WORK_ID), BEST_AFTER_MS);
     };
 
     const timer = setTimeout(open, tourBlocking ? TOUR_GATE_TIMEOUT_MS : OPEN_AFTER_MS);

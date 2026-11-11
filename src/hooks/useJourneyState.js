@@ -12,9 +12,16 @@ export function useJourneyState({ skipHello = false } = {}) {
   const [portfolioOpened, setPortfolioOpened] = useState(false);
   const [portfolioPulseActive, setPortfolioPulseActive] = useState(true);
   const [nudgeExpired, setNudgeExpired] = useState(false);
-  /* Used to hold the Portfolio auto-open until the onboarding tour was done.
-     The tour is gone (the wallpaper notes show the way), so nothing blocks. */
-  const [tourBlocking, setTourBlocking] = useState(false);
+  /* Holds the Portfolio auto-open while the first-visit tour is up: the tour
+     points at the Dock and the cat, then Portfolio opens. Only a visitor who
+     has not seen the tour is held. */
+  const [tourBlocking, setTourBlocking] = useState(() => {
+    try {
+      return window.localStorage.getItem('kenos:seen:onboarding-tour-v3') !== '1';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setPortfolioPulseActive(false), PULSE_DURATION_MS);

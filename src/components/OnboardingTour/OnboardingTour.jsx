@@ -6,15 +6,15 @@ import styles from './OnboardingTour.module.css';
 // Three things worth knowing, in the order a visitor needs them.
 const STEPS = [
   {
-    selector: '[data-tour="desktop-icon"]',
-    title: 'Meet Ken',
-    text: 'Start with About Ken for the story, or Contact to say hello. Both live here on the desktop.',
-    placement: 'left',
-  },
-  {
     selector: '[data-tour="dock-portfolio"]',
     title: 'The work',
-    text: 'Portfolio holds the projects: brands, campaigns, interfaces and motion. Open it from the Dock anytime.',
+    text: 'Portfolio holds the projects, best work first. It opens on its own in a moment, and lives here in the Dock.',
+    placement: 'top',
+  },
+  {
+    selector: '[data-tour="cat"]',
+    title: 'Meet Toothless',
+    text: 'He lives on this Mac and climbs whatever you open. Right-click him for tricks.',
     placement: 'top',
   },
   {
@@ -31,7 +31,7 @@ const SPOTLIGHT_PAD = 8;
 
 export default function OnboardingTour() {
   const { helloVisible, helloDismissed, clearTourGate } = useOS();
-  const [seen, markSeen] = useSeenOnce('onboarding-tour-v2');
+  const [seen, markSeen] = useSeenOnce('onboarding-tour-v3');
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);
@@ -65,6 +65,22 @@ export default function OnboardingTour() {
     };
   }, [active, measure]);
 
+  // A step whose target is not on screen (the cat hidden, say) is skipped
+  // after a moment, so the tour never stalls the visit.
+  const missing = active && !seen && (!rect || rect.width === 0);
+  useEffect(() => {
+    if (!missing) return undefined;
+    const t = setTimeout(() => {
+      if (stepIndex < STEPS.length - 1) setStepIndex((i) => i + 1);
+      else {
+        setActive(false);
+        markSeen();
+        clearTourGate();
+      }
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [missing, stepIndex, markSeen, clearTourGate]);
+
   if (!active || seen) return null;
 
   const step = STEPS[stepIndex];
@@ -73,6 +89,13 @@ export default function OnboardingTour() {
   const finish = () => {
     setActive(false);
     markSeen();
+    clearTourGate();
+    try {
+      // The tour said hello for him: Toothless does not say it again.
+      window.localStorage.setItem('toothless-met', '1');
+    } catch {
+      /* private mode */
+    }
   };
 
   const next = () => {
@@ -116,7 +139,7 @@ export default function OnboardingTour() {
   }
 
   return (
-    <div className={styles.overlay} aria-hidden={false}>
+    <div className={styles.overlay} aria-hidden={false} data-tour-overlay>
       <div className={styles.spotlight} style={spotlightStyle} />
       <div className={styles.bubble} style={bubbleStyle}>
         <div className={styles.stepCount}>

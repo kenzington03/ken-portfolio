@@ -2,7 +2,7 @@
   /* Apple's actual dark-mode system palette: a near-black canvas with
      System Blue as the one interactive accent, plus the full system-color
      set available for deliberate "colorful pops" (tags, icons, states). */
-  --bg-primary: #000000;
+  --bg-primary: #161618; /* not true black, so the black cat always reads */
   --bg-secondary: #1c1c1e;
   --bg-tertiary: #232325;
   --bg-elevated: #2c2c2e;

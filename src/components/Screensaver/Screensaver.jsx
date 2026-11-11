@@ -11,8 +11,8 @@ const DISPLAY = "'Big Shoulders', 'Cabinet Grotesk', sans-serif";
 // that browser); ?saver=tides goes back; ?saver-now shows it at once.
 //   tides      two soft colours fight over the whole screen, tile by tile,
 //              under a huge clock whose figures are always the colour the
-//              tiles beneath them are not; power-ups, a slow build, a
-//              climax, and round again.
+//              tiles beneath them are not; power-ups, a pace that breathes,
+//              and a tide that keeps turning, with no end.
 //   print      the bouncing logo, as a print run: Ken's name bounces and
 //              leaves an ink stamp, two inks a hair off, at every wall it
 //              hits, so a poster builds up behind it as it goes. Landing in
@@ -309,11 +309,12 @@ function Particles({ reduced }) {
 // shadow on each) under a film of grain. The time sits over it, huge, its
 // figures always the colour beneath them is not.
 //
-// It builds: the balls quicken as the round goes on, and power-ups drift in
-// (faster, more often): a bolt (that side's balls speed up), a spark (that
-// side gets another ball), a ring (a burst that turns a patch over). When
-// one side has nearly all of it, or the round has run long, it ends: the
-// light swells to white, the board resets, and it begins again.
+// It never ends (Ken's call): the pace breathes, slow then quick then slow,
+// and power-ups drift in: a bolt (that side's balls speed up), a spark (that
+// side gets another ball), a ring (a burst that turns a patch over). The tide
+// turns on its own: the side that is losing ground gets the power-ups and,
+// when it is pinned, another ball; the side that is ahead gives one up, so
+// the board swings back and forth for as long as it is left on.
 const SIDE = [
   { top: '#efe9df', bottom: '#d9cfbf' }, // warm paper
   { top: '#3a4766', bottom: '#222b42' }, // dusk navy
@@ -321,7 +322,8 @@ const SIDE = [
 const TILE = 30; // px a square
 const TIDE_R = 9;
 const BASE_SPEED = 260; // px per second, at the start of a round
-const ROUND_S = 150; // a round's length, s
+const SWELL_S = 150; // one slow breath of the pace, s
+const MAX_BALLS = 8;
 const POWERS = ['bolt', 'spark', 'ring'];
 
 const mixHex = (a, b, t) => {
@@ -391,7 +393,7 @@ function Tides({ reduced }) {
     let powers = [];
     let round = 0;
     let nextPower = 0;
-    let ending = 0; // the white swell at the end of a round, 0 .. 1
+    let rally = 0; // s until the losing side may be handed another ball
     const newBall = (team, x, y) => {
       const a = (Math.random() * 0.5 + 0.25) * (Math.random() < 0.5 ? 1 : -1) + (team ? Math.PI * 1.25 : Math.PI * 0.25);
       return { team, x, y, a, boost: 0, trail: [] };
@@ -403,7 +405,7 @@ function Tides({ reduced }) {
       powers = [];
       round = 0;
       nextPower = 9;
-      ending = 0;
+      rally = 20;
     };
     reset();
     const flip = (q, r, team) => {
@@ -442,13 +444,35 @@ function Tides({ reduced }) {
       const dt = reduced ? 0 : Math.min(0.03, (now - last) / 1000);
       last = now;
       round += dt;
-      // The round builds: faster as it goes.
-      const pace = 1 + Math.min(1.3, round / ROUND_S);
-      // Power-ups drift in, more often as it goes.
+      // The pace breathes: slow, quick, slow, forever.
+      const breath = 0.5 - Math.cos((round / SWELL_S) * Math.PI * 2) * 0.5;
+      const pace = 1 + breath * 1.1;
+      let mine = 0;
+      for (let i = 0; i < grid.length; i += 1) mine += grid[i];
+      const share = mine / grid.length; // side 1's share of the board
+      const behind = share > 0.5 ? 0 : 1;
+      // Power-ups drift in, quicker at the top of a breath, mostly on the
+      // losing side's half of the board, so the tide turns.
       nextPower -= dt;
       if (nextPower <= 0 && powers.length < 3) {
-        powers.push({ kind: POWERS[Math.floor(Math.random() * POWERS.length)], x: TILE * 3 + Math.random() * (W - TILE * 6), y: TILE * 3 + Math.random() * (H - TILE * 6), t: 0 });
-        nextPower = Math.max(3, 11 - round / 18);
+        const lean = Math.abs(share - 0.5) > 0.1 && Math.random() < 0.75;
+        const half = lean ? behind : Math.floor(Math.random() * 2);
+        const span = (W - TILE * 6) / 2;
+        powers.push({ kind: POWERS[Math.floor(Math.random() * POWERS.length)], x: TILE * 3 + (1 - half) * span + Math.random() * span, y: TILE * 3 + Math.random() * (H - TILE * 6), t: 0 });
+        nextPower = 10 - breath * 6;
+      }
+      // When one side is pinned, it gets a ball; a side well ahead lets one go.
+      rally -= dt;
+      const pinned = Math.min(share, 1 - share) < 0.22;
+      if (pinned && rally <= 0) {
+        const ahead = 1 - behind;
+        const theirs = balls.filter((o) => o.team === ahead);
+        if (theirs.length > 1) balls.splice(balls.indexOf(theirs[0]), 1);
+        if (balls.length < MAX_BALLS) {
+          const sx = behind ? W * 0.8 : W * 0.2;
+          balls.push(newBall(behind, sx, H * (0.3 + Math.random() * 0.4)));
+        }
+        rally = 14;
       }
       balls.forEach((b) => {
         const sp = BASE_SPEED * pace * (b.boost > 0 ? 1.7 : 1);
@@ -478,7 +502,7 @@ function Tides({ reduced }) {
         powers = powers.filter((p) => {
           if (Math.hypot(p.x - b.x, p.y - b.y) > 22) return true;
           if (p.kind === 'bolt') balls.filter((o) => o.team === b.team).forEach((o) => (o.boost = 6));
-          if (p.kind === 'spark' && balls.length < 10) balls.push(newBall(b.team, b.x, b.y));
+          if (p.kind === 'spark' && balls.length < MAX_BALLS) balls.push(newBall(b.team, b.x, b.y));
           if (p.kind === 'ring') {
             const q0 = Math.floor(p.x / TILE);
             const r0 = Math.floor(p.y / TILE);
@@ -488,20 +512,12 @@ function Tides({ reduced }) {
         });
       });
       powers.forEach((p) => (p.t += dt));
-      // The end of a round: one side has nearly all of it, or it has run long.
-      let mine = 0;
-      for (let i = 0; i < grid.length; i += 1) mine += grid[i];
-      const share = mine / grid.length;
-      if (!ending && (share < 0.12 || share > 0.88 || round > ROUND_S + 30)) ending = 0.0001;
-      if (ending) {
-        ending += dt / 2.6;
-        if (ending >= 1) reset();
-      }
+
 
       // The board, then the clock cut from its negative.
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      // A slow push in over the round: cinematic, barely felt.
-      const zoom = 1 + Math.min(1, round / ROUND_S) * 0.04;
+      // A slow push in and out with the breath: cinematic, barely felt.
+      const zoom = 1 + breath * 0.04;
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.scale(zoom, zoom);
       ctx.translate(-canvas.width / 2, -canvas.height / 2);
@@ -548,17 +564,13 @@ function Tides({ reduced }) {
         ctx.arc(b.x, b.y, TIDE_R, 0, Math.PI * 2);
         ctx.fill();
       });
-      // The vignette, and at the end of a round, the swell of light.
+      // The vignette, deepening with the breath.
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
       v.addColorStop(0, 'rgba(0,0,0,0)');
-      v.addColorStop(1, `rgba(10,12,20,${0.28 + Math.min(1, round / ROUND_S) * 0.14})`);
+      v.addColorStop(1, `rgba(10,12,20,${0.28 + breath * 0.14})`);
       ctx.fillStyle = v;
       ctx.fillRect(0, 0, W, H);
-      if (ending) {
-        ctx.fillStyle = `rgba(250,248,242,${Math.sin(Math.PI * Math.min(1, ending)) * 0.96})`;
-        ctx.fillRect(0, 0, W, H);
-      }
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);

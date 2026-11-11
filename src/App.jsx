@@ -12,6 +12,7 @@ import AchievementToast from './components/Achievements/AchievementToast.jsx';
 import Spotlight from './components/Spotlight/Spotlight.jsx';
 import HelloScreen from './components/HelloScreen/HelloScreen.jsx';
 import JourneyBridge from './components/JourneyBridge/JourneyBridge.jsx';
+import OnboardingTour from './components/OnboardingTour/OnboardingTour.jsx';
 import IPhoneHome from './components/IPhoneHome/IPhoneHome.jsx';
 import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen.jsx';
 import ShutdownPrompt from './components/ShutdownPrompt/ShutdownPrompt.jsx';
@@ -81,8 +82,7 @@ function DesktopShell({ unlocked = true, onShutDown }) {
       <Desktop />
       <Dock />
       <HelloScreen />
-      {/* No tour: the wallpaper's handwritten notes show the way, and the
-          work opens straight away. */}
+      <OnboardingTour />
       <Spotlight open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
       <Screensaver />
       {onShutDown && <ShutdownPrompt onShutDown={onShutDown} disabled={!unlocked} />}

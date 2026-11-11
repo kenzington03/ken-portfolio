@@ -11,6 +11,7 @@ import MasonryGallery from '../../Media/MasonryGallery.jsx';
 import MilestoneProjectViewer from './MilestoneProjectViewer.jsx';
 import LebronProjectViewer from './LebronProjectViewer.jsx';
 import SectionedProjectViewer from './SectionedProjectViewer.jsx';
+import BestWorkViewer from './BestWorkViewer.jsx';
 import VideoProjectViewer from './VideoProjectViewer.jsx';
 import CaseStudy from './CaseStudy.jsx';
 import { getCaseStudy } from '../../../data/caseStudies.js';
@@ -36,6 +37,10 @@ export default function ProjectViewer({ data }) {
 }
 
 function Work({ project }) {
+  if (project.folder === '00-best-work') {
+    return <BestWorkViewer project={project} />;
+  }
+
   if (project.folder === '02-milestone') {
     return <MilestoneProjectViewer project={project} />;
   }

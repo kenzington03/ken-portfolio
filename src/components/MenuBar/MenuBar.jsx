@@ -18,22 +18,51 @@ const APP_LABELS = {
   systempreferences: 'System Settings',
 };
 
-/** The battery, the visitor's own where the browser shares it. */
+/** The battery, the visitor's own where the browser shares it: drawn like
+ *  macOS's own (percentage first, an outline with a white fill that turns
+ *  red when low, a bolt inside while charging). */
 function BatteryIcon() {
   const { level, charging } = useBattery();
   const pct = Math.round(level * 100);
   const low = pct <= 20 && !charging;
+  const fill = Math.max(1.5, (pct / 100) * 19);
   return (
     <span className={styles.battery} title={`Battery ${pct}%${charging ? ', charging' : ''}`} aria-hidden>
-      <span className={styles.batteryBody}>
-        <span className={styles.batteryFill} style={{ '--level': `${pct}%`, '--charge': low ? '#ff453a' : '#0a84ff' }} />
-      </span>
-      <span className={styles.batteryCap} />
-      <span className={styles.batteryPct}>
-        {charging && pct < 100 ? '⚡︎' : ''}
-        {pct}%
-      </span>
+      <span className={styles.batteryPct}>{pct}%</span>
+      <svg className={styles.batteryGlyph} viewBox="0 0 27 13">
+        <rect x="0.6" y="0.6" width="23.3" height="11.8" rx="3.4" fill="none" stroke="currentColor" strokeOpacity="0.45" strokeWidth="1.2" />
+        <path d="M25.3 4.4v4.2c.9-.3 1.4-1.1 1.4-2.1s-.5-1.8-1.4-2.1z" fill="currentColor" fillOpacity="0.45" />
+        <rect x="2.25" y="2.25" width={fill} height="8.5" rx="1.9" fill={low ? '#ff453a' : 'currentColor'} />
+        {charging && <path d="M13.4 1.6 8.6 7.3h3.3l-1.2 4.1 4.8-5.7h-3.3z" className={styles.bolt} />}
+      </svg>
     </span>
+  );
+}
+
+/** Wi-Fi, as macOS draws it: three arcs over a dot, a fan. */
+function WifiGlyph() {
+  return (
+    <svg className={styles.wifiGlyph} viewBox="0 0 17 12.5" aria-hidden>
+      <path fill="currentColor" d="M8.5 0C5.3 0 2.4 1.2.2 3.3c-.2.2-.2.5 0 .7l.9.9c.2.2.5.2.7 0C3.6 3.2 6 2.2 8.5 2.2s4.9 1 6.7 2.7c.2.2.5.2.7 0l.9-.9c.2-.2.2-.5 0-.7C14.6 1.2 11.7 0 8.5 0z" />
+      <path fill="currentColor" d="M8.5 4.1c-2 0-3.8.8-5.2 2-.2.2-.2.5 0 .7l.9.9c.2.2.5.2.7 0 1-.9 2.2-1.4 3.6-1.4s2.6.5 3.6 1.4c.2.2.5.2.7 0l.9-.9c.2-.2.2-.5 0-.7-1.4-1.2-3.2-2-5.2-2z" />
+      <path fill="currentColor" d="M8.5 8.2c-.9 0-1.7.3-2.3.9-.2.2-.2.5 0 .7l1.9 1.9c.2.2.5.2.7 0l1.9-1.9c.2-.2.2-.5 0-.7-.5-.6-1.3-.9-2.2-.9z" />
+    </svg>
+  );
+}
+
+/** Achievements: a trophy in the menu bar's own line weight, not an emoji. */
+function TrophyGlyph() {
+  return (
+    <svg className={styles.trophyGlyph} viewBox="0 0 16 15" aria-hidden>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        d="M4.3 1h7.4v4.2a3.7 3.7 0 0 1-7.4 0zM4.3 2.4H1.6v1.1A2.8 2.8 0 0 0 4.5 6.3M11.7 2.4h2.7v1.1a2.8 2.8 0 0 1-2.9 2.8M8 8.9v2.6M5.2 14h5.6M6.1 14l.5-2.5h2.8l.5 2.5"
+      />
+    </svg>
   );
 }
 
@@ -126,9 +155,7 @@ export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }
           </button>
         )}
         <span className={`${styles.wifi} ${sys.wifi ? '' : styles.wifiOff}`} title={sys.wifi ? 'Wi-Fi' : 'Wi-Fi: Off'} aria-hidden>
-          <span className={styles.wifiBar} />
-          <span className={styles.wifiBar} />
-          <span className={styles.wifiBar} />
+          <WifiGlyph />
         </span>
         <BatteryIcon />
         {onOpenAchievements && (
@@ -139,7 +166,7 @@ export default function MenuBar({ onOpenAchievements, onShutDown, onWorkWithMe }
             aria-label="Achievements"
             data-tour="menu-achievements"
           >
-            🏆
+            <TrophyGlyph />
           </button>
         )}
         <button

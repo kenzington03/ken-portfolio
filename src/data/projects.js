@@ -13,7 +13,25 @@ export const FINDER_CATEGORIES = [
   { id: 'concept', label: 'Concept Work' },
 ];
 
+export const BEST_WORK_ID = 10;
+
 export const projects = [
+  {
+    // Not a client: the pieces to see first, from every project (bestWork.js).
+    // It leads the Portfolio and opens with it.
+    id: BEST_WORK_ID,
+    slug: 'best-work',
+    name: 'Best Work',
+    category: 'Selected work',
+    client: 'Picked from every project',
+    year: '2026',
+    folder: '00-best-work',
+    logo: '/assets/projects/02-milestone/01-momentum-2026/02.jpg',
+    cover: '/assets/projects/02-milestone/01-momentum-2026/02.jpg',
+    tags: ['branding', 'campaign', 'print', 'illustration'],
+    description: 'Twelve pieces to start with, from brand and campaign work for Milestone, Marriott and Fluid AI to illustration and print. Each one opens the project it comes from.',
+    dateModified: '2026-11-11',
+  },
   {
     id: 1,
     slug: 'fluid-ai',
