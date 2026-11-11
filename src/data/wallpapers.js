@@ -11,18 +11,18 @@ export const DESKTOP_BG_STORAGE_KEY = 'kenneth-os-desktop-bg-index';
     licensing risk on a public site, accepted knowingly rather than
     silently. */
 export const DESKTOP_BACKGROUNDS = [
-  { id: 'tahoe-light', label: 'Tahoe (Light)', src: '/assets/backgrounds/tahoe-light.jpg' },
-  { id: 'tahoe-dark', label: 'Tahoe (Dark)', src: '/assets/backgrounds/tahoe-dark.jpg' },
-  { id: 'tahoe-beach', label: 'Tahoe (Beach)', src: '/assets/backgrounds/tahoe-beach-day.jpg' },
-  { id: 'sequoia-light', label: 'Sequoia (Light)', src: '/assets/backgrounds/sequoia-light.jpg' },
-  { id: 'sequoia-dark', label: 'Sequoia (Dark)', src: '/assets/backgrounds/sequoia-dark.jpg' },
-  { id: 'sonoma-light', label: 'Sonoma (Light)', src: '/assets/backgrounds/sonoma-light.jpg' },
-  { id: 'sonoma-dark', label: 'Sonoma (Dark)', src: '/assets/backgrounds/sonoma-dark.jpg' },
-  { id: 'ventura-light', label: 'Ventura (Light)', src: '/assets/backgrounds/ventura-light.jpg' },
-  { id: 'ventura-dark', label: 'Ventura (Dark)', src: '/assets/backgrounds/ventura-dark.jpg' },
-  { id: 'monterey-light', label: 'Monterey (Light)', src: '/assets/backgrounds/monterey-light.jpg' },
-  { id: 'monterey-dark', label: 'Monterey (Dark)', src: '/assets/backgrounds/monterey-dark.jpg' },
-  { id: 'big-sur', label: 'Big Sur', src: '/assets/backgrounds/big-sur.jpg' },
+  { id: 'tahoe-light', label: 'Tahoe (Light)', src: '/assets/backgrounds/tahoe-light.webp' },
+  { id: 'tahoe-dark', label: 'Tahoe (Dark)', src: '/assets/backgrounds/tahoe-dark.webp' },
+  { id: 'tahoe-beach', label: 'Tahoe (Beach)', src: '/assets/backgrounds/tahoe-beach-day.webp' },
+  { id: 'sequoia-light', label: 'Sequoia (Light)', src: '/assets/backgrounds/sequoia-light.webp' },
+  { id: 'sequoia-dark', label: 'Sequoia (Dark)', src: '/assets/backgrounds/sequoia-dark.webp' },
+  { id: 'sonoma-light', label: 'Sonoma (Light)', src: '/assets/backgrounds/sonoma-light.webp' },
+  { id: 'sonoma-dark', label: 'Sonoma (Dark)', src: '/assets/backgrounds/sonoma-dark.webp' },
+  { id: 'ventura-light', label: 'Ventura (Light)', src: '/assets/backgrounds/ventura-light.webp' },
+  { id: 'ventura-dark', label: 'Ventura (Dark)', src: '/assets/backgrounds/ventura-dark.webp' },
+  { id: 'monterey-light', label: 'Monterey (Light)', src: '/assets/backgrounds/monterey-light.webp' },
+  { id: 'monterey-dark', label: 'Monterey (Dark)', src: '/assets/backgrounds/monterey-dark.webp' },
+  { id: 'big-sur', label: 'Big Sur', src: '/assets/backgrounds/big-sur.webp' },
 ];
 
 // Apple's only (Ken's call): what a MacBook ships with.

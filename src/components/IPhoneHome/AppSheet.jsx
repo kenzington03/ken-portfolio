@@ -320,7 +320,7 @@ function MilestoneContent() {
   return (
     <div className={styles.scrollContent}>
       <div className={styles.milestoneHero}>
-        <img src="/assets/icons/desktop-milestone.png" alt="Milestone" className={styles.milestoneIcon}
+        <img src="/assets/icons/desktop-milestone.webp" alt="Milestone" className={styles.milestoneIcon}
           onError={e => { e.currentTarget.style.display = 'none'; }} />
         <h2>Milestone Technologies</h2>
         <p>Enterprise IT Solutions & Managed Services</p>

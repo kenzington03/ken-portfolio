@@ -3,7 +3,7 @@ import { getTagLabel } from '../../../data/tags.js';
 import FinderFolderIcon from '../../icons/FinderFolderIcon.jsx';
 import styles from './FinderListView.module.css';
 
-const FOLDER_ICON = '/icons/desktop-folder.png';
+const FOLDER_ICON = '/icons/desktop-folder.webp';
 
 function formatDateModified(project) {
   if (project.dateModified) {

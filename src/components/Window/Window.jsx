@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { applyScaleOrigin } from '../../utils/animationOrigin.js';
 import { getNextProject, getProjectById } from '../../data/projects.js';
 import { useOS } from '../../context/OSContext.jsx';
@@ -296,12 +296,15 @@ export default function Window({ win }) {
         {/* Keyed by project so navigating in place (Next/Back) remounts the
             viewer fresh, scroll position and active tab reset like a real
             folder change, instead of carrying over from the last project. */}
-        <Component
-          key={win.data?.projectId ?? win.id}
-          windowId={win.id}
-          data={win.data}
-          isActive={isActive}
-        />
+        {/* The games and the smaller apps load when opened (see useAppLauncher). */}
+        <Suspense fallback={null}>
+          <Component
+            key={win.data?.projectId ?? win.id}
+            windowId={win.id}
+            data={win.data}
+            isActive={isActive}
+          />
+        </Suspense>
       </div>
       {!win.maximized &&
         resizeDirs.map((dir) => (

@@ -45,7 +45,7 @@ export default function ClaudeFaq() {
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <img
-            src="/assets/icons/dock-claude-logo.png"
+            src="/assets/icons/dock-claude-logo.webp"
             alt=""
             className={styles.sidebarLogo}
             width={24}
@@ -73,7 +73,7 @@ export default function ClaudeFaq() {
       <div className={styles.main}>
         <div className={styles.topBar}>
           <img
-            src="/assets/icons/dock-claude-logo.png"
+            src="/assets/icons/dock-claude-logo.webp"
             alt=""
             className={styles.topLogo}
             width={32}

@@ -6,7 +6,7 @@ export const FUN_ZONE_ITEMS = [
     id: 'minesweeper',
     label: 'Minesweeper',
     appId: 'minesweeper',
-    src: '/assets/icons/desktop-minesweeper.png',
+    src: '/assets/icons/desktop-minesweeper.webp',
     action: 'app',
     nudge: true,
   },
@@ -14,7 +14,7 @@ export const FUN_ZONE_ITEMS = [
     id: 'flappybird',
     label: 'Flappy Bird',
     appId: 'flappybird',
-    src: '/assets/icons/flappy-bird.png',
+    src: '/assets/icons/flappy-bird.webp',
     action: 'app',
     nudge: true,
   },
@@ -22,7 +22,7 @@ export const FUN_ZONE_ITEMS = [
     id: 'chromedino',
     label: 'Chrome',
     appId: 'chromedino',
-    src: '/assets/icons/desktop-chrome.png',
+    src: '/assets/icons/desktop-chrome.webp',
     action: 'app',
     nudge: true,
   },
@@ -56,14 +56,14 @@ export const FUN_ZONE_ITEMS = [
   {
     id: 'pet',
     label: 'Toothless',
-    src: '/assets/icons/toothless.png',
+    src: '/assets/icons/toothless.webp',
     action: 'pet',
   },
   {
     id: 'terminal',
     label: 'Terminal',
     appId: 'terminal',
-    src: '/assets/icons/dock-terminal.png',
+    src: '/assets/icons/dock-terminal.webp',
     action: 'app',
     nudge: true,
   },
@@ -79,4 +79,4 @@ export const GAME_APP_IDS = new Set([
 ]);
 
 /** Portfolio icon shared by dock and right-sidebar desktop icon. */
-export const PORTFOLIO_ICON_SRC = '/assets/icons/desktop-web-ui.png';
+export const PORTFOLIO_ICON_SRC = '/assets/icons/desktop-web-ui.webp';

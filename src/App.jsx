@@ -13,7 +13,6 @@ import Spotlight from './components/Spotlight/Spotlight.jsx';
 import HelloScreen from './components/HelloScreen/HelloScreen.jsx';
 import JourneyBridge from './components/JourneyBridge/JourneyBridge.jsx';
 import OnboardingTour from './components/OnboardingTour/OnboardingTour.jsx';
-import IPhoneHome from './components/IPhoneHome/IPhoneHome.jsx';
 import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen.jsx';
 import ShutdownPrompt from './components/ShutdownPrompt/ShutdownPrompt.jsx';
 import BriefSheet from './components/Brief/BriefSheet.jsx';
@@ -45,6 +44,7 @@ const INTRO_ENABLED = (() => {
 const JourneyC = lazy(() => import('./components/Journey/C/JourneyC.jsx'));
 // Phones get a one-pager: no 3D, no Mac, no fake iOS.
 const PhonePage = lazy(() => import('./components/PhonePage/PhonePage.jsx'));
+const IPhoneHome = lazy(() => import('./components/IPhoneHome/IPhoneHome.jsx'));
 
 const BLACKOUT_MS = 380;
 
@@ -105,7 +105,12 @@ function AppShell() {
   const [iphone, setIphone] = useState(!INTRO_ENABLED);
 
   if (isMobile) {
-    if (iphone) return <IPhoneHome onExit={() => setIphone(false)} />;
+    if (iphone)
+      return (
+        <Suspense fallback={<div style={{ minHeight: '100svh', background: '#000' }} />}>
+          <IPhoneHome onExit={() => setIphone(false)} />
+        </Suspense>
+      );
     return (
       <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
         <PhonePage onIPhone={() => setIphone(true)} />

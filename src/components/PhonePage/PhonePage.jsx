@@ -36,7 +36,7 @@ function LaptopNote({ onIPhone }) {
         <b>This portfolio is built as a macOS desktop.</b> Best viewed on a laptop.
       </p>
       <button type="button" className={styles.catBtn} onClick={onIPhone}>
-        <img src="/assets/icons/desktop-Resume.png" alt="" />
+        <img src="/assets/icons/desktop-Resume.webp" alt="" />
         <span>
           Try the iPhone version
           <small>Tap the cat</small>

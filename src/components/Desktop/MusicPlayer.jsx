@@ -58,7 +58,7 @@ export default function MusicPlayer() {
             width={40}
             height={40}
             onError={(e) => {
-              e.currentTarget.src = '/assets/icons/dock-claude-logo.png';
+              e.currentTarget.src = '/assets/icons/dock-claude-logo.webp';
             }}
           />
         </button>
@@ -93,7 +93,7 @@ export default function MusicPlayer() {
           width={48}
           height={48}
           onError={(e) => {
-            e.currentTarget.src = '/assets/icons/dock-claude-logo.png';
+            e.currentTarget.src = '/assets/icons/dock-claude-logo.webp';
           }}
         />
         <div className={styles.meta}>

@@ -12,8 +12,7 @@
 //   → lid opens → welcome → macOS.
 // Same contract as the other intros.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform } from 'framer-motion';
 import BriefSheet from '../../Brief/BriefSheet.jsx';
 import { hasWebGL2, maxScroll, prefersReducedMotion, tweenScroll } from '../../Intro/shared.jsx';
@@ -22,18 +21,32 @@ import { SERVICES } from '../../../data/services.js';
 import { playSwish, preloadShutter, preloadSwish } from './sfx.js';
 import DotField, { addRipple } from './DotField.jsx';
 import MacRoom from '../MacRoom.jsx';
+import { loadModel, stopWatching } from '../../Intro/model.js';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
 import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import MePanel, { ABOUT_BEAT } from './MePanel.jsx';
-import Ball3D from './Ball3D.jsx';
-import ChromeLogo from './ChromeLogo.jsx';
 import useClock from '../../../hooks/useClock.js';
 import { PALETTES, paletteStyle, readPalette, savePalette } from './palette.js';
 import styles from './JourneyC.module.css';
 
+// three.js comes with these two (and the 3D room), after first paint.
+const Ball3D = lazy(() => import('./Ball3D.jsx'));
+const ChromeLogo = lazy(() => import('./ChromeLogo.jsx'));
+// A look-at point the 3D rig can read and aim (x, y, z and set), without
+// pulling three.js into this chunk.
+const point = (x, y, z) => ({
+  x,
+  y,
+  z,
+  set(a, b, c) {
+    this.x = a;
+    this.y = b;
+    this.z = c;
+    return this;
+  },
+});
+
 const EASE = [0.16, 1, 0.3, 1];
-// Same file the 3D rig loads (kept as a literal so this chunk stays free of three.js).
-const MODEL_SRC = '/models/macbook-rigged.glb';
 
 // Overhead, from the front: the closed laptop as if on your desk, its lid's
 // logo upside down (as on a real MacBook; the chrome logo's spin lands it
@@ -42,10 +55,10 @@ const MODEL_SRC = '/models/macbook-rigged.glb';
 // Beat 2 starts close on the lid's logo (the 3D scene points this pose at
 // the lid once it has loaded, see World's LogoAnchor) and pulls straight
 // back, along the same line, to the closed laptop overhead.
-const CLOSE_ON_LOGO = { yaw: 0, pitch: 0.95, radius: 7.2, target: new THREE.Vector3(0, 0, 0), onLid: true };
+const CLOSE_ON_LOGO = { yaw: 0, pitch: 0.95, radius: 7.2, target: point(0, 0, 0), onLid: true };
 // (Aimed a little behind the logo, toward the hinge, so the laptop rests
 // low on the screen, under the words.)
-const OVERHEAD = { yaw: 0, pitch: 0.95, radius: 13.5, target: new THREE.Vector3(0, 0, 0), fromLid: [0, 0, -1.15] };
+const OVERHEAD = { yaw: 0, pitch: 0.95, radius: 13.5, target: point(0, 0, 0), fromLid: [0, 0, -1.15] };
 const FLOW_POSES = { hero: CLOSE_ON_LOGO, front: OVERHEAD };
 // The runway after the deck (MacRoom's progress): the pull-back reveal, then
 // (beat 3) the lid opens over the words, the screen wakes, the camera dives in.
@@ -117,10 +130,16 @@ function useAssetProgress(enabled, withModel) {
     });
     stream(HERO_ART.src, 'art');
     // Phones (and machines without WebGL 2) never show the 3D Mac: no model.
-    if (withModel) stream(MODEL_SRC, 'model');
+    // The scene takes these same bytes (model.js): one download, not two.
+    const onModel = (v) => {
+      parts.model = v;
+      push();
+    };
+    if (withModel) loadModel(onModel);
     else parts.model = 1;
     return () => {
       live = false;
+      stopWatching(onModel);
     };
   }, [enabled, withModel]);
   return p;
@@ -457,7 +476,9 @@ function Ball({ ballRef, ball3dRef }) {
     <div ref={ballRef} className={styles.ball} aria-hidden>
       <span className={styles.ballShadow} />
       <span className={styles.ballBody}>
-        <Ball3D apiRef={ball3dRef} className={styles.ballCanvas} fallbackClassName={styles.ballSpin} />
+        <Suspense fallback={<img className={styles.ballSpin} src="/assets/hero/art/ball-real.webp" alt="" draggable={false} />}>
+          <Ball3D apiRef={ball3dRef} className={styles.ballCanvas} fallbackClassName={styles.ballSpin} />
+        </Suspense>
       </span>
     </div>
   );
@@ -1657,10 +1678,18 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   }, [dark]);
 
   useEffect(() => {
-    preloadShutter();
-    preloadSwish();
+    // The sounds can only play after a click or a key, so they load then,
+    // not with the page.
+    const sounds = () => {
+      preloadShutter();
+      preloadSwish();
+    };
+    window.addEventListener('pointerdown', sounds, { once: true, passive: true });
+    window.addEventListener('keydown', sounds, { once: true });
     const timers = timersRef.current;
     return () => {
+      window.removeEventListener('pointerdown', sounds);
+      window.removeEventListener('keydown', sounds);
       cancelRef.current?.();
       timers.forEach(clearTimeout);
     };
@@ -2411,7 +2440,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             Apple logo and settles onto it as the MacBook comes up. */}
         {chromeOk ? (
           <div ref={logoElRef} className={styles.logo} style={{ width: LOGO_EL_W, height: LOGO_EL_H, opacity: 0 }} aria-hidden>
-            <ChromeLogo apiRef={chromeRef} path={APPLE_PATH} box={APPLE_BOX} className={styles.logoCanvas} maxScale={2} />
+            <Suspense fallback={null}>
+              <ChromeLogo apiRef={chromeRef} path={APPLE_PATH} box={APPLE_BOX} className={styles.logoCanvas} maxScale={2} />
+            </Suspense>
           </div>
         ) : (
         <motion.svg

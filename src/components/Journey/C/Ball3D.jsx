@@ -38,7 +38,7 @@ export default function Ball3D({ apiRef, className, fallbackClassName }) {
 
     let dirty = true;
     const loader = new THREE.TextureLoader();
-    const map = loader.load('/assets/hero/art/ball-color.jpg', () => {
+    const map = loader.load('/assets/hero/art/ball-color.webp', () => {
       dirty = true;
     });
     map.colorSpace = THREE.SRGBColorSpace;

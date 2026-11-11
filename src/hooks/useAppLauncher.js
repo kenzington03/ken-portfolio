@@ -1,24 +1,27 @@
-import { useCallback } from 'react';
+import { lazy, useCallback } from 'react';
 import Contact from '../components/apps/Contact/Contact.jsx';
 import Finder from '../components/apps/Finder/Finder.jsx';
-import Terminal from '../components/apps/Terminal/Terminal.jsx';
-import Minesweeper from '../components/apps/Minesweeper/Minesweeper.jsx';
 import PDFViewer from '../components/apps/PDFViewer/PDFViewer.jsx';
 import ProjectViewer from '../components/apps/ProjectViewer/ProjectViewer.jsx';
-import Trash from '../components/apps/Trash/Trash.jsx';
-import SystemPreferences from '../components/apps/SystemPreferences/SystemPreferences.jsx';
-import ClaudeFaq from '../components/apps/ClaudeFaq/ClaudeFaq.jsx';
-import FlappyBird from '../components/apps/FlappyBird/FlappyBird.jsx';
-import ChromeDino from '../components/apps/ChromeDino/ChromeDino.jsx';
-import TumbleBlocks from '../components/apps/TumbleBlocks/TumbleBlocks.jsx';
-import MazeMuncher from '../components/apps/MazeMuncher/MazeMuncher.jsx';
-import BubbleShooter from '../components/apps/BubbleShooter/BubbleShooter.jsx';
-import EmptyFolder from '../components/apps/EmptyFolder/EmptyFolder.jsx';
-import AdobeApp from '../components/apps/AdobeApp/AdobeApp.jsx';
-import GetInfo from '../components/apps/GetInfo/GetInfo.jsx';
 import { getProjectById } from '../data/projects.js';
 import { track } from '../utils/track.js';
 import { RIGHT_DOCK_RESERVE, getCenteredWindowPosition } from '../utils/animationOrigin.js';
+
+// The first windows a visitor sees load with the page; the rest (games,
+// Terminal, Settings...) when first opened.
+const Terminal = lazy(() => import('../components/apps/Terminal/Terminal.jsx'));
+const Minesweeper = lazy(() => import('../components/apps/Minesweeper/Minesweeper.jsx'));
+const Trash = lazy(() => import('../components/apps/Trash/Trash.jsx'));
+const SystemPreferences = lazy(() => import('../components/apps/SystemPreferences/SystemPreferences.jsx'));
+const ClaudeFaq = lazy(() => import('../components/apps/ClaudeFaq/ClaudeFaq.jsx'));
+const FlappyBird = lazy(() => import('../components/apps/FlappyBird/FlappyBird.jsx'));
+const ChromeDino = lazy(() => import('../components/apps/ChromeDino/ChromeDino.jsx'));
+const TumbleBlocks = lazy(() => import('../components/apps/TumbleBlocks/TumbleBlocks.jsx'));
+const MazeMuncher = lazy(() => import('../components/apps/MazeMuncher/MazeMuncher.jsx'));
+const BubbleShooter = lazy(() => import('../components/apps/BubbleShooter/BubbleShooter.jsx'));
+const EmptyFolder = lazy(() => import('../components/apps/EmptyFolder/EmptyFolder.jsx'));
+const AdobeApp = lazy(() => import('../components/apps/AdobeApp/AdobeApp.jsx'));
+const GetInfo = lazy(() => import('../components/apps/GetInfo/GetInfo.jsx'));
 
 const APP_REGISTRY = {
   // About and Contact are one card now: Ken in the Mac's Contacts.

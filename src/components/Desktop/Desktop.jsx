@@ -20,8 +20,8 @@ const DESKTOP_ICONS = [
   // Talking to Ken, never more than a click away: opens the brief.
   { id: 'talk', label: "Let's talk", action: 'talk', src: '/assets/icons/desktop-talk.svg' },
   // Who Ken is and how to reach him: one card, in Contacts.
-  { id: 'contact', label: 'About Ken', appId: 'contact', src: '/assets/icons/dock-contacts.png' },
-  { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.png' },
+  { id: 'contact', label: 'About Ken', appId: 'contact', src: '/assets/icons/dock-contacts.webp' },
+  { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.webp' },
   // Back to the hero, the start of the journey (App's IntroFlow listens).
   { id: 'start', label: 'Back to start', action: 'start', src: '/assets/icons/desktop-start.svg' },
 ];
@@ -186,7 +186,7 @@ export default function Desktop() {
     const id = `folder-${Date.now()}`;
     const x = Math.max(0, contextMenu.x - (surface?.left ?? 0) - ICON_W / 2);
     const y = Math.max(0, contextMenu.y - (surface?.top ?? 0) - ICON_H / 3);
-    setFolders((f) => [...f, { id, label: n === 1 ? 'untitled folder' : `untitled folder ${n}`, appId: 'folder', src: '/assets/icons/desktop-folder.png' }]);
+    setFolders((f) => [...f, { id, label: n === 1 ? 'untitled folder' : `untitled folder ${n}`, appId: 'folder', src: '/assets/icons/desktop-folder.webp' }]);
     setPositions((prev) => ({ ...prev, [id]: { x, y } }));
     setSelected(id);
   };

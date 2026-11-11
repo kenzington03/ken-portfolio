@@ -31,7 +31,7 @@ const DOCK_PRIMARY = [
     id: 'contact',
     label: 'Contacts',
     appId: 'contact',
-    src: '/assets/icons/dock-contacts.png',
+    src: '/assets/icons/dock-contacts.webp',
     action: 'app',
   },
 ];
@@ -56,17 +56,17 @@ const DOCK_SECONDARY = [
   {
     id: 'instagram',
     label: 'Instagram',
-    src: '/assets/icons/dock-Instagram.png',
+    src: '/assets/icons/dock-Instagram.webp',
     action: 'url',
     url: 'https://instagram.com/nathanaelkenneth',
   },
-  { id: 'claude', label: 'Claude', appId: 'claude', src: '/assets/icons/dock-claude-logo.png', action: 'app' },
-  { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.png', action: 'app' },
+  { id: 'claude', label: 'Claude', appId: 'claude', src: '/assets/icons/dock-claude-logo.webp', action: 'app' },
+  { id: 'resume', label: 'Resume', appId: 'pdfviewer', src: '/assets/icons/desktop-print.webp', action: 'app' },
   {
     id: 'settings',
     label: 'Settings',
     appId: 'systempreferences',
-    src: '/assets/icons/dock-settings.png',
+    src: '/assets/icons/dock-settings.webp',
     action: 'app',
   },
 ];
@@ -75,7 +75,7 @@ const DOCK_TRASH = {
   id: 'trash',
   label: 'Trash',
   appId: 'trash',
-  src: '/assets/icons/dock-trash.png',
+  src: '/assets/icons/dock-trash.webp',
   action: 'app',
 };
 

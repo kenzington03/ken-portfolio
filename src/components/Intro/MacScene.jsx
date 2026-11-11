@@ -1,13 +1,14 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, use, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { ContactShadows, useGLTF } from '@react-three/drei';
+import { ContactShadows } from '@react-three/drei';
 import { Macbook, MacbookLighting } from 'rigged-macbook-3d';
 import * as THREE from 'three';
 import { loadScreenAssets, paintWelcome } from '../WelcomeScreen/screenArt.js';
 import { BEATS, ease, ramp } from './introTimeline.js';
 
-export const MODEL_SRC = '/models/macbook-rigged.glb';
-useGLTF.preload(MODEL_SRC);
+import { MODEL_SRC, loadModel } from './model.js';
+
+export { MODEL_SRC };
 
 const FOV = 30;
 const UP = new THREE.Vector3(0, 1, 0);
@@ -131,6 +132,8 @@ function fitTextureToUVs(texture, mesh) {
  * hero passes its own timeline and camera poses.
  */
 export function Rig({ progressRef, screenOnRef, onReady, beats = BEATS, poses = { hero: HERO, front: FRONT }, sway }) {
+  // The bytes the journey's loader already fetched (suspends until they're in).
+  const modelUrl = use(loadModel());
   const { camera, size } = useThree();
   const group = useRef(null);
   const screenMesh = useRef(null);
@@ -213,7 +216,7 @@ export function Rig({ progressRef, screenOnRef, onReady, beats = BEATS, poses = 
     <>
       <Macbook
         ref={group}
-        modelSrc={MODEL_SRC}
+        modelSrc={modelUrl}
         screen={texture || undefined}
         autoPlay={false}
         frameDriver={frameDriver}

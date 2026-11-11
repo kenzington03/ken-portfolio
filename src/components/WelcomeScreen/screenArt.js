@@ -10,7 +10,7 @@ export const STAGE_W = 1728;
 export const STAGE_H = 1117;
 
 export const WELCOME_TITLE = "Welcome to Ken's OS";
-export const WELCOME_WALLPAPER_SRC = '/assets/backgrounds/tahoe-dark.jpg';
+export const WELCOME_WALLPAPER_SRC = '/assets/backgrounds/tahoe-dark.webp';
 
 const FONT = 'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, sans-serif';
 
