@@ -4,8 +4,8 @@
 // the work, what he does, the brief, the Mac teaser, a note that the full
 // site is a Mac desktop (the iPhone version behind the cat) and the links. A
 // "Contact me" button stays bottom right the whole way.
-// Each project opens as a real page at #/work/<slug>, so the back gesture and
-// the back button just work.
+// Each project opens as a real page at /work/<slug>, so the back gesture,
+// the back button and a shared link just work.
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { getProjectBySlug } from '../../data/projects.js';
@@ -17,16 +17,13 @@ import { paletteStyle, readPalette } from '../Journey/C/palette.js';
 import { COLLAGE, STORY } from '../Journey/C/MePanel.jsx';
 import MobileProjectGallery from '../IPhoneHome/MobileProjectGallery.jsx';
 import { track } from '../../utils/track.js';
+import { clearWork, pushWork, titleFor, workSlugFromUrl } from '../../utils/route.js';
 import styles from './PhonePage.module.css';
 
 const WORK = ['fluid-ai', 'marriott', 'lebron-nike', 'branding', 'motion', 'web-ui'];
 const HELLO = encodeURIComponent("Hey Ken, I saw your portfolio. Let's talk.");
 const SITE = typeof window !== 'undefined' ? `${window.location.origin}/` : '/';
 
-const slugFromHash = () => {
-  const m = window.location.hash.match(/^#\/work\/([\w-]+)/);
-  return m ? m[1] : null;
-};
 
 /** The full site lives on a laptop; the iPhone version is behind the cat. */
 function LaptopNote({ onIPhone }) {
@@ -213,7 +210,7 @@ function Work({ open }) {
           if (!p) return null;
           return (
             <li key={slug}>
-              <a className={styles.card} href={`#/work/${slug}`} onClick={(e) => open(e, slug)}>
+              <a className={styles.card} href={`/work/${slug}`} onClick={(e) => open(e, slug)}>
                 {/* Phone-sized covers (800 x 500 WebP), not the desktop originals. */}
                 <img src={`/assets/phone/work/${slug}.webp`} alt="" width="800" height="500" loading="lazy" decoding="async" />
                 <span className={styles.cardText}>
@@ -327,11 +324,11 @@ function ProjectPage({ slug, back }) {
 
 export default function PhonePage({ onIPhone }) {
   const [palette] = useState(readPalette);
-  const [slug, setSlug] = useState(slugFromHash);
+  const [slug, setSlug] = useState(workSlugFromUrl);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    const on = () => setSlug(slugFromHash());
+    const on = () => setSlug(workSlugFromUrl());
     window.addEventListener('popstate', on);
     window.addEventListener('hashchange', on);
     return () => {
@@ -339,6 +336,9 @@ export default function PhonePage({ onIPhone }) {
       window.removeEventListener('hashchange', on);
     };
   }, []);
+  useEffect(() => {
+    titleFor(slug ? getProjectBySlug(slug)?.name : null);
+  }, [slug]);
   // Back on the list, return to where they were.
   useEffect(() => {
     if (slug || !scrollY) return undefined;
@@ -365,13 +365,14 @@ export default function PhonePage({ onIPhone }) {
     e.preventDefault();
     track('project_open', { slug: s, from: 'phone' });
     setScrollY(window.scrollY);
-    window.history.pushState({ work: s }, '', `#/work/${s}`);
+    pushWork(s, getProjectBySlug(s)?.name);
     setSlug(s);
   }, []);
   const back = useCallback(() => {
     if (window.history.state?.work) window.history.back();
     else {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      // Arrived straight on a project (a shared link): back is the page.
+      clearWork();
       setSlug(null);
     }
   }, []);

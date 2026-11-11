@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useOS } from '../../context/OSContext.jsx';
 import { getOriginFromElement } from '../../utils/animationOrigin.js';
-import { BEST_WORK_ID } from '../../data/projects.js';
+import { BEST_WORK_ID, getProjectBySlug } from '../../data/projects.js';
+import { workSlugFromUrl } from '../../utils/route.js';
 
 // Arriving on the desk: a beat to see it, then Portfolio opens on its own,
 // out of its icon. One window, not a pile of them.
@@ -29,17 +30,20 @@ export default function JourneyBridge() {
     }
     if (didAutoOpen.current) return undefined;
 
+    // A link to a project opens it at once, tour or no tour.
+    const linked = getProjectBySlug(workSlugFromUrl());
     const launch = (...args) => launchRef.current(...args);
     const open = () => {
       if (didAutoOpen.current) return;
       didAutoOpen.current = true;
       const icon = document.querySelector('[data-icon="portfolio"] [data-animation-origin]');
       launch('finder', { auto: true, animationOrigin: getOriginFromElement(icon) });
-      // Then Best Work, over it: the first thing anyone sees is the best.
-      setTimeout(() => openRef.current(BEST_WORK_ID, { auto: true }), BEST_AFTER_MS);
+      // Then Best Work over it (the first thing anyone sees is the best), or
+      // the project a /work/<slug> link was for.
+      setTimeout(() => openRef.current(linked?.id ?? BEST_WORK_ID, { auto: true }), BEST_AFTER_MS);
     };
 
-    const timer = setTimeout(open, tourBlocking ? TOUR_GATE_TIMEOUT_MS : OPEN_AFTER_MS);
+    const timer = setTimeout(open, tourBlocking && !linked ? TOUR_GATE_TIMEOUT_MS : OPEN_AFTER_MS);
     return () => clearTimeout(timer);
   }, [helloDismissed, shouldAutoOpenPortfolio, tourBlocking]);
 

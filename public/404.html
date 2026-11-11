@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Not here, Kenneth Nathanael</title>
+    <link rel="icon" type="image/png" href="/favicon-toothless.png" />
+    <style>
+      @font-face {
+        font-family: 'Big Shoulders';
+        src: url('/fonts/big-shoulders-latin.woff2') format('woff2');
+        font-weight: 400 900;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Instrument Sans';
+        src: url('/fonts/instrument-sans-latin.woff2') format('woff2');
+        font-weight: 400 700;
+        font-display: swap;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        display: grid;
+        place-items: center;
+        padding: 24px 16px;
+        background: #ededea url('/assets/hero/art/grain.png') 0 0 / 160px 160px;
+        color: #121212;
+        font: 17px/1.5 'Instrument Sans', system-ui, sans-serif;
+      }
+      main { max-width: 34rem; }
+      .code {
+        margin: 0;
+        font: 900 clamp(96px, 30vw, 200px) / 0.8 'Big Shoulders', system-ui, sans-serif;
+        color: #e8462c;
+        text-shadow: 0.03em 0.03em 0 #1b2a5c;
+      }
+      h1 { margin: 18px 0 8px; font: 800 clamp(30px, 8vw, 44px) / 1 'Big Shoulders', system-ui, sans-serif; }
+      p { margin: 0; color: #4a4a48; }
+      nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+      a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border: 2px solid #121212;
+        border-radius: 999px;
+        color: #121212;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      a.main { background: #121212; color: #fff; }
+      a:focus-visible { outline: 3px solid #e8462c; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="code" aria-hidden="true">404</p>
+      <h1>Nothing but air.</h1>
+      <p>That page isn't here. The work is, and so am I.</p>
+      <nav aria-label="Where to">
+        <a class="main" href="/">Back to the portfolio</a>
+        <a href="mailto:kennethnathanael@gmail.com">Email Ken</a>
+      </nav>
+    </main>
+  </body>
+</html>

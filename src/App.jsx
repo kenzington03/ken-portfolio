@@ -17,6 +17,7 @@ import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen.jsx';
 import ShutdownPrompt from './components/ShutdownPrompt/ShutdownPrompt.jsx';
 import BriefSheet from './components/Brief/BriefSheet.jsx';
 import { paletteStyle, readPalette } from './components/Journey/C/palette.js';
+import { clearWork, workSlugFromUrl } from './utils/route.js';
 import styles from './App.module.css';
 
 function GlobalKeyboardBridge({ spotlightOpen, onSpotlightToggle }) {
@@ -123,7 +124,8 @@ function AppShell() {
 
 /** intro (scroll hero + 3D MacBook) → welcome → desktop; Shut Down plays it back. */
 function IntroFlow() {
-  const [phase, setPhase] = useState('intro');
+  // A link to a project (/work/<slug>) goes straight to the Mac, the project open.
+  const [phase, setPhase] = useState(() => (workSlugFromUrl() ? 'desktop' : 'intro'));
   const [introMode, setIntroMode] = useState('open');
   const [blackout, setBlackout] = useState(false);
 
@@ -140,6 +142,8 @@ function IntroFlow() {
   // "Back to start" on the desktop: straight to the hero, no replay.
   useEffect(() => {
     const back = () => {
+      // Back at the start, the address is the site's, not the linked project's.
+      if (workSlugFromUrl()) clearWork();
       window.scrollTo(0, 0);
       setIntroMode('open');
       setPhase('intro');
