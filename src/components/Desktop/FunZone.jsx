@@ -47,7 +47,7 @@ export default function FunZone() {
             >
               {showEasterEggNudge && item.nudge && <span className={styles.nudgeTooltip}>{NUDGE_TEXT}</span>}
               <span className={styles.iconGraphic} data-animation-origin data-cat-surface={id === 'pet' ? 'bed' : ''}>
-                <DesktopIcon src={item.src} label={item.label} icon={item.icon} bg={item.bg} />
+                <DesktopIcon src={item.src} icon={item.icon} bg={item.bg} />
               </span>
               <span className={styles.iconLabel}>{item.label}</span>
             </button>

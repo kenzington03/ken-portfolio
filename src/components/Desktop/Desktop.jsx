@@ -266,7 +266,7 @@ export default function Desktop() {
                 data-icon={item.id}
               >
                 <span className={styles.iconGraphic} data-animation-origin data-cat-surface>
-                  <DesktopIcon src={item.src} label={item.label} />
+                  <DesktopIcon src={item.src} />
                 </span>
                 <span className={styles.iconLabel}>{item.label}</span>
               </button>

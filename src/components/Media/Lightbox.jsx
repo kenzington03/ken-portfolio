@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { isExternalMediaUrl } from '../../utils/sectionAssets.js';
+import { altFor } from '../../utils/altText.js';
 import styles from './Lightbox.module.css';
 
 /**
@@ -79,7 +80,7 @@ export default function Lightbox({ items = [], index = null, onIndex, onClose })
             className={styles.media}
           />
         ) : (
-          <img key={item.src} src={item.src} alt="" className={styles.media} />
+          <img key={item.src} src={item.src} alt={item.alt ?? altFor(item.src)} className={styles.media} />
         )}
         {many && (
           <p className={styles.count}>

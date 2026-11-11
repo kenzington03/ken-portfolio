@@ -93,10 +93,11 @@
   font-size: 12px;
   font-weight: 600;
   color: #fff;
-  background: #0a84ff;
+  /* Apple's deeper blue: white on it reads (4.9:1). */
+  background: #0071e3;
   border-radius: 999px;
 }
 
 .next:hover {
-  background: #339aff;
+  background: #0077ed;
 }

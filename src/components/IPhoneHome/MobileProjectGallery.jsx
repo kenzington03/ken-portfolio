@@ -23,7 +23,7 @@ function Section({ label, images = [], videos = [] }) {
   if (images.length === 0 && videos.length === 0) return null;
   return (
     <section className={styles.gallerySection}>
-      {label && <h3 className={styles.gallerySectionTitle}>{label}</h3>}
+      {label && <h2 className={styles.gallerySectionTitle}>{label}</h2>}
       <MasonryGallery images={images} videos={videos} />
     </section>
   );

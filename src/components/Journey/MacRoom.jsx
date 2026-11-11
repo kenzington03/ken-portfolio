@@ -237,7 +237,8 @@ export default function MacRoom({
             }}
             className={styles.chapter}
           >
-            <span className={styles.word} style={{ '--c': ch.color }} aria-label={ch.line.replace('*', '')}>
+            <span className={styles.word} style={{ '--c': ch.color }}>
+              <span className={styles.srOnly}>{ch.line.replace('*', '')}</span>
               {ch.line.split(' ').map((w, j) => {
                 const key = w.startsWith('*');
                 return (

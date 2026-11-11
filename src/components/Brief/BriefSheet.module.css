@@ -371,8 +371,8 @@
   grid-area: foot;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px 22px;
+  align-items: center;
+  gap: 0 22px;
   padding-top: 24px;
   border-top: 1px solid var(--b-line);
   font-size: 14px;
@@ -380,6 +380,10 @@
 }
 
 .foot a {
+  /* A thumb's worth of target (44 px), without looking any bigger. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--b-ink);
   text-decoration: none;
 }

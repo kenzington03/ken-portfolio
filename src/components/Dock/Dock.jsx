@@ -40,6 +40,8 @@ const DOCK_SECONDARY = [
   {
     id: 'illustrator',
     label: 'Illustrator',
+    // Read aloud with the letters on the icon (a name must hold what it shows).
+    a11y: 'Ai, Adobe Illustrator',
     appId: 'illustrator',
     action: 'splash',
     splashId: 'illustrator',
@@ -48,6 +50,7 @@ const DOCK_SECONDARY = [
   {
     id: 'photoshop',
     label: 'Photoshop',
+    a11y: 'Ps, Adobe Photoshop',
     appId: 'photoshop',
     action: 'splash',
     splashId: 'photoshop',
@@ -142,7 +145,7 @@ function DockMagnifyItem({ mouseX, item, isRunning, onLaunch, onMenu, showPulse,
         }}
         onPointerUp={() => clearTimeout(hold.current)}
         onPointerLeave={() => clearTimeout(hold.current)}
-        aria-label={item.label}
+        aria-label={item.a11y ?? item.label}
         data-animation-origin
         data-tour={item.tourId}
       >

@@ -1,4 +1,4 @@
-import { lazy, useCallback } from 'react';
+import { lazy, useCallback, useRef } from 'react';
 import Contact from '../components/apps/Contact/Contact.jsx';
 import Finder from '../components/apps/Finder/Finder.jsx';
 import PDFViewer from '../components/apps/PDFViewer/PDFViewer.jsx';
@@ -132,15 +132,28 @@ export function useAppLauncher(windowManager, achievements) {
     [windows, openWindow, focusWindow, unlock, trackProjectView, trackWindowCount, windowCount]
   );
 
+  // One window per project: opening it again (a double-click, a second
+  // click from Best Work) brings the one already open to the front.
+  const lastOpen = useRef({ id: null, at: 0 });
   const openProject = useCallback(
-    (projectId, options = {}) =>
-      launchApp('projectviewer', {
+    (projectId, options = {}) => {
+      const open = windows.find((w) => w.appId === 'projectviewer' && w.data?.projectId === projectId);
+      if (open) {
+        focusWindow(open.id);
+        return open.id;
+      }
+      // (The second click of a double-click can come before the first window is in the list.)
+      const now = performance.now();
+      if (lastOpen.current.id === projectId && now - lastOpen.current.at < 600) return null;
+      lastOpen.current = { id: projectId, at: now };
+      return launchApp('projectviewer', {
         projectId,
         forceNew: true,
         auto: options.auto,
         animationOrigin: options.animationOrigin ?? null,
-      }),
-    [launchApp]
+      });
+    },
+    [launchApp, windows, focusWindow]
   );
 
   const launchFromDock = useCallback(

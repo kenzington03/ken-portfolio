@@ -1095,7 +1095,9 @@ const within = (v, [a, b]) => clamp01((v - a) / (b - a));
 function RiseWords({ text, reveal, className }) {
   const words = text.split(' ');
   return (
-    <motion.p className={className} style={{ '--p': reveal, '--n': words.length }} aria-label={text.replace(' | ', ' ')}>
+    <motion.p className={className} style={{ '--p': reveal, '--n': words.length }}>
+      {/* (A <p> can't take a label: the line, read once, is hidden text.) */}
+      <span className={styles.srOnly}>{text.replace(' | ', ' ')}</span>
       {words.map((w, i) =>
         w === '|' ? (
           <br key={i} />
@@ -1361,7 +1363,7 @@ function PosterBar({ palette, onInk, type, onType, onAlign, onReset, onDone }) {
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.25, ease: EASE }}
     >
-      <div className={styles.pbGroup} aria-label="Align">
+      <div className={styles.pbGroup} role="group" aria-label="Align">
         {[
           ['left', 'M3 4h10M3 8h6M3 12h10'],
           ['center', 'M3 4h10M5 8h6M3 12h10'],
@@ -2376,7 +2378,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         // (Only once there is a Mac to open; low, under the laptop.)
         <motion.p className={styles.openCue} style={{ opacity: revealed ? cueOpacity : 0, transition: 'opacity 400ms ease' }}>
           {/* A ripple of light runs along the words, letter by letter. */}
-          <span className={styles.cueText} aria-label="Scroll to open">
+          <span className={styles.cueText}>
+            <span className={styles.srOnly}>Scroll to open</span>
             {[...'Scroll to open'].map((ch, i) => (
               <span key={i} style={{ '--i': i }} aria-hidden>
                 {ch === ' ' ? '\u00A0' : ch}
@@ -2407,6 +2410,12 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       data-dark={dark ? 'true' : undefined}
       aria-label="Introduction"
     >
+      {/* First Tab stop: past the intro, straight onto the Mac and the work. */}
+      {onSkip && (
+        <button type="button" className={styles.skipLink} onClick={onSkip}>
+          Skip to the work
+        </button>
+      )}
       <MacRoom
         runwayRef={runwayRef}
         use3D={use3D}

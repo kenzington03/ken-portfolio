@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Lightbox from './Lightbox.jsx';
 import VideoCard from './VideoCard.jsx';
 import { normalizeVideoEntry } from '../../utils/sectionAssets.js';
+import { altFor } from '../../utils/altText.js';
 import styles from './MasonryGallery.module.css';
 
 export default function MasonryGallery({ images = [], videos = [] }) {
@@ -31,7 +32,7 @@ export default function MasonryGallery({ images = [], videos = [] }) {
             className={styles.item}
             onClick={() => setOpen(normalizedVideos.length + i)}
           >
-            <img src={src} alt="" loading="lazy" />
+            <img src={src} alt={altFor(src)} loading="lazy" />
           </button>
         ))}
       </div>

@@ -3,7 +3,7 @@ import styles from './Desktop.module.css';
 
 /** App icon: an image file when one exists, otherwise a generic macOS-style
  * squircle glyph (gradient + SVG icon) so new apps don't need custom art. */
-export default function DesktopIcon({ src, label, icon, bg }) {
+export default function DesktopIcon({ src, icon, bg }) {
   const [failed, setFailed] = useState(false);
 
   if (!src || failed) {
@@ -17,10 +17,11 @@ export default function DesktopIcon({ src, label, icon, bg }) {
     return null;
   }
 
+  // The name is written under the icon: the picture adds nothing to read.
   return (
     <img
       src={src}
-      alt={label}
+      alt=""
       width={48}
       height={48}
       className={styles.iconImg}
