@@ -26,6 +26,8 @@ export const CASE_STUDIES = {
       { value: '72 hrs', label: 'to deliver the SKO25 keynote decks, videos and event visuals' },
       { value: 'CRO', label: 'Certificate of Appreciation for SKO25' },
     ],
+    // From the kudos he was sent (public/assets/projects/10-kudos).
+    quote: { text: 'Kenneth is our superhero. He stayed up and took this to the finish line.', name: 'Nicole Bailey', role: 'Senior Marketing Manager, Milestone Technologies' },
   },
   '01-fluidai': {
     brief:

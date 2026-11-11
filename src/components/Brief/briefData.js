@@ -21,9 +21,9 @@ export const NEEDS = [
   { id: 'launch', name: 'A launch', hint: 'Everything for one big moment: the idea, ads, event, posts', say: 'everything for a launch', short: 'Launch', icon: 'M4 14l3 6 2-1-1.5-4.5L16 18V6L7.5 9.5H4zM19 9.5v5' },
   { id: 'video', name: 'A video', hint: 'Shot, edited or animated', say: 'a video', short: 'Video', icon: 'M3 6h13v12H3zM16 10l5-3v10l-5-3' },
   { id: 'anim', name: 'Things that move', hint: 'Animated logos, explainers, moving posts', say: 'some animation', short: 'Animation', icon: 'M4 18c3-9 6-12 8-12s3 4 2 6-4 1-3-2 4-6 9-6M4 18h.01' },
-  { id: 'deck', name: 'A pitch deck', hint: 'Slides that win the room', say: 'a pitch deck', short: 'Deck', icon: 'M3 4h18v12H3zM12 16v4M8 20h8' },
+  { id: 'deck', name: 'A pitch deck', hint: 'Keynotes and sales decks, like SKO25 in 72 hours', say: 'a pitch deck', short: 'Deck', icon: 'M3 4h18v12H3zM12 16v4M8 20h8' },
   { id: 'event', name: 'Event visuals', hint: 'Stage, screens, banners, passes', say: 'event visuals', short: 'Event', icon: 'M4 7h16v3a2 2 0 000 4v3H4v-3a2 2 0 000-4zM10 7v10' },
-  { id: 'ai', name: 'AI images or video', hint: 'Product shots and content, made fast with AI', say: 'AI images or video', short: 'AI content', icon: 'M5 19L15 9M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1zM19 11l.6 1.4L21 13l-1.4.6L19 15l-.6-1.4L17 13l1.4-.6z' },
+  { id: 'ai', name: 'AI images or video', hint: 'Explored with AI, art-directed by me', say: 'AI images or video', short: 'AI content', icon: 'M5 19L15 9M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1zM19 11l.6 1.4L21 13l-1.4.6L19 15l-.6-1.4L17 13l1.4-.6z' },
   { id: 'unsure', name: 'Not sure yet', hint: 'Tell me the problem and we\'ll work it out', say: null, short: null, icon: 'M9 9a3 3 0 115 2.2c-1.2.8-2 1.4-2 2.8M12 18h.01' },
 ];
 

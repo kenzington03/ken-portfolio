@@ -75,7 +75,7 @@ ${projects.map((p) => `  <li><a href="/work/${p.slug}">${esc(p.name)}</a>: ${esc
 function home() {
   return `<main class="pre">
 <h1>Hi, I'm Kenneth Nathanael. Designer. Building brands for 10+ years.</h1>
-<p>Designer in Bengaluru, India. Brands, campaigns, video and web, 10+ years. Design Lead at Milestone Technologies. Open to roles and freelance.</p>
+<p>Designer in Hyderabad, India (open to remote and relocation). Brands, campaigns, video and web, 10+ years. Design Lead at Milestone Technologies. Open to roles and freelance.</p>
 <p>The full portfolio is built as a Mac desktop you can use: open it on a laptop.</p>
 <h2>What I do</h2>
 <ul>
@@ -104,6 +104,7 @@ ${list('What I led', cs.lead)}
 ${list('What I did', cs.did)}
 ${list('Clients', cs.clients)}
 ${cs.results?.length ? `<h2>What came of it</h2>\n<ul>\n${cs.results.map((r) => `  <li>${esc(r.value)}: ${esc(r.label)}</li>`).join('\n')}\n</ul>` : ''}
+${cs.quote ? `<blockquote><p>“${esc(cs.quote.text)}”</p><footer>${esc(cs.quote.name)}, ${esc(cs.quote.role)}</footer></blockquote>` : ''}
 ${p.cover ? `<img src="${esc(enc(p.cover))}" alt="${esc(`${p.name}: cover`)}" width="1200" />` : ''}
 ${workList()}
 ${contact()}

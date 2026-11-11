@@ -477,6 +477,25 @@
   color: #55555a;
 }
 
+.storyQuote {
+  margin: 22px 0 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--accent);
+}
+
+.storyQuote blockquote {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 550;
+}
+
+.storyQuote figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #55555a;
+}
+
 /* The gallery's section titles are white for the iPhone version's dark sheet;
    on the paper here they're ink. */
 .gallery h2 {

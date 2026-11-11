@@ -1,4 +1,5 @@
 import { getCaseStudy } from '../../../data/caseStudies.js';
+import { BOOKING_URL } from '../../Brief/briefData.js';
 import styles from './CaseStudy.module.css';
 
 /** A project as a short story beside its work, told in type rather than
@@ -31,7 +32,21 @@ export default function CaseStudy({ project }) {
           ))}
         </dl>
       )}
-      <p className={styles.more}>The work is alongside. Ask me for the full story.</p>
+      {cs.quote && (
+        <figure className={styles.quote}>
+          <blockquote>“{cs.quote.text}”</blockquote>
+          <figcaption>
+            {cs.quote.name}, {cs.quote.role}
+          </figcaption>
+        </figure>
+      )}
+      <p className={styles.more}>
+        The full story on a call:{' '}
+        <a href={BOOKING_URL} target="_blank" rel="noreferrer">
+          book a 30-minute call
+        </a>
+        .
+      </p>
     </aside>
   );
 }

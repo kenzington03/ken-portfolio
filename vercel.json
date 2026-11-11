@@ -23,7 +23,7 @@
         },
         {
           "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://res.cloudinary.com; media-src 'self' blob: https://res.cloudinary.com https://www.soundhelix.com https://actions.google.com; connect-src 'self' blob: https://*.supabase.co; frame-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://app.cal.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://res.cloudinary.com https://*.google-analytics.com https://www.googletagmanager.com https://app.cal.com; media-src 'self' blob: https://res.cloudinary.com https://www.soundhelix.com https://actions.google.com; connect-src 'self' blob: https://*.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://app.cal.com; frame-src 'self' https://app.cal.com https://cal.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
         }
       ]
     },

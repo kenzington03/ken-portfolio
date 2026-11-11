@@ -98,7 +98,7 @@ export function Brief({ headingId }) {
             <svg viewBox="0 0 20 20" aria-hidden>
               <path d="M3 5h14v12H3zM3 8.5h14M7 3v4M13 3v4" />
             </svg>
-            Or book a 15 minute call
+            Or book a call
           </a>
         )}
       </section>

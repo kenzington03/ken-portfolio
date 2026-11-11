@@ -110,9 +110,10 @@ export const projects = [
   {
     id: 6,
     slug: 'branding',
-    name: 'Branding',
+    // Named for the work, not the folder (audit): the brands it holds.
+    name: 'Truearte, Sampoorna + Step-Set-Go',
     category: 'Brand Identity',
-    client: 'Various',
+    client: 'Consumer brands',
     year: '2023',
     folder: '06-branding',
     logo: '/assets/projects/06-branding/cover.jpg',
@@ -124,9 +125,9 @@ export const projects = [
   {
     id: 7,
     slug: 'web-ui',
-    name: 'Web + UI',
-    category: 'UI/UX Design',
-    client: 'Various',
+    name: 'TrueHerb, Big Mamas + more',
+    category: 'Websites and UI',
+    client: 'E-commerce and service brands',
     year: '2023',
     folder: '07-web-ui',
     logo: '/assets/projects/07-web-ui/cover.jpg',

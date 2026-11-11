@@ -41,9 +41,8 @@ export const SERVICES = [
       { id: 'shoot', label: 'Video shoots', say: 'a video shoot' },
       { id: 'edit', label: 'Video editing', say: 'video editing' },
       { id: 'mograph', label: 'Motion graphics', say: 'motion graphics' },
-      { id: 'aivideo', label: 'AI video', say: 'AI video' },
-      { id: 'aishots', label: 'AI product shots', say: 'AI product shots' },
-      { id: 'aiscale', label: 'AI content at scale', say: 'AI content at scale' },
+      // AI is a tool in the process, not a line of business (audit, Nov 2026).
+      { id: 'aivideo', label: 'AI-assisted concepts, art-directed', say: 'AI-assisted concepts' },
     ],
   },
 ];

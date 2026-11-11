@@ -2,10 +2,13 @@
 // served by Vercel from this site's own origin (/_vercel/...), so they only
 // load on the deployed site. Dev and preview builds keep the queue and drop it.
 //
-// track(name, props) records one custom event (Vercel needs the Pro plan to
-// show them; on Hobby they are ignored). Links are tracked on their own (see
-// trackLinks): WhatsApp, email, the résumé and the booking page.
+// track(name, props) records one custom event. Vercel's free plan counts page
+// views but not custom events, so events also go to Google Analytics (free)
+// when VITE_GA_ID (a G-... measurement ID) is set in Vercel's environment
+// variables. Links are tracked on their own (see trackLinks): WhatsApp,
+// email, the résumé and the booking page.
 
+const GA_ID = import.meta.env.VITE_GA_ID;
 const ON = import.meta.env.PROD && typeof window !== 'undefined' && !/^(localhost|127\.|192\.168\.)/.test(window.location.hostname);
 
 function queue(key, q) {
@@ -31,6 +34,17 @@ export function startAnalytics() {
   if (!ON) return;
   load('/_vercel/insights/script.js');
   load('/_vercel/speed-insights/script.js');
+  if (GA_ID) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      // (gtag wants the arguments object itself, not an array)
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer.push(arguments);
+    };
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID);
+    load(`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`);
+  }
   trackLinks();
 }
 
@@ -39,6 +53,7 @@ export function track(name, props) {
   try {
     if (!ON) return;
     window.va?.('event', { name, data: props });
+    window.gtag?.('event', name, props);
   } catch {
     // (analytics never breaks the page)
   }

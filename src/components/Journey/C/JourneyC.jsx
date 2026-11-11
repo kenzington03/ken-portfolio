@@ -1196,7 +1196,7 @@ const REVEAL_END = 0.42; // where it rests, closed, waiting to be opened
 // The heart to the farthest point of the glyph (the leaf's tip), in its units.
 const HEART_REACH = 13.6;
 // What the closed Mac says, once it has been revealed. "|" breaks the line.
-const STORY_LINE = "My portfolio isn't a page. | It's my Mac.";
+const STORY_LINE = 'Open the laptop | to see the work.';
 // From here (as a share of "now"), the story is at its end (the idle hint).
 const END_FROM = 0.84;
 

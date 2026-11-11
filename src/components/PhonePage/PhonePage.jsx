@@ -12,7 +12,7 @@ import { getProjectBySlug } from '../../data/projects.js';
 import { getCaseStudy } from '../../data/caseStudies.js';
 import { INSTAGRAM, LINKEDIN } from '../../data/links.js';
 import { SERVICES } from '../../data/services.js';
-import { EMAIL, WHATSAPP } from '../Brief/briefData.js';
+import { BOOKING_URL, EMAIL, WHATSAPP } from '../Brief/briefData.js';
 import { Brief } from '../Brief/BriefSheet.jsx';
 import { paletteStyle, readPalette } from '../Journey/C/palette.js';
 import { COLLAGE, STORY } from '../Journey/C/MePanel.jsx';
@@ -177,11 +177,10 @@ function Hero() {
         <b>Designer.</b> Brands, campaigns, video, web. 10+ years. Open to roles and freelance.
       </p>
       <nav className={styles.ctas} aria-label="Contact">
-        <a className={styles.ctaMain} href={`https://wa.me/${WHATSAPP}?text=${HELLO}`} target="_blank" rel="noreferrer">
-          WhatsApp me
-        </a>
-        <a className={styles.cta} href={`mailto:${EMAIL}`}>
-          Email
+        {/* One way in, one to read up: a call, and the résumé. WhatsApp and
+            email are in the brief and the footer. */}
+        <a className={styles.ctaMain} href={BOOKING_URL} target="_blank" rel="noreferrer">
+          Book a call
         </a>
         <a className={styles.cta} href="/Kenneth-Nathanael-Resume.pdf" target="_blank" rel="noreferrer">
           Résumé
@@ -232,7 +231,7 @@ function WhatIDo() {
     <section className={styles.section} aria-labelledby="do-h">
       <p className={styles.kicker}>What I do</p>
       <h2 id="do-h" className={styles.h2}>
-        Three things, done properly.
+        Brand, campaigns and motion.
       </h2>
       <dl className={styles.services}>
         {SERVICES.map((sv) => (
@@ -321,6 +320,14 @@ function CaseStory({ project }) {
           ))}
         </dl>
       )}
+      {cs.quote && (
+        <figure className={styles.storyQuote}>
+          <blockquote>“{cs.quote.text}”</blockquote>
+          <figcaption>
+            {cs.quote.name}, {cs.quote.role}
+          </figcaption>
+        </figure>
+      )}
     </section>
   );
 }
@@ -345,8 +352,8 @@ function ProjectPage({ slug, back }) {
       <div className={styles.gallery}>
         <MobileProjectGallery project={p} />
       </div>
-      <a className={styles.ctaMain} href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hey Ken, I saw ${p.name} on your portfolio. Let's talk.`)}`} target="_blank" rel="noreferrer">
-        Want something like this?
+      <a className={styles.ctaMain} href={BOOKING_URL} target="_blank" rel="noreferrer">
+        Want something like this? Book a call
       </a>
     </article>
   );

@@ -11,13 +11,13 @@ import styles from './MePanel.module.css';
 // The statement, a line per array, broken where it reads aloud.
 export const STATEMENT = [['Nothing', 'in', 'good', 'design'], ['is', 'there', 'by', 'accident.']];
 // Under it, the question he asks of every design.
-export const ASIDE = "Hi, I'm Ken. I make brands easy on the eyes, and hard to forget.";
+export const ASIDE = "Hi, I'm Ken. Design Lead at Milestone Technologies. Before that I co-founded Tandem Digital and took 30+ clients from logo to launch.";
 // What he specialises in: each in a line, what it covers.
 export const PILLARS = [
-  { name: 'Brands', line: 'Identities, logos and guidelines that hold up wherever the brand goes.' },
-  { name: 'Social', line: 'Posts, reels, ads and launch campaigns that keep a brand showing up.' },
-  { name: 'Videos', line: 'Shoots, edits and motion graphics, from the idea to the final cut.' },
-  { name: 'Products', line: 'Websites and app interfaces that people find easy to use.' },
+  { name: 'Brand', line: 'Identities and guidelines. Milestone’s rollout reached every global team.' },
+  { name: 'Campaigns', line: 'Social, events and launches. 15+ events with Salesforce, ServiceNow, Netflix and Amgen.' },
+  { name: 'Motion', line: 'Shoots, edits and motion graphics. The SKO25 keynote videos, in 72 hours.' },
+  { name: 'Web', line: 'Websites and app screens, logo to launch, for F&B, pharma and finance.' },
 ];
 
 // The longer story, told on the phone page. A string is plain words;
