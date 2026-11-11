@@ -420,6 +420,63 @@
   margin: 20px 0 28px;
 }
 
+/* The case study: the brief big, the role a line, what he did, the numbers. */
+.story {
+  margin: 22px 0 8px;
+  padding: 20px 0 4px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+.storyBrief {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 550;
+}
+
+.storyRole {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.storyDid {
+  margin: 14px 0 0;
+  padding: 0 0 0 18px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.storyDid li + li {
+  margin-top: 6px;
+}
+
+.storyClients {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #55555a; /* small type: darker than --muted, 5:1+ on the paper */
+}
+
+.storyResults {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px;
+  margin: 20px 0 0;
+}
+
+.storyResults dt {
+  font: 800 34px/1 var(--display);
+  font-variation-settings: 'opsz' 72;
+}
+
+.storyResults dd {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #55555a;
+}
+
 /* The gallery's section titles are white for the iPhone version's dark sheet;
    on the paper here they're ink. */
 .gallery h2 {

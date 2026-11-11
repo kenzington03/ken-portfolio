@@ -9,6 +9,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { getProjectBySlug } from '../../data/projects.js';
+import { getCaseStudy } from '../../data/caseStudies.js';
 import { INSTAGRAM, LINKEDIN } from '../../data/links.js';
 import { SERVICES } from '../../data/services.js';
 import { EMAIL, WHATSAPP } from '../Brief/briefData.js';
@@ -296,6 +297,34 @@ function Footer() {
   );
 }
 
+/** The desktop's case study (brief, role, what he did, what came of it), on the page. */
+function CaseStory({ project }) {
+  const cs = getCaseStudy(project.folder);
+  if (!cs) return null;
+  return (
+    <section className={styles.story} aria-label={`${project.name}, the story`}>
+      <p className={styles.storyBrief}>{cs.brief}</p>
+      <p className={styles.storyRole}>{cs.role}</p>
+      <ul className={styles.storyDid}>
+        {[...(cs.lead ?? []), ...cs.did].map((t) => (
+          <li key={t}>{t}</li>
+        ))}
+      </ul>
+      {cs.clients && <p className={styles.storyClients}>For {cs.clients.join(', ')}.</p>}
+      {cs.results && (
+        <dl className={styles.storyResults}>
+          {cs.results.map((r) => (
+            <div key={r.label}>
+              <dt>{r.value}</dt>
+              <dd>{r.label}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </section>
+  );
+}
+
 function ProjectPage({ slug, back }) {
   const p = getProjectBySlug(slug);
   useEffect(() => {
@@ -312,6 +341,7 @@ function ProjectPage({ slug, back }) {
       <p className={styles.kicker}>{p.category}</p>
       <h1 className={styles.h2}>{p.name}</h1>
       {p.description && p.description !== '[ placeholder ]' && <p className={styles.sub}>{p.description}</p>}
+      <CaseStory project={p} />
       <div className={styles.gallery}>
         <MobileProjectGallery project={p} />
       </div>

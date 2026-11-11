@@ -75,7 +75,7 @@ ${projects.map((p) => `  <li><a href="/work/${p.slug}">${esc(p.name)}</a>: ${esc
 function home() {
   return `<main class="pre">
 <h1>Hi, I'm Kenneth Nathanael. Designer. Building brands for 10+ years.</h1>
-<p>Designer in Bengaluru, India. Brands, campaigns, video and web, for over ten years. Design Lead at Milestone Technologies. Open to roles and freelance.</p>
+<p>Designer in Bengaluru, India. Brands, campaigns, video and web, 10+ years. Design Lead at Milestone Technologies. Open to roles and freelance.</p>
 <p>The full portfolio is built as a Mac desktop you can use: open it on a laptop.</p>
 <h2>What I do</h2>
 <ul>

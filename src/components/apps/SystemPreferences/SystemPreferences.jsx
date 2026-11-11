@@ -200,7 +200,7 @@ export default function SystemPreferences({ data }) {
             </div>
             <div className={styles.group}>
               <Row label="Name" sub="Kenneth’s MacBook Pro" />
-              <Row label="Chip" sub="K1 Max · ten years of experience" />
+              <Row label="Chip" sub="K1 Max · 10+ years of experience" />
               <Row label="Memory" sub="9 projects, 7 roles" />
               <Row label="macOS" sub="KenOS 26 Tahoe" />
               <Row label="Serial number" sub="KN-2015-2026" />

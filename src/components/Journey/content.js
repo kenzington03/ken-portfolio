@@ -27,7 +27,7 @@ export const CAREER = [
 ];
 
 export const STORY = [
-  'Ten years shaping brands, campaigns and interfaces.',
+  '10+ years shaping brands, campaigns and interfaces.',
   'I lead the idea, and I still push the pixels.',
   'The rest of the story lives on my Mac.',
 ];

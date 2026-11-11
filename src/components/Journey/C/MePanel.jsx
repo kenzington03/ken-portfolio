@@ -24,7 +24,7 @@ export const PILLARS = [
 // { hl } is a highlighted claim.
 export const STORY = [
   { kind: 'hello', parts: ["Hey, I'm Ken."] },
-  { kind: 'line', parts: ["For ten years I've built", { hl: 'brands' }, 'for', { hl: 'B2B tech, pharma, crypto and finance.' }] },
+  { kind: 'line', parts: ["For 10+ years I've built", { hl: 'brands' }, 'for', { hl: 'B2B tech, pharma, crypto and finance.' }] },
   { kind: 'line', parts: ['I start with the idea and the strategy, then design', { hl: 'campaigns' }, 'built to make', { hl: 'a real impact.' }] },
   { kind: 'line', parts: ["I can't look at a design without asking how it could be", { hl: 'better.' }] },
   { kind: 'big', parts: ['Design. Basketball. Chess.'] },

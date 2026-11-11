@@ -3,7 +3,7 @@ import styles from './GetInfo.module.css';
 // "Get Info" for anything in the Dock: what the Finder would say about it.
 const INFO = {
   finder: { kind: 'Folder', size: '9 projects', where: '~/Portfolio' },
-  about: { kind: 'Application', size: '1.2 MB', version: '10.0 (ten years)' },
+  about: { kind: 'Application', size: '1.2 MB', version: '10.0 (10+ years)' },
   contact: { kind: 'Application', size: '640 KB', version: '2.1' },
   illustrator: { kind: 'Application', size: '3.4 GB', version: 'Adobe Illustrator 2026' },
   photoshop: { kind: 'Application', size: '4.1 GB', version: 'Adobe Photoshop 2026' },

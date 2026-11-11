@@ -10,7 +10,7 @@ export const POSITIONING = {
 // are invented prompts (habit / obsession / win / team) for Ken to swap for
 // the real story; they are not facts yet.
 export const STORY = [
-  "Hi, I'm Ken. Ten years of brands, campaigns and interfaces, and a flat idea starting to move still makes me giddy.",
+  "Hi, I'm Ken. 10+ years of brands, campaigns and interfaces, and a flat idea starting to move still makes me giddy.",
   // PLACEHOLDER (habit)
   'I screenshot everything. My desktop holds 3,000 of them: good kerning, bad signage, one very confident pigeon.',
   // PLACEHOLDER (obsession)

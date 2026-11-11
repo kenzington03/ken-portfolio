@@ -21,7 +21,7 @@ const FS = {
 const FILES = {
   'about.txt': [
     'Kenneth Nathanael. Designer, Hyderabad, India.',
-    'Ten years in brand, campaigns, video and motion, mostly for B2B tech.',
+    '10+ years in brand, campaigns, video and motion, mostly for B2B tech.',
     'Design Lead at Milestone Technologies; co-founded Tandem Digital before that.',
     'Nothing in good design is there by accident.',
   ],

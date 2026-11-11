@@ -192,10 +192,10 @@ const BASICS = {
   name: "Kenneth Nathanael. Most people call him Ken.",
   age: AGE
     ? `He's ${AGE}.`
-    : { text: "That one's Ken's to tell. He's been designing professionally since 2015, about ten years in. Ask him yourself:", actions: CONTACT_ACTIONS },
+    : { text: "That one's Ken's to tell. He's been designing professionally since 2015: 10+ years in. Ask him yourself:", actions: CONTACT_ACTIONS },
   gender: `Ken's a man; he goes by ${PRONOUNS}.`,
   education: "An Advanced Diploma in Animation and VFX from Wings Creation College of Animation and Media, Bangalore (2018). He's also finishing a B.Com at Sunrise College, expected 2027.",
-  years: "About ten years, since 2015: brand, campaigns, video, motion and events.",
+  years: "10+ years, since 2015: brand, campaigns, video, motion and events.",
   languages: "He works in English.",
   remote: "Yes. He's based in Hyderabad and open to remote work and relocation.",
   title: "Design Lead at Milestone Technologies, where he runs the in-house creative studio.",

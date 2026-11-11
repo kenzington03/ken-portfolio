@@ -15,6 +15,15 @@ Model column = what to run that session on (`/model`).
 - [x] Best Work folder: 12 picks leading the Portfolio, opens with it, real alt text on each
 - [x] Hetfield artwork was saved mirrored; flipped (original in Trash)
 
+## Done, Nov 12 (Opus, phases 1-4 + the code parts of 5; commits fa9af04..)
+- [x] P1 analytics + track() (Vercel scripts from /_vercel, no npm), phone CTAs above the fold, laptop note to the footer, no "beta", contrast, headings read once, career H3s have text
+- [x] P2 GLB once (blob), WebP icons/wallpapers (~8 MB lighter), self-hosted fonts (no Google, no Inter), three.js out of the first chunk, apps lazy, sounds on first gesture, cache headers
+- [x] P3 /work/<slug> routes, prerender (homepage text + 10 project pages + sitemap), canonical, Person JSON-LD, 404.html, llms.txt
+- [x] P4 alt text (from paths; written ones go in utils/altText.js ALT), 44 px targets, skip link, one window per project, Lighthouse 100 a11y on the intro
+- [x] P5.3 "10+ years" everywhere; P5.5 case study on phone project pages
+- [ ] **Ken:** enable Web Analytics + Speed Insights in the Vercel dashboard (custom events need Pro); Search Console; PageSpeed after deploy
+- [ ] cal_booked needs Cal.com's embed or webhook (now cal_open: the click)
+
 ## Phase 1: measure + quick credibility (Sonnet 5.5, ~1 session)
 1. `@vercel/analytics` + `@vercel/speed-insights` (ask before npm install). Enable in Vercel dashboard.
 2. One `track(event, props)` helper; wire: whatsapp_tap, email_tap, resume_download, cal_booked

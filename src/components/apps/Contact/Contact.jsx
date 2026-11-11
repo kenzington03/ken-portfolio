@@ -94,7 +94,7 @@ function KenCard() {
 
       <div className={styles.fields}>
         <Field label="note">
-          Ten years designing brands, campaigns, interfaces and motion, mostly for products that are hard to explain. Open to
+          10+ years designing brands, campaigns, interfaces and motion, mostly for products that are hard to explain. Open to
           full-time roles and freelance projects.
         </Field>
         <Field label="skills">{SKILLS.join(', ')}</Field>

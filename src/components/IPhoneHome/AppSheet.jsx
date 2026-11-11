@@ -80,7 +80,7 @@ function AboutContent() {
         <p className={styles.aboutTitle}>Designer · India</p>
       </div>
       <div className={styles.aboutBio}>
-        <p>Ten years shaping brands, campaigns and interfaces. I start with the idea and stay for the last pixel.</p>
+        <p>10+ years shaping brands, campaigns and interfaces. I start with the idea and stay for the last pixel.</p>
         <p style={{ marginTop: 12 }}>Based in Hyderabad. Brand identity, motion, video, UI/UX and print, from the first sketch to the file that ships.</p>
       </div>
       <div className={styles.aboutSkills}>
