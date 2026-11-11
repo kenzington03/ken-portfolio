@@ -92,7 +92,7 @@ export default function AssistiveTouch({ onHome, onBack, onContact, onExit }) {
                 <svg viewBox="0 0 24 24" aria-hidden>
                   <path d="M10 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h4M14 8l4 4-4 4M18 12H9" />
                 </svg>
-                Exit beta
+                Back to the page
               </button>
             </motion.div>
           </motion.div>

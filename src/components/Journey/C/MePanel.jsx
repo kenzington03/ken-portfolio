@@ -163,8 +163,9 @@ export default function MePanel({ instant, wide }) {
   return (
     <section ref={rootRef} className={`${styles.me} ${wide ? styles.wide : ''}`} data-beat={beat} aria-label="About Ken">
       <div ref={storyRef} className={styles.story}>
-        <h2 className={`${styles.statement} ${beat >= 1 ? styles.in : ''}`}>
-          <span className={styles.srOnly}>{STATEMENT.map((l) => l.join(' ')).join(' ')}</span>
+        {/* Read once: the label for screen readers, the letters for the eye
+            (and for anything reading the page's text). */}
+        <h2 className={`${styles.statement} ${beat >= 1 ? styles.in : ''}`} aria-label={STATEMENT.map((l) => l.join(' ')).join(' ')}>
           {lines.map((line, li) => (
             <span key={li} className={styles.line}>
               {line.map((x, k) => (

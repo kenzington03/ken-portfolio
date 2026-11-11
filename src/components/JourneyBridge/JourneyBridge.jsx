@@ -36,7 +36,7 @@ export default function JourneyBridge() {
       const icon = document.querySelector('[data-icon="portfolio"] [data-animation-origin]');
       launch('finder', { auto: true, animationOrigin: getOriginFromElement(icon) });
       // Then Best Work, over it: the first thing anyone sees is the best.
-      setTimeout(() => openRef.current(BEST_WORK_ID), BEST_AFTER_MS);
+      setTimeout(() => openRef.current(BEST_WORK_ID, { auto: true }), BEST_AFTER_MS);
     };
 
     const timer = setTimeout(open, tourBlocking ? TOUR_GATE_TIMEOUT_MS : OPEN_AFTER_MS);

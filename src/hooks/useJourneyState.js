@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { track } from '../utils/track.js';
 
 const NUDGE_DURATION_MS = 90_000;
 const PULSE_DURATION_MS = 30_000;
@@ -36,6 +37,7 @@ export function useJourneyState({ skipHello = false } = {}) {
   const dismissHello = useCallback(() => {
     setHelloVisible(false);
     setHelloDismissed(true);
+    track('mac_opened');
     setShouldAutoOpenPortfolio(true);
   }, []);
 

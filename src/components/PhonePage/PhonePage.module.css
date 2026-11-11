@@ -32,7 +32,7 @@
 
 .name {
   position: relative;
-  margin: 2px 0 0;
+  margin: 12px 0 0;
   font: 900 clamp(64px, 22.5vw, 120px) / 0.78 var(--display);
   font-variation-settings: 'opsz' 72;
   letter-spacing: -0.01em;
@@ -40,12 +40,13 @@
 }
 
 .nameInk,
-.nameFill {
+.name::before {
   display: block;
   color: var(--accent);
 }
 
-.nameFill {
+.name::before {
+  content: 'KENNETH';
   position: absolute;
   inset: 0;
   color: color-mix(in srgb, var(--accent) 88%, #000);
@@ -364,7 +365,8 @@
 .footBig {
   margin: 0;
   font: 800 56px/0.9 var(--display);
-  color: var(--riso);
+  /* White: some palettes' second ink is too dark on the ink footer. */
+  color: #fff;
 }
 
 .footLinks {
@@ -415,6 +417,12 @@
   margin: 20px 0 28px;
 }
 
+/* The gallery's section titles are white for the iPhone version's dark sheet;
+   on the paper here they're ink. */
+.gallery h3 {
+  color: var(--ink);
+}
+
 .project .ctaMain {
   width: 100%;
 }
@@ -435,7 +443,7 @@
 .laptop {
   display: grid;
   gap: 12px;
-  margin: max(12px, env(safe-area-inset-top)) var(--gutter) 0;
+  margin: 48px var(--gutter) 0;
   padding: 14px 14px 14px 16px;
   border-radius: 18px;
   background: var(--ink);

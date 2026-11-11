@@ -4,6 +4,9 @@ import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary.jsx';
 import './styles/fonts.css';
 import './styles/global.css';
+import { startAnalytics } from './utils/track.js';
+
+startAnalytics();
 
 const root = document.getElementById('root');
 

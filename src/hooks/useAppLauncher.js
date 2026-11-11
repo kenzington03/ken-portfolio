@@ -17,6 +17,7 @@ import EmptyFolder from '../components/apps/EmptyFolder/EmptyFolder.jsx';
 import AdobeApp from '../components/apps/AdobeApp/AdobeApp.jsx';
 import GetInfo from '../components/apps/GetInfo/GetInfo.jsx';
 import { getProjectById } from '../data/projects.js';
+import { track } from '../utils/track.js';
 import { RIGHT_DOCK_RESERVE, getCenteredWindowPosition } from '../utils/animationOrigin.js';
 
 const APP_REGISTRY = {
@@ -96,6 +97,7 @@ export function useAppLauncher(windowManager, achievements) {
           title = project.name;
           data = { projectId: options.projectId };
           trackProjectView(options.projectId);
+          if (!options.auto) track('project_open', { slug: options.projectId });
         }
       }
 
@@ -132,6 +134,7 @@ export function useAppLauncher(windowManager, achievements) {
       launchApp('projectviewer', {
         projectId,
         forceNew: true,
+        auto: options.auto,
         animationOrigin: options.animationOrigin ?? null,
       }),
     [launchApp]

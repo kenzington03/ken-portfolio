@@ -1,8 +1,8 @@
-// Phones: one page, no 3D. A note first that the full site is a Mac desktop
-// (best on a laptop), with the iPhone beta behind the cat. Then who (Ken,
-// KENNETH), what, how to reach him; his ball drops through a net as you
+// Phones: one page, no 3D. Who (Ken, KENNETH), what, how to reach him (the
+// buttons above the fold); his ball drops through a net as you
 // scroll on; who he is, loud (the same paragraph and collage as the laptop);
-// the work, what he does, the brief, the Mac teaser and the links. A
+// the work, what he does, the brief, the Mac teaser, a note that the full
+// site is a Mac desktop (the iPhone version behind the cat) and the links. A
 // "Contact me" button stays bottom right the whole way.
 // Each project opens as a real page at #/work/<slug>, so the back gesture and
 // the back button just work.
@@ -16,6 +16,7 @@ import { Brief } from '../Brief/BriefSheet.jsx';
 import { paletteStyle, readPalette } from '../Journey/C/palette.js';
 import { COLLAGE, STORY } from '../Journey/C/MePanel.jsx';
 import MobileProjectGallery from '../IPhoneHome/MobileProjectGallery.jsx';
+import { track } from '../../utils/track.js';
 import styles from './PhonePage.module.css';
 
 const WORK = ['fluid-ai', 'marriott', 'lebron-nike', 'branding', 'motion', 'web-ui'];
@@ -27,7 +28,7 @@ const slugFromHash = () => {
   return m ? m[1] : null;
 };
 
-/** The full site lives on a laptop; the iPhone beta is behind the cat. */
+/** The full site lives on a laptop; the iPhone version is behind the cat. */
 function LaptopNote({ onIPhone }) {
   return (
     <aside className={styles.laptop}>
@@ -37,7 +38,7 @@ function LaptopNote({ onIPhone }) {
       <button type="button" className={styles.catBtn} onClick={onIPhone}>
         <img src="/assets/icons/desktop-Resume.png" alt="" />
         <span>
-          Try the iPhone beta
+          Try the iPhone version
           <small>Tap the cat</small>
         </span>
       </button>
@@ -170,22 +171,13 @@ function Hero() {
   return (
     <header className={styles.hero}>
       <p className={styles.hi}>Hi, I&apos;m</p>
+      {/* The second ink is drawn by CSS, so the name is read once. */}
       <h1 className={styles.name}>
-        <span className={styles.nameFill} aria-hidden>
-          KENNETH
-        </span>
         <span className={styles.nameInk}>KENNETH</span>
       </h1>
       <p className={styles.line}>
         <b>Designer.</b> Brands, campaigns, video, web. 10+ years. Open to roles and freelance.
       </p>
-      <div className={styles.fig}>
-        <span className={styles.floor} aria-hidden />
-        <img src="/assets/hero/art/ken.webp" alt="An illustration of Ken holding his laptop" />
-        <span className={styles.ball} aria-hidden>
-          <img src="/assets/hero/art/ball-real.webp" alt="" />
-        </span>
-      </div>
       <nav className={styles.ctas} aria-label="Contact">
         <a className={styles.ctaMain} href={`https://wa.me/${WHATSAPP}?text=${HELLO}`} target="_blank" rel="noreferrer">
           WhatsApp me
@@ -197,6 +189,13 @@ function Hero() {
           Résumé
         </a>
       </nav>
+      <div className={styles.fig}>
+        <span className={styles.floor} aria-hidden />
+        <img src="/assets/hero/art/ken.webp" alt="An illustration of Ken holding his laptop" />
+        <span className={styles.ball} aria-hidden>
+          <img src="/assets/hero/art/ball-real.webp" alt="" />
+        </span>
+      </div>
     </header>
   );
 }
@@ -252,6 +251,7 @@ function WhatIDo() {
 function MacTeaser() {
   const [copied, setCopied] = useState(false);
   const share = async () => {
+    track('send_link', { via: navigator.share ? 'share' : 'copy' });
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ken's portfolio", text: 'Open this on a laptop: the whole desktop lives there.', url: SITE });
@@ -363,6 +363,7 @@ export default function PhonePage({ onIPhone }) {
 
   const open = useCallback((e, s) => {
     e.preventDefault();
+    track('project_open', { slug: s, from: 'phone' });
     setScrollY(window.scrollY);
     window.history.pushState({ work: s }, '', `#/work/${s}`);
     setSlug(s);
@@ -381,7 +382,6 @@ export default function PhonePage({ onIPhone }) {
         <ProjectPage slug={slug} back={back} />
       ) : (
         <>
-          <LaptopNote onIPhone={onIPhone} />
           <Hero />
           <Swish />
           <AboutSlab />
@@ -391,6 +391,7 @@ export default function PhonePage({ onIPhone }) {
             <Brief headingId="brief-h" />
           </section>
           <MacTeaser />
+          <LaptopNote onIPhone={onIPhone} />
           <Footer />
           <ContactFab />
         </>

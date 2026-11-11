@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LINKEDIN } from '../../data/links.js';
 import { BOOKING_URL, EMAIL, NEEDS, WHATSAPP, letterText, subjectLine } from './briefData.js';
+import { track } from '../../utils/track.js';
 import styles from './BriefSheet.module.css';
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -19,14 +20,18 @@ export function Brief({ headingId }) {
   const [picked, setPicked] = useState([]);
   const [about, setAbout] = useState('');
   const [name, setName] = useState('');
-  const pick = (id) => setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const pick = (id) => {
+    if (!picked.includes(id)) track('service_pick', { service: id });
+    setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  };
+  const sent = (via) => () => track('brief_send', { via, services: picked.join(',') || 'none' });
   const text = useMemo(() => letterText({ picked, about: about.trim(), name: name.trim() }), [picked, about, name]);
   const wa = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
   const [phone] = useState(onPhone);
   const mail = `mailto:${EMAIL}?subject=${encodeURIComponent(subjectLine(picked))}&body=${encodeURIComponent(text)}`;
 
   return (
-    <div className={styles.brief}>
+    <div className={styles.brief} data-track-from="brief">
       <header className={styles.top}>
         <p className={styles.kicker}>Work with me</p>
         <h2 id={headingId} className={styles.title}>
@@ -78,13 +83,13 @@ export function Brief({ headingId }) {
         <p className={styles.preview} aria-live="polite">
           {text}
         </p>
-        <a className={styles.primary} href={phone ? wa : mail} {...(phone ? { target: '_blank', rel: 'noreferrer' } : {})}>
+        <a className={styles.primary} href={phone ? wa : mail} onClick={sent(phone ? 'whatsapp' : 'email')} {...(phone ? { target: '_blank', rel: 'noreferrer' } : {})}>
           {phone ? 'Send on WhatsApp' : 'Email it to Ken'}
           <svg viewBox="0 0 20 20" aria-hidden>
             <path d="M4 10h11M11 5l5 5-5 5" />
           </svg>
         </a>
-        <a className={styles.quiet} href={phone ? mail : wa} {...(phone ? {} : { target: '_blank', rel: 'noreferrer' })}>
+        <a className={styles.quiet} href={phone ? mail : wa} onClick={sent(phone ? 'email' : 'whatsapp')} {...(phone ? {} : { target: '_blank', rel: 'noreferrer' })}>
           {phone ? 'or send it by email' : 'or send it on WhatsApp'}
         </a>
         {/* Rather talk? A short call, booked straight into Ken's calendar. */}
