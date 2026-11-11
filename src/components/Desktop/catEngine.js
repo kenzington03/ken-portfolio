@@ -526,14 +526,15 @@ export function createCat({ canvas, onSay }) {
     const path = [];
     for (let k = goal.key; k !== here.key; k = prev.get(k)) path.unshift(k);
     if (path.length > 9) return false;
-    c.route = { path, gx, speed: RUN * 1.15, seen: new Set() };
+    c.route = { path, gx, speed: RUN * 0.6, seen: new Set() };
     nextLeg();
     return true;
   }
 
-  /** A ramble: a few leaps, each picked as he lands. */
+  /** A ramble: a few leaps, each picked as he lands, at a trot, sizing up
+   *  each one and looking about after it (only the zoomies are frantic). */
   function ramble() {
-    c.route = { left: Math.round(rand(3, 6)), speed: RUN * 0.9, seen: new Set() };
+    c.route = { left: Math.round(rand(2, 4)), speed: WALK * 2, seen: new Set() };
     nextLeg();
   }
 
@@ -596,7 +597,12 @@ export function createCat({ canvas, onSay }) {
         if (opts.length) {
           // Somewhere new, a big change of height (up or down), somewhere
           // far: weighted, never fixed, so no two runs are the same.
-          const wt = (o) => 1 + Math.abs(o.up) / 70 + o.across / (fast ? 140 : 260) + (R0.seen.has(o.s.key) ? 0 : 1.8);
+          // Off the zoomies, not icon to icon to icon: from one small perch
+          // he'd rather go somewhere bigger.
+          const small = (q) => q.key !== 'floor' && q.x1 - q.x0 < 120;
+          const wt = (o) =>
+            (1 + Math.abs(o.up) / 70 + o.across / (fast ? 140 : 260) + (R0.seen.has(o.s.key) ? 0 : 1.8)) *
+            (!fast && small(here) && small(o.s) ? 0.2 : 1);
           let sum = opts.reduce((n, o) => n + wt(o), 0) * Math.random();
           leg = opts.find((o) => (sum -= wt(o)) <= 0) || opts[0];
         } else if (!onFloor()) {
@@ -625,11 +631,14 @@ export function createCat({ canvas, onSay }) {
     const high = here && c.y < window.innerHeight * 0.62;
     const r = Math.random();
     const options = reachable();
+    // Up on a little perch (an icon), mostly he stays and takes it easy.
+    const perch = here && here.key !== 'floor' && here.x1 - here.x0 < 120;
+    if (perch && Math.random() < 0.6) return set(pick(['sit', 'sit', 'loaf', 'groom']), rand(5, 10));
     if (high && r < 0.22) return startButterfly();
-    if (r < 0.05 || (onBase() && r < 0.1)) return startZoomies();
-    if (r < 0.2 && adventure()) return undefined;
-    if (r < 0.3 && options.length) return ramble();
-    if (r < 0.34) return set('bow', rand(1.2, 2.2));
+    if (r < 0.04 || (onBase() && r < 0.08)) return startZoomies();
+    if (r < 0.1 && adventure()) return undefined;
+    if (r < 0.14 && options.length) return ramble();
+    if (r < 0.17) return set('bow', rand(1.2, 2.2));
     if (onBase() && r < 0.18) return startMouse();
     if (roomy(here) && r < 0.28) return startYarn();
     if (here?.bed && r < 0.75) return set(Math.random() < 0.6 ? 'sleep' : 'loaf', rand(10, 20));
@@ -928,8 +937,14 @@ export function createCat({ canvas, onSay }) {
             const j = c.plan.jump;
             c.face = Math.sign(j.lx - c.x) || c.face;
             c.aimAt = { x: j.lx, y: yAt(j.s, j.lx) };
-            c.quick = true;
-            set('crouch', c.route?.zoom ? 0.08 : 0.2);
+            if (c.route?.zoom) {
+              c.quick = true;
+              set('crouch', 0.08);
+            } else {
+              // Not in a rush: he looks at it first, then gets down.
+              c.quick = false;
+              set('aim', rand(0.45, 0.9));
+            }
           } else nextLeg();
         }
         break;
@@ -1022,7 +1037,11 @@ export function createCat({ canvas, onSay }) {
           c.resume = null;
           startZoomies();
         } else if (c.route && !c.resume) {
-          if (t > c.until) nextLeg();
+          // On the zoomies, straight on; otherwise a look round first.
+          if (t > c.until) {
+            if (c.route.zoom) nextLeg();
+            else set('beat', rand(0.8, 1.8));
+          }
         } else if (c.resume) {
           // Down from a hop: straight on with what he was doing.
           const r = c.resume;
@@ -1057,6 +1076,12 @@ export function createCat({ canvas, onSay }) {
         break;
       case 'pet':
         if (t > c.until) set('sit', rand(2, 4));
+        break;
+      case 'beat':
+        if (t > c.until) {
+          if (c.route) nextLeg();
+          else set('idle', 0.5);
+        }
         break;
       case 'hang':
         // A scrabble of hind feet and he hauls himself up over the edge.

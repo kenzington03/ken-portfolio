@@ -3,12 +3,11 @@
 // load on the deployed site. Dev and preview builds keep the queue and drop it.
 //
 // track(name, props) records one custom event. Vercel's free plan counts page
-// views but not custom events, so events also go to Google Analytics (free)
-// when VITE_GA_ID (a G-... measurement ID) is set in Vercel's environment
-// variables. Links are tracked on their own (see trackLinks): WhatsApp,
+// views but not custom events, so events also go to Google Analytics 4 (free;
+// the measurement ID is public by design: it is in every page's source). Links are tracked on their own (see trackLinks): WhatsApp,
 // email, the résumé and the booking page.
 
-const GA_ID = import.meta.env.VITE_GA_ID;
+const GA_ID = import.meta.env.VITE_GA_ID || 'G-6L8JZ68V1B';
 const ON = import.meta.env.PROD && typeof window !== 'undefined' && !/^(localhost|127\.|192\.168\.)/.test(window.location.hostname);
 
 function queue(key, q) {

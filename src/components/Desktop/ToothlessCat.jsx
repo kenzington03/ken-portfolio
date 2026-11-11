@@ -112,7 +112,9 @@ export default function ToothlessCat() {
           engine.current?.grab(e);
         }}
         onContextMenu={(e) => {
+          // His menu only: the desktop's own must not open under it.
           e.preventDefault();
+          e.stopPropagation();
           setMenu({ x: Math.min(e.clientX, window.innerWidth - 220), y: Math.max(40, e.clientY - 200) });
         }}
         onKeyDown={(e) => e.key === 'Enter' && engine.current?.stroke()}
