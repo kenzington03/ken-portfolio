@@ -25,13 +25,14 @@
 // never behind the Dock or a window.
 //
 // Left to himself he wanders, climbs, sits, loafs, grooms, naps (and
-// stretches and yawns after), gets the zoomies, bats a ball of yarn, chases
-// a mouse and, up high, watches a butterfly and swats at it. Asked for the
-// zoomies, he powers up wherever he is (a blue, violet and gold aura, eyes
-// and all), drops to the floor and goes.
+// stretches and yawns after), bats a ball of yarn, chases a mouse and, up
+// high, watches a butterfly and swats at it. And he goes on adventures: a
+// ramble of leaps, or a path worked out to somewhere (the top right corner,
+// the highest ledge, a window that has just opened). The zoomies are the
+// mad version: a dozen and more dashes, leaps, climbs and big drops all over
+// the screen. Asked for them, he powers up first wherever he is (a blue,
+// violet and gold aura, eyes and all).
 
-import SIT from './toothlessSit.json';
-import { lottiePlayer } from './lottieMini.js';
 
 const G = 2400; // gravity, px/s²
 const S = 1.5; // his scale: the rig is in units of 1px at S = 1
@@ -43,14 +44,14 @@ const MAX_ACROSS = 460;
 const EDGE = 14; // how close to a surface's end he will stand
 
 const INK = '#000';
-// His eyes: green almonds with a black slit, as in the animation he sits in.
+// His eyes: narrow green almonds with a black slit.
 const EYE = '#9ee05a';
-// Sitting and grooming are the animation itself ("Black cat" by PoPoF,
-// LottieFiles, Lottie Simple License): its scale on screen, the point under
-// him (his feet, the middle of his body), and where the grooming starts.
-const SIT_K = 0.14;
-const SIT_AT = [775, 750];
-const GROOM_AT = 97;
+// One body, the whole time (Ken, Nov 2026): built after the black cat in
+// PoPoF's animation he used to sit as (a deep round chest, a tucked waist,
+// a round rump, slim tapering legs on small paws, a small flat-topped head
+// with tall sharp ears, a long even tail), and drawn by the rig in every
+// pose, sitting and washing too, so his shape never changes under you.
+const GROOM_S = 6; // one wash: a lick or two, a wipe over the face
 // Super Saiyan: the aura's colours, top to bottom, which his eyes cycle through.
 const SSJ = ['#4f8bff', '#9b6bff', '#ffc94d'];
 // He is built like the cat he sits as: a deep, round body, a small head with
@@ -60,9 +61,9 @@ const SSJ = ['#4f8bff', '#9b6bff', '#ffc94d'];
 const FORE = [10.8, 10.8]; // upper arm, forearm
 const HIND = [7.8, 7.8]; // thigh, shin
 const HOCK = [-3, -9]; // the hock from the paw, standing (the long foot)
-const PAW = 3;
-const TAIL_N = 14;
-const TAIL_SEG = 4;
+const PAW = 2.6;
+const TAIL_N = 17;
+const TAIL_SEG = 3.7;
 const LEASH = 150; // how far the butterfly strays before it fades
 const WIDE = 420; // the least room, px, he needs to play with the yarn
 const LEGS = ['xh', 'xf', 'nh', 'nf']; // far hind, far fore, near hind, near fore
@@ -96,21 +97,22 @@ const cycle = (list, k) => {
 // shin, as in the air), haunch (the round thigh of a sitting cat), tuck (paws
 // folded under), the tail (ta its angle at the root, tc its curl per segment,
 // th the hook at its tip), eye openness and how far back the ears are.
-const BASE = { hx: -14, hy: -27, sx: 14, sy: -28, arch: 3, nx: 11, ny: -12, tilt: 0, turn: 0.3, fx: 1, bx: 0, hock: 0, hs: 0, haunch: 0, tuck: 0, ta: -1.95, tc: 0.02, th: 0.3, lid: 1, ears: 0 };
+const BASE = { hx: -14, hy: -27, sx: 14, sy: -28, arch: 3, nx: 11, ny: -13, tilt: 0, turn: 0.3, fx: 1, bx: 0, hock: 0, hs: 0, haunch: 0, tuck: 0, ta: 2.6, tc: 0.13, th: 0.22, lid: 1, ears: 0 };
 const POSES = {
   stand: BASE,
   aim: { ...BASE, hy: -24, sy: -25, nx: 12, ny: -11, tilt: -0.2, turn: 0.55, ta: 2.95, tc: 0.03, th: 0.12 },
   crouch: { ...BASE, hx: -12, hy: -16, sx: 13, sy: -16.5, arch: 1, nx: 12, ny: -9, tilt: -0.12, turn: 0.6, fx: -1, bx: 6, ta: 3.05, tc: 0, th: 0.1 },
   land: { ...BASE, hx: -13, hy: -19, sx: 13, sy: -17, arch: 2, nx: 11, ny: -10, turn: 0.45, fx: 2, bx: 2, ta: -2.5, tc: 0.05, th: 0.2 },
-  // Sitting tall, as in the animation he sits in: the tail round his feet.
-  sit: { ...BASE, hx: -6, hy: -11, sx: 6, sy: -30, arch: 4, nx: 4, ny: -13, turn: 0.1, fx: 4, bx: 9, hock: 1, haunch: 1, ta: -2.3, tc: 0.05, th: 0.38 },
+  // Sitting tall, an egg of a cat: the round haunch behind, the chest
+  // straight down to the forepaws, the tail laid along the floor, its tip up.
+  sit: { ...BASE, hx: -8, hy: -12, sx: 2, sy: -30, arch: 7.5, nx: 5, ny: -14, turn: 0.1, fx: 5, bx: 9, hock: 1, haunch: 1, ta: 3.1, tc: 0.004, th: 0.34 },
   loaf: { ...BASE, hx: -13, hy: -12, sx: 11, sy: -12.5, arch: 5.5, nx: 9, ny: -9, turn: 0.15, tuck: 1, ta: 2.6, tc: -0.22, th: 0, lid: 0.55 },
   sleep: { ...BASE, hx: -10, hy: -11, sx: 9, sy: -11, arch: 10, nx: 9, ny: -2, tilt: 0.35, turn: 0, tuck: 1, ta: 2.3, tc: -0.3, th: 0, lid: 0 },
   stretch: { ...BASE, hx: -12, hy: -31, sx: 12, sy: -13, arch: -3, nx: 13, ny: -6, tilt: -0.25, turn: 0.35, fx: 23, bx: -1, ta: -1.85, tc: 0.04, th: 0.25, lid: 0.25 },
   air: { ...BASE, hx: -16, hy: -27, sx: 16, sy: -28, arch: 0, nx: 11, ny: -11, turn: 0.6, hs: 1, ta: 3.35, tc: 0.03, th: 0.05 },
   drag: { ...BASE, hx: 0, hy: 50, sx: 1, sy: 19, arch: -2, nx: 2, ny: -16, turn: 0, hs: 0.8, ta: 1.65, tc: 0.06, th: 0.15, lid: 0.6, ears: 0.6 },
 };
-POSES.groom = { ...POSES.sit, nx: 5, ny: -12, tilt: 0.3, lid: 0.25 };
+POSES.groom = { ...POSES.sit, nx: 6, ny: -12, tilt: 0.28, lid: 0.3 };
 // How quickly he moves into each (sleep curls up slowly, landings are fast).
 const RATES = { crouch: 14, land: 20, air: 12, drag: 12, aim: 8, stretch: 5, sleep: 3.5, loaf: 4, sit: 7, groom: 7, stand: 8 };
 
@@ -292,14 +294,11 @@ function readSurfaces(wins) {
 
 export function createCat({ canvas, onSay }) {
   const ctx = canvas.getContext('2d');
-  // He is drawn into his own small canvases first (the rig in one, the
-  // sitting animation in another), then laid on the screen each in one
-  // piece, so crossfading between them shows no seams. The aura is his
+  // He is drawn into his own small canvas first, then laid on the screen in
+  // one piece (so his overlapping parts show no seams). The aura is his
   // silhouette again, coloured, behind him.
   const buf = document.createElement('canvas');
   const g = buf.getContext('2d');
-  const lbuf = document.createElement('canvas');
-  const lg = lbuf.getContext('2d');
   const aura = document.createElement('canvas');
   const ag = aura.getContext('2d');
   const BW = 380;
@@ -311,7 +310,7 @@ export function createCat({ canvas, onSay }) {
     dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(window.innerWidth * dpr);
     canvas.height = Math.round(window.innerHeight * dpr);
-    [buf, lbuf, aura].forEach((b) => {
+    [buf, aura].forEach((b) => {
       b.width = BW * dpr;
       b.height = BH * dpr;
     });
@@ -364,8 +363,7 @@ export function createCat({ canvas, onSay }) {
     thrown: false,
     quick: false,
     box: [-30, 30, -60],
-    lot: 0, // how far he's into the sitting animation (0 skeleton, 1 animation)
-    lotF: 0, // its frame
+    wipe: 0, // washing: how far the paw is through a wipe over the face
     collapse: false,
     pending: null,
     super: false, // asked for the zoomies: powered up until they're done
@@ -380,7 +378,6 @@ export function createCat({ canvas, onSay }) {
   let R = null; // this frame's rig
   let eyeFill = EYE; // his eye colour this frame (it changes when he powers up)
   let eyeGlow = SSJ[0];
-  const sitAnim = lottiePlayer(SIT, { colour: ([r, g2, b]) => (r > 0.9 && g2 > 0.6 && b < 0.1 ? () => eyeFill : null) });
   let windows = readWindows();
   let surfaces = readSurfaces(windows);
   let pointer = { x: -999, y: -999 };
@@ -425,8 +422,6 @@ export function createCat({ canvas, onSay }) {
     c.y = yAt(surfaces[0], c.x);
     c.face = Math.random() < 0.5 ? 1 : -1;
     c.yaw = c.face;
-    c.lot = 1;
-    c.lotF = rand(0, 80);
     c.plan = null;
     set('sit', rand(8, 12));
   }
@@ -453,6 +448,153 @@ export function createCat({ canvas, onSay }) {
     return out;
   }
 
+  // ---------- Adventures ----------
+  // He goes places: a chain of leaps, each chosen as he lands (the zoomies,
+  // a ramble), or a path worked out to somewhere he wants to be (the top
+  // right corner, the highest ledge, the window that just opened).
+  const ZOOM_UP = 340; // the zoomies let him leap higher and further
+  const ZOOM_ACROSS = 640;
+
+  /** A leap from where he is to surface s, landing near lx (or anywhere on
+   *  it): where he takes off, how far up and across. Null if he can't. */
+  function leapTo(s, lx, maxUp, maxAcross) {
+    const here = surfaceOf(c.on);
+    if (!here || !s || s.key === here.key || s.hidden) return null;
+    const [a0, a1] = room(here);
+    const [b0, b1] = span(s);
+    if (b1 < b0 || a1 < a0) return null;
+    const x = clamp(lx ?? rand(b0, b1), b0, b1);
+    const sy = yAt(s, x);
+    if (coveredAt(windows, s.layer, x, sy)) return null;
+    const dir = Math.sign(x - c.x) || c.face;
+    const tx = clamp(x - dir * rand(50, 110), a0, a1);
+    const up = yAt(here, tx) - sy;
+    const across = Math.abs(x - tx);
+    // Down, he can go a long way: the drop carries him.
+    if (up > maxUp || across > maxAcross + Math.max(0, -up) * 0.8) return null;
+    return { s, lx: x, tx, up, across };
+  }
+
+  /** The surfaces he could get to from a, in one leap, roughly (for paths). */
+  function linked(a, b, maxUp, maxAcross) {
+    const ya = a.step && b.x1 > a.step.x0 && b.x0 < a.step.x1 ? a.step.y : a.y;
+    const gap = Math.max(0, b.x0 - a.x1, a.x0 - b.x1);
+    return ya - b.y <= maxUp && gap <= maxAcross - 60 && b.x1 - b.x0 >= 40;
+  }
+
+  /** Off on an adventure to surface `goal` (near x gx): works out the
+   *  leaps to get there, through whatever is in between, and goes. */
+  function goTo(goal, gx) {
+    const here = surfaceOf(c.on);
+    if (!here || !goal || goal.key === here.key) return false;
+    const nodes = surfaces.filter((q) => !q.hidden);
+    const prev = new Map([[here.key, null]]);
+    const queue = [here];
+    while (queue.length && !prev.has(goal.key)) {
+      const a = queue.shift();
+      nodes.forEach((b) => {
+        if (prev.has(b.key) || !linked(a, b, MAX_UP + 30, MAX_ACROSS + 80)) return;
+        prev.set(b.key, a.key);
+        queue.push(b);
+      });
+    }
+    if (!prev.has(goal.key)) return false;
+    const path = [];
+    for (let k = goal.key; k !== here.key; k = prev.get(k)) path.unshift(k);
+    if (path.length > 9) return false;
+    c.route = { path, gx, speed: RUN * 1.15, seen: new Set() };
+    nextLeg();
+    return true;
+  }
+
+  /** A ramble: a few leaps, each picked as he lands. */
+  function ramble() {
+    c.route = { left: Math.round(rand(3, 6)), speed: RUN * 0.9, seen: new Set() };
+    nextLeg();
+  }
+
+  /** Somewhere worth getting to: the top right corner, the highest thing
+   *  there is, or just something he hasn't stood on. */
+  function adventure() {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const up = surfaces.filter((q) => !q.hidden && q.key !== 'floor' && q.key !== c.on?.key);
+    if (!up.length) return false;
+    const r = Math.random();
+    let goal;
+    if (r < 0.4) goal = up.reduce((a, b) => (b.x1 / W - b.y / H > a.x1 / W - a.y / H ? b : a));
+    else if (r < 0.7) goal = up.reduce((a, b) => (b.y < a.y ? b : a));
+    else goal = pick(up);
+    const [g0, g1] = span(goal);
+    return goTo(goal, r < 0.4 ? g1 : rand(g0, g1));
+  }
+
+  /** The next leg of whatever adventure he's on: a run along what he's on,
+   *  or a leap. Out of legs (or lost), he stops and sits. */
+  function nextLeg() {
+    const R0 = c.route;
+    if (!R0) return set('idle', 0.5);
+    const here = surfaceOf(c.on);
+    if (!here) return set('idle', 0.3);
+    const fast = !!R0.zoom;
+    let leg = null;
+    if (R0.path) {
+      const key = R0.path.shift();
+      const s = key && surfaces.find((q) => q.key === key);
+      if (s) {
+        const last = !R0.path.length;
+        const nx = !last && surfaces.find((q) => q.key === R0.path[0]);
+        const [b0, b1] = span(s);
+        const lx = last ? R0.gx : nx ? clamp((nx.x0 + nx.x1) / 2, b0, b1) : rand(b0, b1);
+        leg = leapTo(s, lx, MAX_UP + 40, MAX_ACROSS + 120) || leapTo(s, null, MAX_UP + 40, MAX_ACROSS + 120);
+      }
+      if (!leg) R0.path = [];
+    } else if (R0.left > 0) {
+      R0.left -= 1;
+      R0.seen.add(here.key);
+      const maxUp = fast ? ZOOM_UP : MAX_UP;
+      const maxAcross = fast ? ZOOM_ACROSS : MAX_ACROSS;
+      const high = c.y < window.innerHeight * 0.55;
+      const r = Math.random();
+      if (fast && high && r < 0.38) {
+        // From up high, the big one: all the way down to the floor.
+        const fl = surfaces[0];
+        leg = leapTo(fl, clamp(c.x + c.face * rand(160, 480), 40, window.innerWidth - 40), 1e4, 1e4);
+      } else if (fast && onFloor() && r < 0.3) {
+        // A flat-out dash across the floor (over the Dock and off it).
+        c.plan = { tx: c.x < window.innerWidth / 2 ? rand(window.innerWidth * 0.7, window.innerWidth - 40) : rand(40, window.innerWidth * 0.3) };
+        return set('zoom');
+      } else {
+        // (No little shuffles on the zoomies: a leap is a leap.)
+        const opts = surfaces
+          .map((q) => leapTo(q, null, maxUp, maxAcross))
+          .filter((o) => o && (!fast || Math.abs(o.up) > 36 || o.across > 140));
+        if (opts.length) {
+          // Somewhere new, a big change of height (up or down), somewhere
+          // far: weighted, never fixed, so no two runs are the same.
+          const wt = (o) => 1 + Math.abs(o.up) / 70 + o.across / (fast ? 140 : 260) + (R0.seen.has(o.s.key) ? 0 : 1.8);
+          let sum = opts.reduce((n, o) => n + wt(o), 0) * Math.random();
+          leg = opts.find((o) => (sum -= wt(o)) <= 0) || opts[0];
+        } else if (!onFloor()) {
+          leg = leapTo(surfaces[0], clamp(c.x + c.face * rand(60, 200), 40, window.innerWidth - 40), 1e4, 1e4);
+        }
+      }
+    }
+    if (!leg) {
+      // The end of it.
+      const was = c.route;
+      c.route = null;
+      if (was?.zoom) {
+        c.super = false;
+        say(pick(['…what?', 'anyway.', '*pant*', 'nailed it.']));
+        return set('sit', rand(2, 3.5));
+      }
+      return set(Math.random() < 0.5 ? 'sit' : 'idle', rand(1.5, 3));
+    }
+    c.plan = { tx: leg.tx, jump: leg };
+    set('zoom');
+  }
+
   function decide() {
     if (still) return set('sit', 1e6);
     const here = surfaceOf(c.on);
@@ -460,7 +602,9 @@ export function createCat({ canvas, onSay }) {
     const r = Math.random();
     const options = reachable();
     if (high && r < 0.22) return startButterfly();
-    if (onBase() && r < 0.1) return startZoomies();
+    if (r < 0.05 || (onBase() && r < 0.1)) return startZoomies();
+    if (r < 0.2 && adventure()) return undefined;
+    if (r < 0.3 && options.length) return ramble();
     if (onBase() && r < 0.18) return startMouse();
     if (roomy(here) && r < 0.28) return startYarn();
     if (here?.bed && r < 0.75) return set(Math.random() < 0.6 ? 'sleep' : 'loaf', rand(10, 20));
@@ -482,7 +626,7 @@ export function createCat({ canvas, onSay }) {
     }
     if (r < 0.76) return set('sit', rand(4, 8));
     if (r < 0.84) return set('loaf', rand(6, 10));
-    if (r < 0.93) return set('groom', (sitAnim.frames - GROOM_AT) / sitAnim.fps);
+    if (r < 0.93) return set('groom', GROOM_S);
     return set('sleep', rand(12, 22));
   }
 
@@ -498,15 +642,12 @@ export function createCat({ canvas, onSay }) {
   }
 
   function startZoomies() {
-    // Off one side of the screen at full tilt, back in from the other, up
-    // over the Dock and down again on the way. Starting up on the Dock, he
-    // makes for its nearer end and gets down first.
-    c.count = 0;
-    const st = surfaces[0].step;
-    const toRight = onFloor() && !onBase() && st ? st.x1 - c.x < c.x - st.x0 : c.x < window.innerWidth / 2;
-    c.plan = { tx: toRight ? window.innerWidth + 120 : -120 };
+    // All over the screen: dashes, leaps up onto icons and windows, along
+    // their ledges, into whatever's open, and the big drop back down,
+    // somewhere new each time; a dozen and more of them before he stops.
+    c.route = { zoom: true, left: Math.round(c.super ? rand(14, 20) : rand(10, 15)), speed: c.super ? ZOOM * 1.3 : ZOOM, seen: new Set() };
     if (!c.super) say(pick(['!!!', 'zoomies.', 'brb.']));
-    set('zoom');
+    nextLeg();
   }
 
   /** Asked for the zoomies: wherever he is, he drops what he's doing and
@@ -522,6 +663,7 @@ export function createCat({ canvas, onSay }) {
     c.pending = null;
     c.aimAt = null;
     c.super = true;
+    c.route = null;
     say(pick(['!!!', 'power up.', 'hhhhHHHH']));
     if (c.on) set('charge', 1.1);
     else c.chargeNext = true; // mid-air: once he lands
@@ -573,6 +715,26 @@ export function createCat({ canvas, onSay }) {
     set('air');
   }
 
+  /** A window opens: often he goes to see it, to the top right corner of
+   *  it (once it has settled), finding his way up. */
+  let knownWins = new Set(windows.map((w) => w.el));
+  let visit = null;
+  function noticeWindows(t) {
+    const now = new Set(windows.map((w) => w.el));
+    const fresh = windows.find((w) => !knownWins.has(w.el));
+    knownWins = now;
+    if (fresh && Math.random() < 0.65) visit = { el: fresh.el, at: t + 0.9 };
+    if (!visit || t < visit.at) return;
+    const el = visit.el;
+    visit = null;
+    const free = !c.route && !c.super && !c.laser && c.on && ['idle', 'sit', 'walk', 'loaf', 'groom', 'stand', 'watch', 'land'].includes(c.mode);
+    if (!free || !now.has(el)) return;
+    const tb = surfaces.find((q) => q.el && q.el.matches?.('[data-window-titlebar]') && el.contains(q.el));
+    if (!tb) return;
+    say(pick(['ooh.', '?', 'mine.']));
+    goTo(tb, tb.x1 - EDGE - 6);
+  }
+
   // ---------- Moving ----------
   function walkTo(tx, max, dt, here) {
     const lim = here ? span(here) : [-200, window.innerWidth + 200];
@@ -612,6 +774,7 @@ export function createCat({ canvas, onSay }) {
     surfaces = readSurfaces(windows);
     const here = surfaceOf(c.on);
     const t = now / 1000;
+    noticeWindows(t);
 
     if (c.on && c.mode !== 'drag') {
       if (!here || (here.el && coveredAt(windows, here.layer, c.x, here.y))) {
@@ -679,7 +842,7 @@ export function createCat({ canvas, onSay }) {
           c.swat = false;
           c.thrown = false;
           c.collapse = false;
-          set('land', 0.22 + 0.14 * c.impact);
+          set('land', (0.22 + 0.14 * c.impact) * (c.route?.zoom ? 0.5 : c.route ? 0.8 : 1));
         }
       }
       c.speed = 0;
@@ -721,21 +884,23 @@ export function createCat({ canvas, onSay }) {
         break;
       }
       case 'zoom': {
-        // Flat out along the floor; off the edge, back in from the other side.
-        const m = walkTo(c.plan.tx, c.super ? ZOOM * 1.4 : ZOOM, dt, null);
+        // On an adventure: flat out to the take-off (or along a dash), then
+        // a quick crouch and the leap; or on to the next leg.
+        if (!c.plan) {
+          nextLeg();
+          break;
+        }
+        const m = walkTo(c.plan.tx, c.route?.speed ?? ZOOM, dt, here);
         speed = m.speed;
-        if (c.mode === 'air') break;
-        if (Math.abs(m.d) < 2) {
-          if (c.count === 0) {
-            c.count = 1;
-            c.x = c.plan.tx < 0 ? window.innerWidth + 100 : -100;
-            c.on = { key: 'floor', dx: 0 };
-            c.plan = { tx: rand(200, window.innerWidth - 300) };
-          } else {
-            set('sit', rand(2, 3));
-            say(pick(['…what?', 'anyway.', '*pant*']));
-            c.super = false;
-          }
+        if (c.mode === 'air') break; // a hop onto or off the Dock
+        if (Math.abs(m.d) < 2.5) {
+          if (c.plan.jump) {
+            const j = c.plan.jump;
+            c.face = Math.sign(j.lx - c.x) || c.face;
+            c.aimAt = { x: j.lx, y: yAt(j.s, j.lx) };
+            c.quick = true;
+            set('crouch', c.route?.zoom ? 0.08 : 0.2);
+          } else nextLeg();
         }
         break;
       }
@@ -826,6 +991,8 @@ export function createCat({ canvas, onSay }) {
           c.zoomNext = false;
           c.resume = null;
           startZoomies();
+        } else if (c.route && !c.resume) {
+          if (t > c.until) nextLeg();
         } else if (c.resume) {
           // Down from a hop: straight on with what he was doing.
           const r = c.resume;
@@ -862,9 +1029,9 @@ export function createCat({ canvas, onSay }) {
         if (t > c.until) set('sit', rand(2, 4));
         break;
       default:
-        if (t > c.until && c.lot > 0.5 && c.lotF > GROOM_AT - 4 && c.lotF < sitAnim.frames - 3) {
-          // Mid-groom: he finishes washing before he does anything else.
-          c.until = t + (sitAnim.frames - c.lotF) / sitAnim.fps;
+        if (t > c.until && c.mode === 'groom' && c.wipe > 0.05) {
+          // Mid-wipe: he finishes the stroke before he does anything else.
+          c.until = t + 0.3;
         } else if (t > c.until && held) {
           c.until = t + 0.5;
         } else if (t > c.until) {
@@ -957,6 +1124,18 @@ export function createCat({ canvas, onSay }) {
     }
   }
 
+  /** The washing paw (in his own space): at the mouth while he licks it,
+   *  then up over the face to the ear and back. Returns it with how far
+   *  through the wipe he is (0 licking .. 1 at the ear). */
+  function groomPaw(head, t) {
+    const q = t % 2.8;
+    const lick = q < 1.6;
+    const u = lick ? 0 : Math.sin((Math.PI * (q - 1.6)) / 1.2);
+    const s = lick ? Math.sin(t * 9) : 0;
+    c.wipe = u;
+    return [head[0] + 7.5 + s * 0.8 - 6 * u, head[1] + 7 + 2 * s - 13 * u];
+  }
+
   /** A paw's place in a gait: ahead of or behind its hip/shoulder, and its lift. */
   function footRel(gait, k, L) {
     const d = gait.duty;
@@ -1033,9 +1212,11 @@ export function createCat({ canvas, onSay }) {
       const m = 1 - u;
       spine.push([m * m * H[0] + 2 * m * u * C[0] + u * u * Sh[0], m * m * H[1] + 2 * m * u * C[1] + u * u * Sh[1]]);
       const s = Math.sin(Math.PI * u);
-      // A deep chest, a round belly: the body is most of him.
-      rT.push(lerp(8.6, 9, u) - 0.6 * s + breathe * 0.5);
-      rB.push(lerp(10, 10.6, u) + 1.6 * s + breathe);
+      const bump = (at, wd) => Math.exp(-(((u - at) / wd) ** 2));
+      // A deep, round chest, the waist tucked up behind it, a round rump:
+      // the line of a sleek cat, not a tube.
+      rT.push(7.2 + 1.3 * bump(0.1, 0.24) + 1.5 * bump(0.92, 0.22) - 0.5 * s + P.haunch * 1.6 * bump(0.4, 0.35) + breathe * 0.5);
+      rB.push(7.4 + 2.7 * bump(0.12, 0.2) + 4.4 * bump(0.8, 0.24) + P.haunch * 2.6 * bump(0.45, 0.35) + breathe);
     }
     const head = [Sh[0] + P.nx, Sh[1] + P.ny + ndy];
     const Jf = [Sh[0] + 2, Sh[1] + 5];
@@ -1107,10 +1288,11 @@ export function createCat({ canvas, onSay }) {
         y -= 16 * b;
       }
       if (k === 'nf' && c.groom > 0.01) {
-        // A paw up to the mouth, licked, wiped over the face.
-        const s = Math.sin(t * 7);
-        x = lerp(x, head[0] + 4 + s, c.groom);
-        y = lerp(y, head[1] + 10 + 2.5 * s, c.groom);
+        // A paw up to the mouth and licked; then wiped up over the face to
+        // the ear and down again; and again.
+        const [gx, gy] = groomPaw(head, t);
+        x = lerp(x, gx, c.groom);
+        y = lerp(y, gy, c.groom);
       }
       const f = F[k];
       if (grounded && w > 0.02) {
@@ -1132,7 +1314,7 @@ export function createCat({ canvas, onSay }) {
         // Lifted, the wrist folds and the paw hangs back under it.
         const [ex, ey, px, py] = ik(Jf[0], Jf[1], f[0], f[1] - PAW, FORE[0], FORE[1], 1);
         const sw = swing[k];
-        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -PAW - 1) : ey], [px, py], [px + lerp(1.8, -1.2, sw), py + 1.4 * sw]], r: [5.2, 3.6, 3.2, PAW] };
+        legs[k] = { pts: [Jf, [ex, grounded ? Math.min(ey, -PAW - 1) : ey], [px, py], [px + lerp(1.8, -1.2, sw), py + 1.4 * sw]], r: [5.6, 2.8, 2.2, PAW] };
       } else {
         // The long hind foot: slanting down to the paw when it's planted;
         // lifted, it folds, the paw swinging back under the hock (a cat
@@ -1157,7 +1339,7 @@ export function createCat({ canvas, onSay }) {
         ky = lerp(ky, Jh[1] - 1, P.hock);
         if (grounded) ky = Math.min(ky, -4);
         const paw = [qx - mx, qy - my];
-        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.8, paw[1]]], r: [8, 4.4, 3.2, 3, PAW] };
+        legs[k] = { pts: [Jh, [kx, ky], [qx, qy], paw, [paw[0] + 1.8, paw[1]]], r: [8.8, 3.7, 2.4, 2.2, PAW] };
       }
     });
 
@@ -1213,10 +1395,10 @@ export function createCat({ canvas, onSay }) {
       }
     }
     const tail = [[H[0] - dx * 7 + nx * 4.5, H[1] - dy * 7 + ny * 4.5]];
-    const tailR = [3];
+    const tailR = [2.9];
     for (let i = 0; i < TAIL_N; i += 1) {
       const p = tail[i];
-      const r = lerp(3, 1.9, (i + 1) / TAIL_N);
+      const r = lerp(2.9, 2.1, (i + 1) / TAIL_N);
       const q = [p[0] + Math.cos(ta[i]) * TAIL_SEG, p[1] + Math.sin(ta[i]) * TAIL_SEG];
       if (grounded) q[1] = Math.min(q[1], -r);
       tail.push(q);
@@ -1281,7 +1463,7 @@ export function createCat({ canvas, onSay }) {
     c.yawn = Math.max(0, c.yawn - dt / 1.8);
     // Powered up: the aura builds while he charges and fades once he's done;
     // his eyes go from green to the aura's colours, cycling through them.
-    if (c.super && !['charge', 'zoom', 'air', 'land', 'drag'].includes(c.mode)) c.super = false; // something else took over
+    if (c.super && !['charge', 'zoom', 'air', 'land', 'drag', 'crouch'].includes(c.mode)) c.super = false; // something else took over
     c.ssj = approach(c.ssj, c.super ? 1 : 0, c.super ? 3 : 1.4, dt);
     const glow = cycle(SSJ, t * 1.6);
     eyeGlow = css(glow);
@@ -1296,7 +1478,8 @@ export function createCat({ canvas, onSay }) {
     }
     c.pitch = approach(c.pitch, pitch, name === 'air' ? 8 : 12, dt);
 
-    const groomNod = c.groom * 0.12 * Math.sin(t * 7);
+    // Licking, the head bobs to the paw; wiping, it ducks into it.
+    const groomNod = c.groom * ((c.wipe || 0) > 0.05 ? 0.32 * c.wipe : 0.1 * Math.sin(t * 9));
     const sleeping = name === 'sleep';
     let open = P.lid * (1 - Math.sin(Math.PI * c.blink)) * (1 - 0.92 * Math.sin(Math.PI * c.slow) ** 0.6);
     if (c.purr > 0.5) open = 0;
@@ -1319,13 +1502,6 @@ export function createCat({ canvas, onSay }) {
     };
     c.box = [Math.min(H[0] - 12, head[0] - 14), Math.max(Sh[0] + 12, head[0] + 14), head[1] - 20];
 
-    // Sitting (once he's down) and grooming are the animation: crossfade in,
-    // play it (grooming from its paw-licking), crossfade out when he gets up.
-    const seated = (c.mode === 'sit' || c.mode === 'groom') && grounded && P.haunch > 0.85;
-    if (seated && c.lot < 0.02) c.lotF = c.mode === 'groom' ? GROOM_AT : 0;
-    c.lot = approach(c.lot, seated ? 1 : 0, seated ? 9 : 16, dt);
-    if (c.lot > 0.01) c.lotF = (c.lotF + dt * sitAnim.fps) % sitAnim.frames;
-    if (c.lot > 0.5) c.box = [-40 / S, 40 / S, -100 / S];
   }
 
   // ---------- Drawing ----------
@@ -1336,15 +1512,16 @@ export function createCat({ canvas, onSay }) {
     const fx = c.tn * 4;
     const e = c.ears + (side > 0 ? c.earTw * 0.45 : 0);
     const sh = fx * (side > 0 ? 0.45 : 0.2);
+    // Tall and sharp, set on the corners of the head, leaning out a little.
     return [
-      [side * 2.6 + sh, -6.5],
-      [side * (9.4 + 4 * e) + sh, -16.5 + 6 * e],
-      [side * 10 + sh, -1.5],
+      [side * 2 + sh, -5.4],
+      [side * (8 + 3.5 * e) + sh, -14.2 + 5.5 * e],
+      [side * 8 + sh, -1.8],
     ];
   }
 
   function earPath(b0, tip, b1) {
-    const k = 0.34; // a softly rounded tip
+    const k = 0.14; // a sharp tip, just softened
     g.beginPath();
     g.moveTo(b0[0], b0[1]);
     g.lineTo(tip[0] + (b0[0] - tip[0]) * k, tip[1] + (b0[1] - tip[1]) * k);
@@ -1361,10 +1538,12 @@ export function createCat({ canvas, onSay }) {
     const tn = c.tn;
     const fx = tn * 4;
     g.beginPath();
-    g.ellipse(fx * 0.3, -0.5, 9.4, 8.2, 0, 0, Math.PI * 2);
+    g.ellipse(fx * 0.3, -0.8, 8.2, 6.9, 0, 0, Math.PI * 2);
     g.fill();
+    // The flat crown between the ears.
+    g.fillRect(fx * 0.3 - 6.4, -6.4, 12.8, 4);
     g.beginPath();
-    g.ellipse(fx * 0.6, 2.6, 8.8 - tn * 1.2, 5.8, 0, 0, Math.PI * 2);
+    g.ellipse(fx * 0.6 + tn * 1.2, 2.4, 7.4 - tn * 0.8, 5, 0, 0, Math.PI * 2);
     g.fill();
     earPath(...earPts(-1));
     earPath(...earPts(1));
@@ -1374,9 +1553,9 @@ export function createCat({ canvas, onSay }) {
    *  black slit. Powered up, it takes the aura's colour and glows. */
   function eye(ex, ey, sx, side, open) {
     if (open < 0.14) return; // shut: just black, like the rest of him
-    const rx = 2.9 * sx;
-    const ry = 1.5;
-    const lift = 1.2;
+    const rx = 2.6 * sx;
+    const ry = 1.15;
+    const lift = 1.5;
     g.save();
     g.translate(ex, ey);
     g.scale(1, open);
@@ -1436,7 +1615,7 @@ export function createCat({ canvas, onSay }) {
     tube(g, R.spine, R.rT, R.rB, false);
     if (R.haunch > 0.02) {
       g.beginPath();
-      g.ellipse(R.H[0] + 4, Math.min(R.H[1] + 2, -9.5 * R.haunch), 12.5 * R.haunch, 9.5 * R.haunch, -0.3, 0, Math.PI * 2);
+      g.ellipse(R.H[0] + 3, Math.min(R.H[1] + 1, -12 * R.haunch), 14.5 * R.haunch, 12 * R.haunch, -0.45, 0, Math.PI * 2);
       g.fill();
     }
     tube(g, R.tail, R.tailR, R.tailR, true);
@@ -1582,13 +1761,7 @@ export function createCat({ canvas, onSay }) {
     ag.setTransform(1, 0, 0, 1, 0, 0);
     ag.globalCompositeOperation = 'source-over';
     ag.clearRect(0, 0, aura.width, aura.height);
-    ag.globalAlpha = 1 - c.lot;
     ag.drawImage(buf, 0, 0);
-    if (c.lot > 0.01) {
-      ag.globalAlpha = c.lot;
-      ag.drawImage(lbuf, 0, 0);
-    }
-    ag.globalAlpha = 1;
     ag.globalCompositeOperation = 'source-in';
     const sway = Math.sin(t * 2.2) * 6;
     const gr = ag.createLinearGradient(0, (OY - 58 * S + sway) * dpr, 0, OY * dpr);
@@ -1717,21 +1890,8 @@ export function createCat({ canvas, onSay }) {
     g.scale(S, S);
     if (c.mode === 'drag') g.rotate(c.drag.swing * c.face + Math.sin(t * 3) * 0.04);
     drawCat();
-    if (c.lot > 0.01) {
-      lg.setTransform(dpr, 0, 0, dpr, 0, 0);
-      lg.clearRect(0, 0, BW, BH);
-      lg.translate(OX, OY);
-      lg.scale(c.face * SIT_K, SIT_K);
-      lg.translate(-SIT_AT[0], -SIT_AT[1]);
-      sitAnim.draw(lg, c.lotF);
-    }
     if (c.ssj > 0.01) drawAura(bx, by, oy, dt, t);
-    ctx.globalAlpha = 1 - c.lot;
     ctx.drawImage(buf, bx, by, BW, BH);
-    if (c.lot > 0.01) {
-      ctx.globalAlpha = c.lot;
-      ctx.drawImage(lbuf, bx, by, BW, BH);
-    }
     ctx.globalAlpha = 1;
     drawSparks(oy, dt);
 
@@ -1809,6 +1969,24 @@ export function createCat({ canvas, onSay }) {
 
   if (import.meta.env?.DEV) window.__toothless = { c, rig: () => R, set, launch, toys, surfaces: () => surfaces, startZoomies, superZoomies, startYarn, startMouse, startButterfly };
 
+  // (Dev only: a handle for posing him while he's being drawn.)
+  if (import.meta.env?.DEV) {
+    window.__toothless = {
+      c,
+      pose(mode, secs = 1e6) {
+        c.plan = null;
+        c.pending = null;
+        set(mode, secs);
+      },
+      at(x) {
+        c.x = x;
+      },
+      decide: () => next(),
+      zoomies: () => superZoomies(),
+      adventure: () => adventure(),
+    };
+  }
+
   return {
     setHitbox(el) {
       hitbox = el;
@@ -1830,6 +2008,7 @@ export function createCat({ canvas, onSay }) {
           c.drag.moved = true;
           c.on = null;
           c.resume = null;
+          c.route = null;
           c.mode = 'drag';
           window.removeEventListener('pointermove', check);
         }
@@ -1837,10 +2016,12 @@ export function createCat({ canvas, onSay }) {
       window.addEventListener('pointermove', check);
     },
     stroke() {
+      c.route = null;
       set('pet', 3);
       say('purrr.');
     },
     nap() {
+      c.route = null;
       set('sleep', 25);
     },
     yarn() {
@@ -1855,6 +2036,7 @@ export function createCat({ canvas, onSay }) {
     },
     laser(on) {
       c.laser = on;
+      c.route = null;
       if (on) set('chase');
       else set('sit', 3);
     },
