@@ -20,28 +20,6 @@ export const PILLARS = [
   { name: 'Web', line: 'Websites and app screens, logo to launch, for F&B, pharma and finance.' },
 ];
 
-// The longer story, told on the phone page. A string is plain words;
-// { hl } is a highlighted claim.
-export const STORY = [
-  { kind: 'hello', parts: ["Hey, I'm Ken."] },
-  { kind: 'line', parts: ["For 10+ years I've built", { hl: 'brands' }, 'for', { hl: 'B2B tech, pharma, crypto and finance.' }] },
-  { kind: 'line', parts: ['I start with the idea and the strategy, then design', { hl: 'campaigns' }, 'built to make', { hl: 'a real impact.' }] },
-  { kind: 'line', parts: ["I can't look at a design without asking how it could be", { hl: 'better.' }] },
-  { kind: 'big', parts: ['Design. Basketball. Chess.'] },
-  { kind: 'aside', parts: ['Same obsession: the next good move.'] },
-];
-
-// The work, shown on the phone page as polaroids in a strip (caption, turn r;
-// x, y, w, z and tape place them).
-export const COLLAGE = [
-  { id: 'fluid-ai', alt: 'Fluid AI brand identity', caption: 'Fluid AI', cue: 'brands', x: 0, y: 6, w: 40, r: -8, z: 2, tape: true },
-  { id: 'qmart', alt: 'Qmart campaign banner', caption: 'Qmart', cue: 'campaigns', x: 34, y: 0, w: 33, r: 5, z: 3 },
-  { id: 'lebron', alt: 'A redesign concept around LeBron James', caption: 'LeBron, concept', cue: 'designing', x: 63, y: 9, w: 35, r: 11, z: 2, tape: true },
-  { id: 'truearte', alt: 'Truearte packaging', caption: 'Truearte', cue: 'products', x: 5, y: 50, w: 31, r: 6, z: 4 },
-  { id: 'beatles', alt: 'The Beatles, event artwork', caption: 'The Beatles', cue: 'hard', x: 29, y: 37, w: 41, r: -3, z: 5, tape: true },
-  { id: 'acdc', alt: 'AC/DC, event artwork', caption: 'AC/DC', cue: 'explain.', x: 66, y: 49, w: 33, r: -10, z: 4 },
-];
-
 // The statement's words in order (each pops up a hair after the last).
 const build = () => {
   let n = 0;
@@ -140,6 +118,11 @@ function useLetterWeight(storyRef) {
  *  under it, 3 to 6 the four. */
 export const ABOUT_BEAT = 'ken:about-beat';
 const PILLAR_BEAT = (k) => 3 + k;
+// The pillar whose hairline the ball lands and bounces on: Motion on wide
+// screens (right of the middle, open paper above it); on phones, where the
+// four sit two by two, the first row's right one, with the paper above it
+// clear (Motion's line there runs just under Brand's name).
+const spotFor = () => (window.matchMedia('(max-width: 700px)').matches ? 'Campaigns' : 'Motion');
 
 /**
  * About: everything waits for the ball. `instant` shows it all at once.
@@ -148,6 +131,12 @@ export default function MePanel({ instant, wide }) {
   const rootRef = useRef(null);
   const storyRef = useRef(null);
   const { lines, pillars } = useMemo(build, []);
+  const [spot, setSpot] = useState(spotFor);
+  useEffect(() => {
+    const on = () => setSpot(spotFor());
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
   const [beat, setBeat] = useState(instant ? 6 : 0);
   useLetterWeight(storyRef);
   useEffect(() => {
@@ -191,8 +180,8 @@ export default function MePanel({ instant, wide }) {
             {/* Its line: Videos' is there from the first bounce (the ball
                 lands on it); the others come with their words. */}
             <span
-              className={`${styles.rule} ${beat >= (p.name === 'Videos' ? 1 : PILLAR_BEAT(k)) ? styles.in : ''}`}
-              data-ball-spot={p.name === 'Videos' ? '' : undefined}
+              className={`${styles.rule} ${beat >= (p.name === spot ? 1 : PILLAR_BEAT(k)) ? styles.in : ''}`}
+              data-ball-spot={p.name === spot ? '' : undefined}
             />
             <span className={`${styles.pillarBody} ${beat >= PILLAR_BEAT(k) ? styles.in : ''}`}>
               <span className={styles.pillarNum}>{String(k + 1).padStart(2, '0')}</span>

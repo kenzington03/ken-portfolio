@@ -24,7 +24,15 @@ Model column = what to run that session on (`/model`).
 - [ ] **Ken:** enable Web Analytics + Speed Insights in the Vercel dashboard (custom events need Pro); Search Console; PageSpeed after deploy
 - [ ] cal_booked needs Cal.com's embed or webhook (now cal_open: the click)
 
-## Phase 1: measure + quick credibility (Sonnet 5.5, ~1 session)
+## Done, Nov 20 (Opus): phones get the laptop's story
+- [x] Phones play the same journey as the laptop: hero poster, About (statement, line, Brand / Campaigns / Motion / Web), the hoop shot, the career timeline, the chrome logo, the 3D MacBook opening, "hello". Then the work as a page: Best Work first (the same five as the Mac's Portfolio), every project, the brief, the links.
+- [x] Gone from phones: the highlighted-words "Hey, I'm Ken" slab + collage, the "Nothing but net" scroll ball, the iPhone-version cat button.
+- [x] Phone layout fixes: name clears both edges, hoop below the top bar, About in two rows of two (ball lands on Campaigns' line), Mac framed to the width (fog no longer swallows it), "hello" fits, timeline clear of the big year on short phones, contact FAB off (the bar's Work with me is the contact).
+- [x] Bug (laptop too): the About ball aimed at a "Videos" pillar that no longer exists, so it never landed on its line. Now Motion.
+- [x] Phone project cards were 500 px tall (the height attribute beat aspect-ratio); now 16:10.
+- [x] Re-checked on phone: every tap target 44 px+, one visible H1 per view, project pages + case study + back gesture, build + prerender.
+
+ (Sonnet 5.5, ~1 session)
 1. `@vercel/analytics` + `@vercel/speed-insights` (ask before npm install). Enable in Vercel dashboard.
 2. One `track(event, props)` helper; wire: whatsapp_tap, email_tap, resume_download, cal_booked
    (Cal.com: https://cal.com/kenneth-nathanael-hymjak), project_open {slug}, mac_opened, send_link, service_pick.

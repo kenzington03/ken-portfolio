@@ -1,137 +1,29 @@
-// Phones: one page, no 3D. Who (Ken, KENNETH), what, how to reach him (the
-// buttons above the fold); his ball drops through a net as you
-// scroll on; who he is, loud (the same paragraph and collage as the laptop);
-// the work, what he does, the brief, the Mac teaser, a note that the full
-// site is a Mac desktop (the iPhone version behind the cat) and the links. A
-// "Contact me" button stays bottom right the whole way.
+// Phones, after the story: the laptop's journey (hero, About, the career,
+// the logo, the MacBook opening) plays first (JourneyC), then "hello", then
+// this: the work, as the Mac's Portfolio would show it. Best Work first,
+// then every project, then the brief and the links. A "Contact me" button
+// stays bottom right the whole way.
 // Each project opens as a real page at /work/<slug>, so the back gesture,
 // the back button and a shared link just work.
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { getProjectBySlug } from '../../data/projects.js';
+import { useCallback, useEffect, useState } from 'react';
+import { BEST_WORK_ID, getProjectById, getProjectBySlug, projects } from '../../data/projects.js';
+import { BEST_WORK } from '../../data/bestWork.js';
 import { getCaseStudy } from '../../data/caseStudies.js';
 import { INSTAGRAM, LINKEDIN } from '../../data/links.js';
-import { SERVICES } from '../../data/services.js';
 import { BOOKING_URL, EMAIL, WHATSAPP } from '../Brief/briefData.js';
 import { Brief } from '../Brief/BriefSheet.jsx';
 import { paletteStyle, readPalette } from '../Journey/C/palette.js';
-import { COLLAGE, STORY } from '../Journey/C/MePanel.jsx';
 import MobileProjectGallery from '../IPhoneHome/MobileProjectGallery.jsx';
 import { track } from '../../utils/track.js';
 import { clearWork, pushWork, titleFor, workSlugFromUrl } from '../../utils/route.js';
 import styles from './PhonePage.module.css';
 
-const WORK = ['fluid-ai', 'marriott', 'lebron-nike', 'branding', 'motion', 'web-ui'];
+// Every project, Best Work aside (it leads, on its own).
+const WORK = projects.filter((p) => p.id !== BEST_WORK_ID).map((p) => p.slug);
 const HELLO = encodeURIComponent("Hey Ken, I saw your portfolio. Let's talk.");
 const SITE = typeof window !== 'undefined' ? `${window.location.origin}/` : '/';
 
-
-/** The full site lives on a laptop; the iPhone version is behind the cat. */
-function LaptopNote({ onIPhone }) {
-  return (
-    <aside className={styles.laptop}>
-      <p>
-        <b>This portfolio is built as a macOS desktop.</b> Best viewed on a laptop.
-      </p>
-      <button type="button" className={styles.catBtn} onClick={onIPhone}>
-        <img src="/assets/icons/desktop-Resume.webp" alt="" />
-        <span>
-          Try the iPhone version
-          <small>Tap the cat</small>
-        </span>
-      </button>
-    </aside>
-  );
-}
-
-/** His ball drops through a net as the page scrolls past the hero. */
-function Swish() {
-  const boxRef = useRef(null);
-  const ballRef = useRef(null);
-  const netRef = useRef(null);
-  useEffect(() => {
-    let raf = 0;
-    const draw = () => {
-      raf = 0;
-      const box = boxRef.current;
-      const ball = ballRef.current;
-      const net = netRef.current;
-      if (!box || !ball || !net) return;
-      const r = box.getBoundingClientRect();
-      const vh = window.innerHeight;
-      // 0 as the hoop comes up from the bottom of the screen, 1 as it passes the middle.
-      const p = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.75)));
-      const h = r.height;
-      // It falls (gravity: it speeds up), drifting in from the left to the rim.
-      const fall = p * p;
-      const y = -h * 0.55 + (h * 1.05) * fall;
-      const x = (1 - Math.min(1, p * 1.3)) * -70;
-      ball.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${(p * 540).toFixed(0)}deg)`;
-      ball.style.opacity = p > 0.98 ? '0' : '1';
-      // The net gives as the ball goes through it.
-      const through = Math.max(0, Math.min(1, (y - h * 0.18) / (h * 0.3)));
-      const swish = Math.sin(Math.PI * through);
-      net.style.transform = `scale(${(1 - swish * 0.12).toFixed(3)}, ${(1 + swish * 0.3).toFixed(3)})`;
-      document.documentElement.style.setProperty('--hero-ball', p > 0.02 ? '0' : '1');
-    };
-    const on = () => {
-      if (!raf) raf = requestAnimationFrame(draw);
-    };
-    draw();
-    window.addEventListener('scroll', on, { passive: true });
-    window.addEventListener('resize', on);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', on);
-      window.removeEventListener('resize', on);
-      document.documentElement.style.removeProperty('--hero-ball');
-    };
-  }, []);
-  return (
-    <div ref={boxRef} className={styles.swish} aria-hidden>
-      <svg className={styles.hoopBack} viewBox="0 0 160 40">
-        <path d="M10 18C10 6 150 6 150 18" />
-      </svg>
-      <span ref={ballRef} className={styles.swishBall}>
-        <img src="/assets/hero/art/ball-real.webp" alt="" />
-      </span>
-      <svg ref={netRef} className={styles.net} viewBox="0 0 160 120">
-        <path d="M12 20L36 104M34 24L48 108M58 26L64 110M102 26L96 110M126 24L112 108M148 20L124 104" />
-        <path d="M18 44C60 54 100 54 142 44M26 70C62 78 98 78 134 70M34 96C64 102 96 102 126 96" />
-      </svg>
-      <svg className={styles.rim} viewBox="0 0 160 40">
-        <path d="M10 18C10 30 150 30 150 18" />
-      </svg>
-      <p className={styles.swishWord}>Nothing but net.</p>
-    </div>
-  );
-}
-
-/** Who he is, loud: the laptop's section 2, on a slab of the poster's ink. */
-function AboutSlab() {
-  return (
-    <section className={styles.slab} aria-label="About Ken">
-      {STORY.map((line, i) => {
-        const Tag = line.kind === 'hello' ? 'h2' : 'p';
-        return (
-          <Tag key={i} className={styles[`s_${line.kind}`]}>
-            {line.parts.map((part, j) => (
-              <Fragment key={j}>
-                {j > 0 && ' '}
-                {typeof part === 'string' ? part : <mark className={styles.hl}>{part.hl}</mark>}
-              </Fragment>
-            ))}
-          </Tag>
-        );
-      })}
-      <div className={styles.collageGrid}>
-        {COLLAGE.map((c, i) => (
-          <img key={c.id} className={styles.collagePic} src={`/assets/me/collage/${c.id}.webp`} alt={c.alt} loading="lazy" style={{ '--r': `${[-3, 2.5, -2, 3, -1.5, 2][i]}deg` }} />
-        ))}
-      </div>
-    </section>
-  );
-}
 
 /** Contact, always a thumb away: bottom right, once the hero's own buttons
  *  have scrolled away, all the way down the page. */
@@ -165,44 +57,73 @@ function ContactFab() {
   );
 }
 
-function Hero() {
+/** Where the Mac's dive lands: the Portfolio, as a page. */
+function Top({ onReplay }) {
   return (
-    <header className={styles.hero}>
-      <p className={styles.hi}>Hi, I&apos;m</p>
-      {/* The second ink is drawn by CSS, so the name is read once. */}
-      <h1 className={styles.name}>
-        <span className={styles.nameInk}>KENNETH</span>
-      </h1>
-      <p className={styles.line}>
-        <b>Designer.</b> Brands, campaigns, video, web. 10+ years. Open to roles and freelance.
-      </p>
-      <nav className={styles.ctas} aria-label="Contact">
-        {/* One way in, one to read up: a call, and the résumé. WhatsApp and
-            email are in the brief and the footer. */}
-        <a className={styles.ctaMain} href={BOOKING_URL} target="_blank" rel="noreferrer">
-          Book a call
-        </a>
-        <a className={styles.cta} href="/Kenneth-Nathanael-Resume.pdf" target="_blank" rel="noreferrer">
+    <header className={styles.top}>
+      <button type="button" className={styles.topName} onClick={onReplay} aria-label="Back to the start">
+        Ken
+      </button>
+      <nav className={styles.topLinks} aria-label="Contact">
+        <a className={styles.topLink} href="/Kenneth-Nathanael-Resume.pdf" target="_blank" rel="noreferrer">
           Résumé
         </a>
+        <a
+          className={styles.topHire}
+          href="#work-with-me"
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById('work-with-me')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+        >
+          <i aria-hidden />
+          Work with me
+        </a>
       </nav>
-      <div className={styles.fig}>
-        <span className={styles.floor} aria-hidden />
-        <img src="/assets/hero/art/ken.webp" alt="An illustration of Ken holding his laptop" />
-        <span className={styles.ball} aria-hidden>
-          <img src="/assets/hero/art/ball-real.webp" alt="" />
-        </span>
-      </div>
     </header>
+  );
+}
+
+/** Best Work: the five the Mac's Portfolio opens on, each with its line. */
+function BestWork({ open }) {
+  return (
+    <section className={styles.section} aria-labelledby="best-h">
+      <p className={styles.kicker}>Portfolio</p>
+      <h1 id="best-h" className={styles.title}>
+        Best work first.
+      </h1>
+      <ol className={styles.best}>
+        {BEST_WORK.map((b, i) => {
+          const p = getProjectById(b.projectId);
+          return (
+            <li key={b.title} className={styles.bestItem}>
+              <a className={styles.bestLink} href={p ? `/work/${p.slug}` : undefined} onClick={(e) => p && open(e, p.slug)}>
+                <span className={styles.bestShot}>
+                  <img src={`/assets/phone/best/${i + 1}.webp`} alt={b.pieces[0].alt} loading={i ? 'lazy' : 'eager'} decoding="async" />
+                </span>
+                <span className={styles.bestMeta}>
+                  <span className={styles.bestNum}>{String(i + 1).padStart(2, '0')}</span>
+                  <span>
+                    {b.client} · {b.kind}
+                  </span>
+                </span>
+                <b className={styles.bestTitle}>{b.title}</b>
+                <span className={styles.bestLine}>{b.line}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 
 function Work({ open }) {
   return (
     <section className={styles.section} aria-labelledby="work-h">
-      <p className={styles.kicker}>The work</p>
+      <p className={styles.kicker}>Every project</p>
       <h2 id="work-h" className={styles.h2}>
-        A few I&apos;m proud of.
+        The rest of the work.
       </h2>
       <ul className={styles.cards}>
         {WORK.map((slug) => {
@@ -222,25 +143,6 @@ function Work({ open }) {
           );
         })}
       </ul>
-    </section>
-  );
-}
-
-function WhatIDo() {
-  return (
-    <section className={styles.section} aria-labelledby="do-h">
-      <p className={styles.kicker}>What I do</p>
-      <h2 id="do-h" className={styles.h2}>
-        Brand, campaigns and motion.
-      </h2>
-      <dl className={styles.services}>
-        {SERVICES.map((sv) => (
-          <div key={sv.id} className={styles.service}>
-            <dt>{sv.name}</dt>
-            <dd>{sv.items.map((it) => it.label).join(' · ')}</dd>
-          </div>
-        ))}
-      </dl>
     </section>
   );
 }
@@ -265,9 +167,9 @@ function MacTeaser() {
     <section className={`${styles.section} ${styles.mac}`} aria-labelledby="mac-h">
       <img className={styles.macShot} src="/assets/phone/mac-poster.webp" alt="Ken's portfolio as a Mac desktop, with the Portfolio window open" loading="lazy" />
       <h2 id="mac-h" className={styles.h2}>
-        The full desktop lives on a laptop.
+        The rest of the Mac is on a laptop.
       </h2>
-      <p className={styles.sub}>Every project, every file, built as a Mac you can actually use. Send yourself the link for later.</p>
+      <p className={styles.sub}>The desktop, the files, the games and the cat. Send yourself the link for later.</p>
       <button type="button" className={styles.ctaMain} onClick={share}>
         {copied ? 'Link copied' : 'Send me this link'}
       </button>
@@ -359,7 +261,7 @@ function ProjectPage({ slug, back }) {
   );
 }
 
-export default function PhonePage({ onIPhone }) {
+export default function PhonePage({ onReplay }) {
   const [palette] = useState(readPalette);
   const [slug, setSlug] = useState(workSlugFromUrl);
   const [scrollY, setScrollY] = useState(0);
@@ -420,16 +322,13 @@ export default function PhonePage({ onIPhone }) {
         <ProjectPage slug={slug} back={back} />
       ) : (
         <>
-          <Hero />
-          <Swish />
-          <AboutSlab />
+          <Top onReplay={onReplay} />
+          <BestWork open={open} />
           <Work open={open} />
-          <WhatIDo />
           <section id="work-with-me" className={styles.briefWrap} aria-label="Work with me">
             <Brief headingId="brief-h" />
           </section>
           <MacTeaser />
-          <LaptopNote onIPhone={onIPhone} />
           <Footer />
           <ContactFab />
         </>

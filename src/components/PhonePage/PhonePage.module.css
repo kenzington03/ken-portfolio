@@ -15,161 +15,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- Hero ---------- */
-.hero {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 100svh;
-  padding: max(28px, env(safe-area-inset-top)) var(--gutter) max(20px, env(safe-area-inset-bottom));
-}
-
-.hi {
-  margin: 0;
-  font: 800 clamp(30px, 9vw, 44px) / 1 var(--display);
-  animation: rise 700ms var(--ease) both;
-}
-
-.name {
-  position: relative;
-  margin: 12px 0 0;
-  font: 900 clamp(64px, 22.5vw, 120px) / 0.78 var(--display);
-  font-variation-settings: 'opsz' 72;
-  letter-spacing: -0.01em;
-  animation: rise 900ms var(--ease) 120ms both;
-}
-
-.nameInk,
-.name::before {
-  display: block;
-  color: var(--accent);
-}
-
-.name::before {
-  content: 'KENNETH';
-  position: absolute;
-  inset: 0;
-  color: color-mix(in srgb, var(--accent) 88%, #000);
-  filter: drop-shadow(0.032em 0.032em 0 var(--riso));
-}
-
-.nameInk {
-  position: relative;
-  -webkit-mask-image: url('/assets/hero/art/ink.png');
-  mask-image: url('/assets/hero/art/ink.png');
-  -webkit-mask-size: 200px 200px;
-  mask-size: 200px 200px;
-}
-
-.line {
-  margin: 14px 0 0;
-  max-width: 30ch;
-  font-size: 17px;
-  line-height: 1.4;
-  animation: rise 900ms var(--ease) 260ms both;
-}
-
-.line b {
-  font-weight: 650;
-}
-
-/* Ken, standing on the page, the ball rolled in to his left foot. */
-.fig {
-  position: relative;
-  flex: 1;
-  min-height: 300px;
-  margin: 10px auto 0;
-  aspect-ratio: 832 / 2138;
-  max-height: 52svh;
-}
-
-.fig > img {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  animation: rise 1000ms var(--ease) 200ms both;
-}
-
-.floor {
-  position: absolute;
-  left: -6%;
-  right: -22%;
-  bottom: -1.4%;
-  height: 4%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(18 18 20 / 0.3), rgb(18 18 20 / 0.1) 70%, transparent);
-}
-
-.ball {
-  position: absolute;
-  /* Its base on the left sole's floor (0.977 of his height), left of the toe. */
-  right: calc(100% + 3%);
-  bottom: 2.3%;
-  width: 34%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  overflow: hidden;
-  animation: roll 1700ms cubic-bezier(0.33, 1, 0.68, 1) 900ms both;
-  box-shadow: 0 0.5em 0.4em -0.45em rgb(14 10 8 / 0.7);
-  /* It leaves the hero as the swish below picks it up. */
-  opacity: var(--hero-ball, 1);
-  transition: opacity 200ms ease;
-}
-
-.ball img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  animation: spin 1700ms cubic-bezier(0.33, 1, 0.68, 1) 900ms both;
-}
-
-.ball::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 34% 27%, rgb(255 236 214 / 0.35), transparent 30%),
-    radial-gradient(circle at 34% 28%, transparent 0, rgb(34 10 0 / 0.38) 70%, rgb(22 6 0 / 0.7) 100%);
-}
-
-@keyframes roll {
-  from {
-    transform: translateX(-60vw);
-  }
-  to {
-    transform: none;
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(-420deg);
-  }
-  to {
-    transform: none;
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.ctas {
-  display: flex;
-  gap: 8px;
-  margin-top: 14px;
-  animation: rise 900ms var(--ease) 500ms both;
-}
-
 .ctaMain,
 .cta {
   display: inline-flex;
@@ -186,7 +31,6 @@
 }
 
 .ctaMain {
-  flex: 1.3;
   background: var(--ink);
   color: #fff;
 }
@@ -233,32 +77,6 @@
   color: var(--muted);
 }
 
-/* Me: the same three prints as the journey, one under another. */
-.prints {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 26px 16px;
-  margin: 26px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.printItem {
-  min-width: 0;
-  transform: rotate(var(--r));
-}
-
-.printItem:last-child {
-  grid-column: span 2;
-  width: 64%;
-  justify-self: center;
-}
-
-.printCap {
-  margin: 10px 0 0;
-  font: 500 13px/1.2 'Instrument Sans', -apple-system, sans-serif;
-}
-
 .briefWrap {
   margin: 56px 10px 0;
   border-radius: 20px;
@@ -268,29 +86,6 @@
 
 .briefWrap > * {
   padding: 36px var(--gutter) 32px;
-}
-
-/* What I do: the three, each with everything in it. */
-.services {
-  margin: 22px 0 0;
-  border-top: 1px solid rgb(18 18 20 / 0.14);
-}
-
-.service {
-  padding: 16px 0 18px;
-  border-bottom: 1px solid rgb(18 18 20 / 0.14);
-}
-
-.service dt {
-  font: 800 30px/1 var(--display);
-  text-transform: uppercase;
-}
-
-.service dd {
-  margin: 8px 0 0;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--muted);
 }
 
 /* ---------- Work ---------- */
@@ -315,6 +110,8 @@
 .card img {
   display: block;
   width: 100%;
+  /* (The height attribute is only for the reserved space; this sets it.) */
+  height: auto;
   aspect-ratio: 16 / 10;
   object-fit: cover;
 }
@@ -506,219 +303,6 @@
   width: 100%;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .hi,
-  .name,
-  .line,
-  .fig > img,
-  .ball,
-  .ball img,
-  .ctas {
-    animation: none;
-  }
-}
-
-/* ---------- The note: the full site is a Mac desktop ---------- */
-.laptop {
-  display: grid;
-  gap: 12px;
-  margin: 48px var(--gutter) 0;
-  padding: 14px 14px 14px 16px;
-  border-radius: 18px;
-  background: var(--ink);
-  color: #f4f2ec;
-}
-
-.laptop p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: rgb(244 242 236 / 0.78);
-}
-
-.laptop b {
-  color: #fff;
-  font-weight: 650;
-}
-
-.catBtn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 52px;
-  padding: 6px 14px 6px 6px;
-  border: 0;
-  border-radius: 14px;
-  background: rgb(255 255 255 / 0.1);
-  color: #fff;
-  font: 600 15px/1.15 var(--text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.catBtn img {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  object-fit: cover;
-}
-
-.catBtn small {
-  display: block;
-  font-weight: 500;
-  font-size: 12px;
-  color: rgb(255 255 255 / 0.6);
-}
-
-/* ---------- The swish: his ball through a net ---------- */
-.swish {
-  position: relative;
-  height: 62svh;
-  min-height: 380px;
-  overflow: hidden;
-}
-
-.hoopBack,
-.rim,
-.net {
-  position: absolute;
-  left: 50%;
-  width: 46%;
-  max-width: 200px;
-  overflow: visible;
-  fill: none;
-  stroke-linecap: round;
-  transform-origin: 50% 0;
-}
-
-.hoopBack,
-.rim {
-  top: 34%;
-  translate: -50% 0;
-}
-
-.hoopBack {
-  stroke: var(--ink);
-  stroke-width: 3;
-  opacity: 0.45;
-}
-
-.rim {
-  z-index: 3;
-  stroke: var(--accent);
-  stroke-width: 5;
-}
-
-.net {
-  top: calc(34% + 2.6%);
-  z-index: 2;
-  margin-left: calc(min(46%, 200px) / -2);
-  stroke: var(--ink);
-  stroke-width: 1.4;
-  opacity: 0.6;
-}
-
-.swishBall {
-  position: absolute;
-  left: calc(50% - 30px);
-  top: 34%;
-  z-index: 1;
-  width: 60px;
-  height: 60px;
-  will-change: transform;
-}
-
-.swishBall img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  box-shadow: 0 8px 14px -6px rgb(20 12 6 / 0.45);
-}
-
-.swishWord {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 8%;
-  margin: 0;
-  font: 900 clamp(34px, 11vw, 52px) / 1 var(--display);
-  font-variation-settings: 'opsz' 72;
-  text-align: center;
-  text-transform: uppercase;
-  color: var(--accent);
-  filter: drop-shadow(0.03em 0.03em 0 var(--riso));
-}
-
-/* ---------- Who he is, loud ---------- */
-.slab {
-  display: grid;
-  gap: 14px;
-  margin: 0 10px;
-  padding: 40px 20px 32px;
-  border-radius: 22px;
-  background: url('/assets/hero/art/grain.png') 0 0 / 140px 140px, var(--accent);
-  background-blend-mode: multiply;
-  color: #fbf7ef;
-  box-shadow: inset 0 -8px 0 var(--riso);
-}
-
-.s_hello {
-  margin: 0 0 4px;
-  font: 900 clamp(44px, 14vw, 64px) / 0.9 var(--display);
-  font-variation-settings: 'opsz' 72;
-  text-transform: uppercase;
-  filter: drop-shadow(0.035em 0.035em 0 var(--riso));
-}
-
-.s_line {
-  margin: 0;
-  font-size: 19px;
-  font-weight: 500;
-  line-height: 1.38;
-}
-
-.s_big {
-  margin: 8px 0 0;
-  font: 900 clamp(32px, 10vw, 44px) / 0.95 var(--display);
-  font-variation-settings: 'opsz' 72;
-  text-transform: uppercase;
-  color: var(--riso);
-}
-
-.s_aside {
-  margin: 0;
-  font-size: 14px;
-  color: rgb(251 247 239 / 0.82);
-}
-
-.hl {
-  padding: 0.04em 0.18em 0.02em;
-  border-radius: 3px;
-  background: var(--riso);
-  color: #fbf7ef;
-  font-weight: 650;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-
-.collageGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.collagePic {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: 6px;
-  box-shadow: 0 0 0 3px #fbf7ef, 0 14px 22px -12px rgb(10 6 4 / 0.55);
-  transform: rotate(var(--r));
-}
-
 /* ---------- Contact, always a thumb away ---------- */
 .fab {
   position: fixed;
@@ -754,4 +338,168 @@
   border-radius: 50%;
   background: #34c759;
   box-shadow: 0 0 0 3px rgb(52 199 89 / 0.25);
+}
+
+/* ---------- Top: where the Mac's dive lands ---------- */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(10px, env(safe-area-inset-top)) var(--gutter) 10px;
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  animation: drop 700ms var(--ease) both;
+}
+
+.topName {
+  min-width: 44px;
+  min-height: 44px;
+  text-align: left;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 900 26px/1 var(--display);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.topLinks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topLink,
+.topHire {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font: 600 14px/1 var(--text);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.topHire {
+  background: var(--ink);
+  color: #fff;
+}
+
+.topHire i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34c759;
+}
+
+.title {
+  margin: 0;
+  font: 900 clamp(48px, 15vw, 72px) / 0.88 var(--display);
+  font-variation-settings: 'opsz' 72;
+  text-transform: uppercase;
+  animation: up 800ms var(--ease) 120ms both;
+}
+
+/* ---------- Best Work: five, each with its line ---------- */
+.best {
+  display: grid;
+  gap: 40px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bestItem {
+  animation: up 800ms var(--ease) 240ms both;
+}
+
+.bestLink {
+  display: grid;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.bestShot {
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #d9d8d3;
+  box-shadow: 0 18px 34px -24px rgb(0 0 0 / 0.55);
+}
+
+.bestShot img {
+  display: block;
+  width: 100%;
+  max-height: 72svh;
+  object-fit: cover;
+  transition: transform 500ms var(--ease);
+}
+
+.bestLink:active .bestShot img {
+  transform: scale(0.985);
+}
+
+.bestMeta {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  font: 500 13px/1.3 var(--text);
+  color: var(--muted);
+}
+
+.bestNum {
+  color: var(--accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bestTitle {
+  font: 800 30px/0.95 var(--display);
+  text-transform: uppercase;
+}
+
+.bestLine {
+  font-size: 15px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+}
+
+.bestLink:focus-visible,
+.topLink:focus-visible,
+.topHire:focus-visible,
+.topName:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top,
+  .title,
+  .bestItem {
+    animation: none;
+  }
 }

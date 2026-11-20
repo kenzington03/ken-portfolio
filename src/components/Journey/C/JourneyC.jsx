@@ -23,7 +23,6 @@ import DotField, { addRipple } from './DotField.jsx';
 import MacRoom from '../MacRoom.jsx';
 import { loadModel, stopWatching } from '../../Intro/model.js';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
-import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import MePanel, { ABOUT_BEAT } from './MePanel.jsx';
 import useClock from '../../../hooks/useClock.js';
 import { PALETTES, paletteStyle, readPalette, savePalette } from './palette.js';
@@ -284,11 +283,13 @@ function castLayout(phone) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const wide = !phone && isWide();
-  const nameSize = Math.min((vw * NAME_W) / NAME_EM, vh * (wide ? 0.34 : 0.2));
+  // (Narrow screens: a touch smaller, so it clears both edges.)
+  const nameSize = Math.min((vw * (wide ? NAME_W : 0.78)) / NAME_EM, vh * (wide ? 0.34 : 0.2));
   if (!wide) {
     // Phones: the name on top, the line under it, then him, standing clear.
     const nameTop = Math.max(128, vh * 0.16);
-    const feet = vh - Math.max(96, vh * 0.12);
+    // (His floor sits above "Scroll down" and the section nav, not on them.)
+    const feet = vh - Math.max(150, vh * 0.18);
     // (room for the camera's push, which grows him upwards)
     const H = Math.min(vh * 0.6, (feet - (nameTop + nameSize * 0.74 + 64)) / (1 + PUSH));
     return { vw, vh, wide, H, nameSize, nameTop, neck: false, hero: { x: vw / 2, y: feet }, rest: { x: vw * 0.8, y: vh - 40 } };
@@ -390,6 +391,9 @@ const HOOP_SHOT = {
   e: 0.36, // each bounce on the line, of the last
 };
 const HOOP_STAGE = 0.3; // the hoop's size, a share of vh
+// Portrait screens hang it lower, clear of the top bar (the board stands
+// well above the rim).
+const rimShare = () => (window.innerHeight > window.innerWidth * 1.2 ? 0.42 : HOOP_SHOT.rimY);
 // The bounces on the line: [how long, how high (a share of vh)] each.
 const LINE_BOUNCES = [
   [0.055, 0.05],
@@ -400,7 +404,7 @@ const NET_FOOT = 46 / 120; // the net's foot below the rim, a share of the hoop
 
 function hoopShotAt(b, { x0, y0, cx, vh, yL }) {
   const S = HOOP_SHOT;
-  const rimY = vh * S.rimY;
+  const rimY = vh * rimShare();
   const apexY = vh * S.apex;
   const netY = rimY + vh * HOOP_STAGE * NET_FOOT;
   const tilt = smooth01(within(b, S.tilt)) * vh;
@@ -859,7 +863,7 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
         if (k > 0) {
           // The rim (y 30 of the drawing's 120) on the shot's rim line.
           const hs = vh * HOOP_STAGE;
-          const tf = `translate3d(${(vw / 2 - hs / 2).toFixed(1)}px, ${(vh * HOOP_SHOT.rimY - hs * 0.25 + ho.y).toFixed(1)}px, 0) rotate(${ho.rot.toFixed(2)}deg)`;
+          const tf = `translate3d(${(vw / 2 - hs / 2).toFixed(1)}px, ${(vh * rimShare() - hs * 0.25 + ho.y).toFixed(1)}px, 0) rotate(${ho.rot.toFixed(2)}deg)`;
           put(hb, 'htf', 'transform', tf);
           put(hf, 'htf2', 'transform', tf);
           put(hb, 'hsz', 'width', `${hs.toFixed(1)}px`);
@@ -1434,16 +1438,16 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const [reduced] = useState(prefersReducedMotion);
   // The chrome logo is drawn in WebGL (ChromeLogo); without it, a flat one.
   const [chromeOk] = useState(() => hasWebGL2() && !prefersReducedMotion());
-  // Phones get the iPhone ending (DOM), so they never load the 3D MacBook.
-  const [use3D, setUse3D] = useState(() => !phone && hasWebGL2() && !prefersReducedMotion());
+  // Phones get the same MacBook as laptops (the model is under 1 MB).
+  const [use3D, setUse3D] = useState(() => hasWebGL2() && !prefersReducedMotion());
   const [loaded, setLoaded] = useState(() => closing || seenBefore());
   const [lines, setLines] = useState([false, false]);
   const [dark, setDark] = useState(closing);
   const [contactOpen, setContactOpen] = useState(false);
   const [idle, setIdle] = useState(false);
   const deckRef = useRef(null);
-  const flatRef = useRef(!use3D && !phone);
-  flatRef.current = !use3D && !phone;
+  const flatRef = useRef(!use3D);
+  flatRef.current = !use3D;
   const runwayRef = useRef(null);
   const cancelRef = useRef(null);
   const timersRef = useRef([]);
@@ -1510,8 +1514,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   //     than the lid's own (painted) logo until they match, so it covers it.
   // Phones (and the flat fallback) have no lid: the logo turns white once,
   // with the line, and rests where the lock-screen clock will be.
-  const lidRef = useRef(!phone && use3D);
-  lidRef.current = !phone && use3D;
+  const lidRef = useRef(use3D);
+  lidRef.current = use3D;
   const hasLid = () => lidRef.current && logoRef.current?.lidW > 0;
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
   // The night comes as the ball opens into the logo: paper to black, so the
@@ -1544,14 +1548,13 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const finalLogo = () => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const l = !phone && logoRef.current;
+    const l = logoRef.current;
     if (l && l.lidW > 0) {
       const wpp = (LID_LOGO_W * l.lidW) / LOGO_EL_W; // lid units per element px
       const drop = LID_LOGO_DROP * l.lidW;
       return { x: l.x + l.ez[0] * drop, y: l.y + l.ez[1] * drop, m: [-l.ex[0] * wpp, -l.ex[1] * wpp, -l.ez[0] * wpp, -l.ez[1] * wpp] };
     }
     const k = (51 / 900) * (vh / LOGO_EL_W);
-    if (phone) return { ...phoneLogoPoint(), m: [k, 0, 0, k] };
     return { x: vw / 2, y: vh * 0.638, m: [-k, 0, 0, -k * 0.857] };
   };
   // How far into the Mac's runway (MacRoom's own, eased, progress): beat 2
@@ -1770,7 +1773,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const r = runwayRef.current;
       if (!r) return null;
       const top = r.offsetTop;
-      const end = phone ? top + r.offsetHeight - vh() : maxScroll();
+      const end = maxScroll();
       return top + (end - top) * t;
     };
     const stops = () => {
@@ -1794,10 +1797,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       ];
       // Beat 2: the pull-back that shows the logo was on the closed Mac. It
       // rests there, waiting to be opened (beat 3: one scroll or a click).
-      if (runwayRef.current && !phone && use3DRef.current) list.push({ id: 'mac', y: runAt(REVEAL_END), ms: 1900 });
+      if (runwayRef.current && use3DRef.current) list.push({ id: 'mac', y: runAt(REVEAL_END), ms: 1900 });
       // Phones: the iPhone ending's own stops. The Mac has none: from the
       // closed laptop, one scroll (or a click) opens it and goes in.
-      if (runwayRef.current && phone) PHONE_STOPS.forEach((t, i) => list.push({ id: `chapter${i}`, y: runAt(t), ms: 1300 }));
       return list;
     };
     const glide = (y, ms, via, path, ease = sineInOut) => {
@@ -2331,7 +2333,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const liveFrom = useCallback(() => nowY(0.5), [nowY]);
   const sceneFadeTo = useCallback(() => runY(LIGHT[1]), [runY]);
 
-  const flat = !use3D && !phone;
+  const flat = !use3D;
 
   // On the hero (the remix button shows only there, and edit mode ends if
   // the page moves on).
@@ -2350,7 +2352,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // The line comes in once the closed Mac is in view (with no 3D Mac, with
   // the logo).
   useMotionValueEvent(nowT, 'change', (t) => {
-    if (!use3D || phone) sayT.set(smooth01(within(t, SAY)));
+    if (!use3D) sayT.set(smooth01(within(t, SAY)));
   });
   const onMacFrame = useCallback((y, p) => {
     macP.current = p;
@@ -2575,7 +2577,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
 
           </div>
         </div>
-        {phone ? <PhoneEnding onReach={onReachScreen} innerRef={runwayRef} /> : !flat && <div ref={runwayRef} className={styles.runway} aria-hidden />}
+        {!flat && <div ref={runwayRef} className={styles.runway} aria-hidden />}
       </div>
 
       {/* At the end of the story only: the ball does the asking before that. */}

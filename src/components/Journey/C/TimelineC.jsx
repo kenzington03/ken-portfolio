@@ -180,7 +180,9 @@ export function timelineLayout() {
   const right = vw - left;
   const yearW = (right - left) / (NOW_YEAR - START);
   const x = (yr) => left + (yr - START) * yearW;
-  const rulerY = Math.round(vh * (narrow ? 0.46 : 0.5));
+  // (Short phones: no higher than 360 px down, so the role and its logo
+  // clear the big year and Skip career above them.)
+  const rulerY = Math.round(narrow ? Math.max(vh * 0.46, Math.min(360, vh * 0.56)) : vh * 0.5);
   // How close the camera comes: a year is about a fifth of the screen
   // (a third on phones).
   const zoom = Math.max(2, (vw * (narrow ? 0.32 : 0.2)) / yearW);

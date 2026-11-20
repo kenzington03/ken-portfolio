@@ -43,9 +43,8 @@ const INTRO_ENABLED = (() => {
 })();
 // Its own chunk (with three.js), so the desktop never waits on it.
 const JourneyC = lazy(() => import('./components/Journey/C/JourneyC.jsx'));
-// Phones get a one-pager: no 3D, no Mac, no fake iOS.
+// Phones: the same story as the laptop, then the work as a page.
 const PhonePage = lazy(() => import('./components/PhonePage/PhonePage.jsx'));
-const IPhoneHome = lazy(() => import('./components/IPhoneHome/IPhoneHome.jsx'));
 
 const BLACKOUT_MS = 380;
 
@@ -102,24 +101,48 @@ function DesktopShell({ unlocked = true, onShutDown }) {
 
 function AppShell() {
   const { isMobile } = useWindowSize();
-  // Phones: the page, or (the cat button, or `?intro=0`) the iPhone beta.
-  const [iphone, setIphone] = useState(!INTRO_ENABLED);
-
-  if (isMobile) {
-    if (iphone)
-      return (
-        <Suspense fallback={<div style={{ minHeight: '100svh', background: '#000' }} />}>
-          <IPhoneHome onExit={() => setIphone(false)} />
-        </Suspense>
-      );
-    return (
-      <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
-        <PhonePage onIPhone={() => setIphone(true)} />
-      </Suspense>
-    );
-  }
-
+  if (isMobile) return <PhoneFlow />;
   return INTRO_ENABLED ? <IntroFlow /> : <DesktopShell />;
+}
+
+/** Phones: the laptop's story (hero, About, the career, the logo, the
+ *  MacBook opening), then "hello", then the work, as a page. A link to a
+ *  project, or `?intro=0`, goes straight to the work. */
+function PhoneFlow() {
+  const [phase, setPhase] = useState(() => (!INTRO_ENABLED || workSlugFromUrl() ? 'work' : 'intro'));
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.classList.add('intro-scroll');
+    // The work page mounts under "hello", at its top, and holds still
+    // until "hello" has gone.
+    if (phase !== 'intro') window.scrollTo(0, 0);
+    root.style.overflow = phase === 'welcome' ? 'hidden' : '';
+    return () => {
+      root.classList.remove('intro-scroll');
+      root.style.overflow = '';
+    };
+  }, [phase]);
+  const toWork = useCallback(() => setPhase('work'), []);
+  const replay = useCallback(() => {
+    if (workSlugFromUrl()) clearWork();
+    window.scrollTo(0, 0);
+    setPhase('intro');
+  }, []);
+  return (
+    <>
+      {phase === 'intro' && (
+        <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
+          <JourneyC phone onReachScreen={() => setPhase('welcome')} onSkip={toWork} />
+        </Suspense>
+      )}
+      {phase !== 'intro' && (
+        <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
+          <PhonePage onReplay={replay} />
+        </Suspense>
+      )}
+      {phase === 'welcome' && <WelcomeScreen onDone={toWork} />}
+    </>
+  );
 }
 
 /** intro (scroll hero + 3D MacBook) → welcome → desktop; Shut Down plays it back. */

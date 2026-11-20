@@ -86,13 +86,17 @@ export default function WelcomeScreen({ onDone }) {
   }, [finish]);
 
   const stage = { width: STAGE_W, height: STAGE_H, transform: `translate(-50%, -50%) scale(${scale})` };
+  // The words never run off a narrow screen: the backdrop covers (it is the
+  // 3D screen, pixel for pixel), "hello" and the title fit the width.
+  const fit = Math.min(scale, (window.innerWidth * 0.94) / STAGE_W);
+  const words = { ...stage, transform: `translate(-50%, -50%) scale(${fit})` };
 
   return (
     <div className={`${styles.welcome} ${styles[phase]}`} onClick={finish} role="status" aria-label={WELCOME_TITLE}>
       <canvas ref={canvasRef} className={`${styles.stage} ${styles.backdrop}`} style={stage} />
       <div className={styles.white} />
-      <canvas ref={helloRef} className={`${styles.stage} ${styles.hello}`} style={stage} aria-hidden />
-      <div className={styles.stage} style={stage} aria-hidden>
+      <canvas ref={helloRef} className={`${styles.stage} ${styles.hello}`} style={words} aria-hidden />
+      <div className={styles.stage} style={words} aria-hidden>
         <p className={styles.title} style={{ top: TITLE_Y }}>
           {[...WELCOME_TITLE].map((ch, i) => (
             <span key={i} style={{ '--i': i }}>

@@ -134,7 +134,8 @@ function fitTextureToUVs(texture, mesh) {
 export function Rig({ progressRef, screenOnRef, onReady, beats = BEATS, poses = { hero: HERO, front: FRONT }, sway }) {
   // The bytes the journey's loader already fetched (suspends until they're in).
   const modelUrl = use(loadModel());
-  const { camera, size } = useThree();
+  const { camera, size, scene } = useThree();
+  const fogBase = useRef(null);
   const group = useRef(null);
   const screenMesh = useRef(null);
   const [floorY, setFloorY] = useState(null);
@@ -174,8 +175,18 @@ export function Rig({ progressRef, screenOnRef, onReady, beats = BEATS, poses = 
   useFrame(() => {
     const p = progressRef.current;
     const aspect = size.width / size.height;
-    // Keep the whole laptop in frame on narrow windows.
-    const fit = Math.max(1, 1.55 / aspect);
+    // Keep the whole laptop in frame on narrow windows. Portrait phones
+    // need less margin (the laptop is wider than tall from overhead), so it
+    // fills most of their width instead of sitting small in the middle.
+    const margin = 1.15 + 0.4 * Math.min(1, Math.max(0, aspect - 0.5));
+    const fit = Math.max(1, margin / aspect);
+    // The room's fog is set for a laptop-width view; pulled back to fit a
+    // portrait screen, it would swallow the Mac, so it moves back with us.
+    if (scene.fog) {
+      if (!fogBase.current) fogBase.current = [scene.fog.near, scene.fog.far];
+      scene.fog.near = fogBase.current[0] * fit;
+      scene.fog.far = fogBase.current[1] * fit;
+    }
 
     const o = ease(ramp(p, ...beats.orbit));
     const { hero, front } = poses;

@@ -1887,6 +1887,24 @@
 /* ---------- Narrow ---------- */
 /* ---------- Phones ---------- */
 @media (max-width: 700px) {
+  /* The bar's "Work with me" is the contact here; the sections get the foot. */
+  .contactFab {
+    display: none;
+  }
+  /* Thumb-sized (44 px) targets along the top and the foot. */
+  .barLink,
+  .hire {
+    min-height: 44px;
+  }
+  .secNav {
+    padding-top: 2px;
+    padding-bottom: 5px;
+  }
+  .secLink {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 20px;
+  }
   .place {
     top: 26px;
   }
