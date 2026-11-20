@@ -21,7 +21,8 @@ Model column = what to run that session on (`/model`).
 - [x] P3 /work/<slug> routes, prerender (homepage text + 10 project pages + sitemap), canonical, Person JSON-LD, 404.html, llms.txt
 - [x] P4 alt text (from paths; written ones go in utils/altText.js ALT), 44 px targets, skip link, one window per project, Lighthouse 100 a11y on the intro
 - [x] P5.3 "10+ years" everywhere; P5.5 case study on phone project pages
-- [ ] **Ken:** enable Web Analytics + Speed Insights in the Vercel dashboard (custom events need Pro); Search Console; PageSpeed after deploy
+- [x] Vercel Web Analytics + Speed Insights on (checked Nov 20: RES 88 desktop); Search Console verified, sitemap read Nov 17 (11 URLs, 5 indexed)
+- [ ] PageSpeed + Lighthouse on the phone journey (live Nov 20)
 - [ ] cal_booked needs Cal.com's embed or webhook (now cal_open: the click)
 
 ## Done, Nov 20 (Opus): phones get the laptop's story
