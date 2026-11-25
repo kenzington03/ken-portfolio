@@ -758,8 +758,9 @@
 
 .imessageSendBtn {
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 44px; /* a full-size target around the 18px glyph */
+  height: 44px;
+  margin: -7px -7px -7px 0;
   border: none;
   background: none;
   padding: 0;

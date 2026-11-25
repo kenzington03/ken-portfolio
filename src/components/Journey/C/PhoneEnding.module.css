@@ -27,6 +27,26 @@
   width: var(--w);
   height: var(--h);
   transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+}
+
+/* The two faces of the phone: the screen, and the back (turned half a turn, so
+   when the phone is turned over, the back is what we see first). */
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.back {
+  transform: rotateY(180deg);
+}
+.backLogo {
+  position: absolute;
+  left: 50%;
+  width: auto;
+  transform: translate(-50%, -50%);
 }
 
 /* The phone's shadow: a box behind it, not a `filter` (Safari drops every

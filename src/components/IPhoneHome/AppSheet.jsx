@@ -595,7 +595,6 @@ export default function AppSheet({ app, onClose, closeRequest = 0 }) {
         {!shown.cover && (shown.imgSrc ? <img src={shown.imgSrc} alt="" /> : <span className={styles.appIconGlyph}>{shown.icon}</span>)}
       </motion.div>
 
-      <HomeIndicator tone={tone} onClose={close} />
     </motion.div>
   );
 }

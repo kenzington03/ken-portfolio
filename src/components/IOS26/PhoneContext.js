@@ -1,14 +1,24 @@
 import { createContext, useContext } from 'react';
 
-/* What an app screen can ask of the phone it runs on: open another app,
-   close itself (back to the home screen), switch Light / Dark, show the
-   tutorial. AppSheet and the screens read it; IOS26Phone provides it. */
+/* What a screen can ask of the phone it runs on. IOS26Phone provides it; the
+   status bar, the app screens, Control Center and Settings read it. */
+const noop = () => {};
 export const PhoneContext = createContext({
   theme: 'dark',
-  setTheme: () => {},
-  openApp: () => {},
-  close: () => {},
-  showTutorial: () => {},
+  setTheme: noop,
+  openApp: noop,
+  close: noop,
+  showTutorial: noop,
+  wallpaper: 'default',
+  setWallpaper: noop,
+  brightness: 1,
+  setBrightness: noop,
+  net: { wifi: true, cell: true, bt: true, air: false },
+  setNet: noop,
+  toast: noop,
+  fullscreen: noop,
+  isFullscreen: false,
+  exit: null,
 });
 
 export const usePhone = () => useContext(PhoneContext);

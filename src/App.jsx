@@ -138,6 +138,13 @@ function PhoneFlow() {
     setScreen('home');
     setPhase('phone');
   }, []);
+  // "Back to the story" (Control Center, Settings): the journey from the top.
+  const replay = useCallback(() => {
+    if (workSlugFromUrl()) clearWork();
+    window.scrollTo(0, 0);
+    setScreen('lock');
+    setPhase('intro');
+  }, []);
   const fallback = <div style={{ minHeight: '100svh', background: '#000' }} />;
   return (
     <>
@@ -149,7 +156,7 @@ function PhoneFlow() {
       {phase === 'intro' && <LaptopHint />}
       {phase === 'phone' && (
         <Suspense fallback={fallback}>
-          <IOS26Phone device theme={theme} onThemeChange={setTheme} screen={screen} onScreenChange={setScreen} autoNotifs />
+          <IOS26Phone device theme={theme} onThemeChange={setTheme} screen={screen} onScreenChange={setScreen} autoNotifs onExit={replay} />
         </Suspense>
       )}
       {phase === 'work' && (

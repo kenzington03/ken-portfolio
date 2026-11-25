@@ -1,37 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { ROLES } from '../../data/about.js';
-import { projects, getProjectById, getProjectCoverUrl } from '../../data/projects.js';
-import { BEST_WORK } from '../../data/bestWork.js';
 import { BOOKING_URL, EMAIL, WHATSAPP } from '../Brief/briefData.js';
 import { INSTAGRAM, LINKEDIN } from '../../data/links.js';
 import useClock from '../../hooks/useClock.js';
 import { Glyph } from './icons.jsx';
 import AppTile from './AppTile.jsx';
+import Nav from './Nav.jsx';
+import { CameraApp, PhotosApp, SafariApp, SettingsApp, RemindersApp, WalletApp } from './screens2.jsx';
 import { LINK_APPS } from './apps.js';
 import { usePhone } from './PhoneContext.js';
 import styles from './screens.module.css';
 
 /* The app screens that are not a game or a project: each one drawn the way
    the real iOS app is, with the kit's colours (so they follow Light / Dark). */
-
-const Chevron = () => (
-  <svg width="12" height="20" viewBox="0 0 12 20" fill="none" aria-hidden>
-    <path d="M10 2L2 10l8 8" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-function Nav({ label = 'Home', right }) {
-  const { close } = usePhone();
-  return (
-    <div className={styles.nav}>
-      <button type="button" className={styles.back} onClick={close}>
-        <Chevron />
-        {label}
-      </button>
-      {right}
-    </div>
-  );
-}
 
 const tel = `tel:+${WHATSAPP}`;
 const phoneText = `+${WHATSAPP.replace(/^(\d{2})(\d{5})(\d+)$/, '$1 $2 $3')}`;
@@ -169,234 +150,6 @@ export function ContactsAbout() {
   );
 }
 
-/* ───────── Photos: the work, as a library ───────── */
-
-export function PhotosApp() {
-  const { openApp } = usePhone();
-  // The best pieces first, then every project's cover; each opens its project.
-  const items = useMemo(() => {
-    const out = [];
-    BEST_WORK.forEach((b) => {
-      const p = getProjectById(b.projectId);
-      b.pieces.forEach((pc) => out.push({ src: pc.src, alt: pc.alt, slug: p?.slug, name: p?.name }));
-    });
-    projects.forEach((p) => out.push({ src: getProjectCoverUrl(p), alt: p.name, slug: p.slug, name: p.name }));
-    const seen = new Set();
-    return out.filter((i) => (seen.has(i.src) ? false : seen.add(i.src)));
-  }, []);
-  return (
-    <div className={styles.screen}>
-      <Nav label="Home" />
-      <div className={styles.scroll}>
-        <div className={styles.largeTitle}>Library</div>
-        <div className={styles.photosGrid}>
-          {items.map((i) => (
-            <button key={i.src} type="button" className={styles.photo} onClick={() => i.slug && openApp({ appKey: `project-${i.slug}`, label: i.name })} aria-label={i.alt}>
-              <img src={i.src} alt="" loading="lazy" decoding="async" />
-            </button>
-          ))}
-        </div>
-        <div className={styles.photosFoot}>
-          {items.length} Photos
-          <small>Every project, one tap away</small>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ───────── Camera ───────── */
-
-export function CameraApp() {
-  const { close } = usePhone();
-  const video = useRef(null);
-  const stream = useRef(null);
-  const [state, setState] = useState('idle'); // idle | on | denied | none
-  const [flash, setFlash] = useState(false);
-  const [shots, setShots] = useState(0);
-
-  useEffect(() => () => stream.current?.getTracks().forEach((t) => t.stop()), []);
-
-  const start = async () => {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setState('none');
-      return;
-    }
-    try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-      stream.current = s;
-      setState('on');
-      requestAnimationFrame(() => {
-        if (video.current) {
-          video.current.srcObject = s;
-          video.current.play?.().catch(() => {});
-        }
-      });
-    } catch {
-      setState('denied');
-    }
-  };
-  const shoot = () => {
-    setFlash(true);
-    setShots((n) => n + 1);
-    setTimeout(() => setFlash(false), 140);
-  };
-
-  return (
-    <div className={`${styles.screen} ${styles.camera}`}>
-      <div className={styles.viewfinder}>
-        {state === 'on' ? (
-          <video ref={video} playsInline muted />
-        ) : (
-          <div className={styles.camMsg}>
-            {state === 'denied' && <span>Camera access is off for this site. You can still look around.</span>}
-            {state === 'none' && <span>This browser can't open a camera.</span>}
-            {state === 'idle' && <span>Point it at something. It only turns on if you tap.</span>}
-            {state !== 'none' && (
-              <button type="button" className={styles.pill} onClick={start}>
-                {state === 'denied' ? 'Try again' : 'Turn on camera'}
-              </button>
-            )}
-          </div>
-        )}
-        {flash && <div className={styles.flash} />}
-        <button type="button" className={styles.pill} onClick={close} style={{ position: 'absolute', top: 10, left: 12, padding: '6px 12px', minHeight: 36 }}>
-          ‹ Home
-        </button>
-      </div>
-      <div className={styles.camBar}>
-        <div className={styles.modes}>
-          <span>VIDEO</span>
-          <b>PHOTO</b>
-          <span>PORTRAIT</span>
-        </div>
-        <div className={styles.shutterRow}>
-          <div className={styles.thumb} style={{ backgroundImage: `url("${getProjectCoverUrl(projects[0])}")` }} aria-label={`${shots} photos taken`} />
-          <button type="button" className={styles.shutter} onClick={shoot} aria-label="Take photo" />
-          <button type="button" className={styles.flip} onClick={start} aria-label="Flip camera">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M20 8.5A8.5 8.5 0 0 0 5 6.2M4 4v3h3M4 15.5a8.5 8.5 0 0 0 15 2.3M20 20v-3h-3" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ───────── Safari: a start page of Ken's places ───────── */
-
-export function SafariApp() {
-  const { openApp, close } = usePhone();
-  const favs = [
-    { name: 'Instagram', custom: 'instagram', go: () => openApp({ appKey: 'link-instagram', label: 'Instagram' }) },
-    { name: 'LinkedIn', custom: 'linkedin', go: () => openApp({ appKey: 'link-linkedin', label: 'LinkedIn' }) },
-    { name: 'WhatsApp', custom: 'whatsapp', go: () => openApp({ appKey: 'link-whatsapp', label: 'WhatsApp' }) },
-    { name: 'Book a Call', live: 'calendar', go: () => window.open(BOOKING_URL, '_blank', 'noopener') },
-    { name: 'Email', icon: 'mail', go: () => (window.location.href = `mailto:${EMAIL}`) },
-    { name: 'Resume', icon: 'notes', go: () => openApp({ appKey: 'resume', label: 'Resume' }) },
-    { name: 'Work', icon: 'photos', go: () => openApp({ appKey: 'photos', label: 'Photos' }) },
-    { name: 'Get a Design', custom: 'design', go: () => openApp({ appKey: 'brief', label: 'Get a Design' }) },
-  ];
-  return (
-    <div className={`${styles.screen} ${styles.safari}`}>
-      <Nav label="Home" />
-      <div className={styles.scroll}>
-        <div className={styles.largeTitle}>Favourites</div>
-        <div className={styles.favGrid}>
-          {favs.map((f) => (
-            <button key={f.name} type="button" className={styles.fav} onClick={f.go}>
-              <div className={styles.favIcon}>
-                <AppTile app={f} />
-              </div>
-              <span className={styles.favLabel}>{f.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      <button type="button" className={styles.addrBar} onClick={close} aria-label="kennethnathanael.com">
-        <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor" aria-hidden>
-          <path d="M6 0a3.5 3.5 0 0 0-3.5 3.5V5H1.5A1.5 1.5 0 0 0 0 6.5v6A1.5 1.5 0 0 0 1.5 14h9a1.5 1.5 0 0 0 1.5-1.5v-6A1.5 1.5 0 0 0 10.5 5h-1V3.5A3.5 3.5 0 0 0 6 0zm-2 3.5a2 2 0 1 1 4 0V5H4z" />
-        </svg>
-        kennethnathanael.com
-      </button>
-    </div>
-  );
-}
-
-/* ───────── Settings: Light / Dark, the tutorial, send the link ───────── */
-
-export function SettingsApp() {
-  const { theme, setTheme, showTutorial } = usePhone();
-  const send = async () => {
-    const url = `${window.location.origin}/`;
-    try {
-      if (navigator.share) await navigator.share({ title: 'Kenneth Nathanael, Designer', url });
-      else window.location.href = `mailto:?subject=${encodeURIComponent("Ken's portfolio")}&body=${encodeURIComponent(url)}`;
-    } catch {
-      /* closed the share sheet */
-    }
-  };
-  const Tick = ({ on }) => (
-    <span className={`${styles.tick} ${on ? styles.tickOn : ''}`} aria-hidden>
-      {on && (
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M2.5 6.4l2.4 2.4L9.5 3.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </span>
-  );
-  return (
-    <div className={`${styles.screen} ${styles.grouped}`}>
-      <Nav label="Home" />
-      <div className={styles.scroll}>
-        <div className={styles.largeTitle}>Settings</div>
-        <div className={styles.profile}>
-          <img className={styles.profileAvatar} src="/assets/profile/ken.jpg" alt="" />
-          <div>
-            <div className={styles.profileName}>Kenneth Nathanael</div>
-            <div className={styles.profileSub}>Portfolio · iOS 26 edition</div>
-          </div>
-        </div>
-
-        <div className={styles.sectionHead}>Appearance</div>
-        <div className={styles.group}>
-          <div className={styles.appearance}>
-            <button type="button" className={styles.look} onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>
-              <span className={`${styles.lookThumb} ${styles.lookLight}`} />
-              Light
-              <Tick on={theme === 'light'} />
-            </button>
-            <button type="button" className={styles.look} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>
-              <span className={`${styles.lookThumb} ${styles.lookDark}`} />
-              Dark
-              <Tick on={theme === 'dark'} />
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.sectionHead} style={{ marginTop: 6 }}>
-          This phone
-        </div>
-        <div className={styles.group}>
-          <button type="button" className={styles.settingsRow} onClick={showTutorial}>
-            Show the tutorial
-            <span className={styles.settingsVal}>›</span>
-          </button>
-          <button type="button" className={styles.settingsRow} onClick={send}>
-            Send the link to my laptop
-            <span className={styles.settingsVal}>›</span>
-          </button>
-          <div className={styles.settingsRow} style={{ cursor: 'default' }}>
-            Software
-            <span className={styles.settingsVal}>iOS 26 (a portfolio)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ───────── Clock: the world clock, truly ───────── */
 
 const ZONES = [
@@ -493,10 +246,10 @@ export function CalendarApp() {
 /* ───────── Tips: how to use this phone ───────── */
 
 export const TIPS = [
-  { color: '#0a84ff', glyph: 'home', title: 'Swipe up, or tap Home', text: 'Swipe up from the bottom of the phone to unlock. The Home button under the phone takes you back to the home screen from anywhere.' },
-  { color: '#30d158', glyph: 'back', title: 'Back works', text: 'Your browser\'s Back (or swiping from the edge) closes the app you are in, one step at a time.' },
-  { color: '#ff9f0a', glyph: 'play', title: 'Swipe for more apps', text: 'Swipe left and right on the home screen. There are two pages.' },
-  { color: '#bf5af2', glyph: 'sun', title: 'Control Center', text: 'Swipe down from the top right of the phone, or tap the signal icons. Switch Light and Dark there.' },
+  { color: '#0a84ff', glyph: 'up', title: 'Swipe up from the bottom', text: 'In any app, swipe up from the bottom edge to go home. Swipe up and hold to see your recent apps, then flick a card away.' },
+  { color: '#30d158', glyph: 'back', title: 'Swipe from the left edge', text: 'Swipe in from the left edge to go back. The browser\'s Back button does the same.' },
+  { color: '#ff9f0a', glyph: 'chevronR', title: 'Swipe for more apps', text: 'Swipe left and right on the home screen: there are two pages. Pull down on the home screen to search.' },
+  { color: '#bf5af2', glyph: 'sun', title: 'Control Center', text: 'Swipe down from the top right, or tap the signal icons. Switch Light and Dark, and jump back to the story from there.' },
 ];
 
 export function TipsList() {
@@ -562,6 +315,8 @@ export function LinkApp({ appKey }) {
    bar from the phone's appearance. */
 export const SCREENS = {
   resume: NotesResume,
+  reminders: RemindersApp,
+  wallet: WalletApp,
   about: ContactsAbout,
   photos: PhotosApp,
   camera: CameraApp,
@@ -574,5 +329,6 @@ export const SCREENS = {
   'link-linkedin': () => <LinkApp appKey="link-linkedin" />,
   'link-whatsapp': () => <LinkApp appKey="link-whatsapp" />,
   'link-maps': () => <LinkApp appKey="link-maps" />,
+  'link-facetime': () => <LinkApp appKey="link-facetime" />,
 };
 export const DARK_SCREENS = new Set(['camera']);

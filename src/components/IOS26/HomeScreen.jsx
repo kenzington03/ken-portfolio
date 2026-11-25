@@ -52,28 +52,38 @@ export default function HomeScreen({ locked = false, under = false, reveal = 0, 
     });
   }, [pager, onPage]);
 
-  // A mouse can't swipe, so the lab and desktop drag the page (a finger scrolls natively).
+  // A mouse can't swipe, so the lab and desktop drag the page (a finger scrolls
+  // natively). Only a mostly-horizontal drag counts (a pull down is Search), and
+  // the drag always ends, wherever the pointer is let go.
+  const endDrag = useCallback(() => {
+    const el = pager.current;
+    window.removeEventListener('pointerup', endDrag);
+    window.removeEventListener('pointercancel', endDrag);
+    if (!drag.current || !el) {
+      drag.current = null;
+      return;
+    }
+    const moved = dragged.current;
+    drag.current = null;
+    el.style.scrollSnapType = '';
+    if (moved) el.scrollTo({ left: Math.round(el.scrollLeft / el.clientWidth) * el.clientWidth, behavior: 'smooth' });
+  }, [pager]);
   const onDown = (e) => {
     if (e.pointerType !== 'mouse') return;
-    drag.current = { x: e.clientX, left: pager.current.scrollLeft };
+    drag.current = { x: e.clientX, y: e.clientY, left: pager.current.scrollLeft };
     dragged.current = false;
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
   };
   const onMove = (e) => {
     const d = drag.current;
     if (!d) return;
     const dx = e.clientX - d.x;
-    if (Math.abs(dx) > 5) {
-      dragged.current = true;
-      pager.current.style.scrollSnapType = 'none';
-      pager.current.scrollLeft = d.left - dx / scale;
-    }
-  };
-  const onUp = () => {
-    const el = pager.current;
-    if (!drag.current || !el) return;
-    drag.current = null;
-    el.style.scrollSnapType = '';
-    el.scrollTo({ left: Math.round(el.scrollLeft / el.clientWidth) * el.clientWidth, behavior: 'smooth' });
+    const dy = e.clientY - d.y;
+    if (!dragged.current && !(Math.abs(dx) > 5 && Math.abs(dx) > Math.abs(dy))) return;
+    dragged.current = true;
+    pager.current.style.scrollSnapType = 'none';
+    pager.current.scrollLeft = d.left - dx / scale;
   };
 
   useEffect(() => {
@@ -94,8 +104,6 @@ export default function HomeScreen({ locked = false, under = false, reveal = 0, 
         onScroll={onScroll}
         onPointerDown={onDown}
         onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
         onClickCapture={(e) => {
           if (dragged.current) {
             e.stopPropagation();

@@ -71,6 +71,8 @@ export default function LockScreen({
   unlocked = false,
   dragY = 0,
   under = false,
+  wallpaper = '/assets/ios26/chrome/wallpaper.jpg',
+  onCamera,
   onNotifTap,
   onStatusTap,
 }) {
@@ -104,7 +106,7 @@ export default function LockScreen({
           lock moves, on the same curve. */}
       <img
         className={`${styles.wallpaper} ${dark ? styles.wallpaperDark : ''}`}
-        src="/assets/ios26/chrome/wallpaper.jpg"
+        src={wallpaper}
         alt=""
         draggable={false}
         style={{
@@ -117,6 +119,8 @@ export default function LockScreen({
         }}
       />
       <div className={styles.lockScrim} />
+      {/* the flashlight: the screen is lit from the top, as a phone shows it */}
+      <div className={`${styles.torch} ${torch ? styles.torchOn : ''}`} />
       <StatusBar time={kit ? '9:41' : undefined} onTap={onStatusTap} />
       <div className={styles.swipeHint} />
 
@@ -195,7 +199,7 @@ export default function LockScreen({
         >
           <Flashlight />
         </button>
-        <button type="button" className={`${styles.lockBtn} ${styles.glass} ${styles.glassBlur}`} aria-label="Camera">
+        <button type="button" className={`${styles.lockBtn} ${styles.glass} ${styles.glassBlur}`} aria-label="Camera" onClick={onCamera}>
           <CameraGlyph />
         </button>
       </div>

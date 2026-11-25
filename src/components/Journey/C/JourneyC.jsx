@@ -1178,7 +1178,7 @@ const APPLE_PATH =
 // How tall the logo stands, big in the middle, as a share of the viewport
 // height; and where its centre sits then.
 const LOGO_VH = 0.12;
-const LOGO_VH_PHONE = 0.18;
+const LOGO_VH_PHONE = 0.12; // (as tall as it sits on the iPhone's back)
 const LOGO_AT = 0.56;
 // The middle of the apple's body (in the glyph's units): solid all round for
 // a radius of about 5, so a dot there grows as a plain circle before the bite
@@ -1594,7 +1594,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const hx = tg.vw / 2 - HEART_DX * big;
     const hy = tg.rulerY - HEART_DY * big;
     const x0 = hx + (tg.vw / 2 - hx) * c;
-    const y0 = hy + (tg.vh * LOGO_AT - hy) * c;
+    // (On a phone it rests on the back of the iPhone, a little above middle.)
+    const y0 = hy + ((phone ? phoneLogoPoint().y : tg.vh * LOGO_AT) - hy) * c;
     const w = hasLid() ? inOut(within(rp, LOCK)) : 0;
     const f = finalLogo();
     // A hair larger than the lid's own, so it covers it until it hands over.
@@ -1614,7 +1615,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const x = x0 + (f.x - x0) * w;
     const y = y0 + (f.y - y0) * w;
     // Phones: the logo rests on the dark screen, and goes as it lights up.
-    const phoneOff = phone ? 1 - within(phoneP.get(), [0.5, 0.6]) : 1;
+    const phoneOff = phone ? 1 - within(phoneP.get(), [0.44, 0.5]) : 1;
     const shown = (t >= REWIND[1] ? 1 : 0) * phoneOff * (flatRef.current || !hasLid() ? 1 : 1 - within(rp, [HAND[1] - 0.02, HAND[1]]));
     return {
       transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`,

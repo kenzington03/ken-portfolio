@@ -153,6 +153,7 @@
 .favIcon { width: 58px; height: 58px; }
 .favLabel { max-width: 70px; text-align: center; color: var(--ios-label); }
 .addrBar {
+  margin: 0;
   position: absolute;
   left: 14px;
   right: 14px;
@@ -227,3 +228,76 @@
 .linkHandle { font: 400 17px/22px var(--ios-font); color: var(--ios-label-2); }
 .linkLine { font: 400 15px/20px var(--ios-font); color: var(--ios-label-2); margin: 8px 0 18px; max-width: 280px; }
 .linkBtns { display: grid; gap: 10px; width: 100%; max-width: 300px; }
+
+/* ───── Camera, live ───── */
+.viewfinder video { opacity: 0; transition: opacity 280ms ease; background: #000; }
+.blurred { filter: blur(16px) saturate(1.1); transform-origin: center; scale: 1.08; }
+.sharp {
+  -webkit-mask-image: radial-gradient(ellipse 62% 46% at 50% 47%, #000 58%, transparent 100%);
+  mask-image: radial-gradient(ellipse 62% 46% at 50% 47%, #000 58%, transparent 100%);
+}
+.spinner { width: 30px; height: 30px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); border-top-color: #fff; animation: spin 700ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.recTime { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 100px; background: rgba(255, 59, 48, 0.9); font: 600 14px/18px var(--ios-font); font-variant-numeric: tabular-nums; }
+.recTime i { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.2; } }
+.mode { border: 0; background: none; padding: 8px 4px; min-height: 40px; color: rgba(255, 255, 255, 0.7); font: 600 13px/16px var(--ios-font); letter-spacing: 0.5px; cursor: pointer; transition: color 180ms; }
+.modeOn { color: #ffd60a; }
+.thumbPop { animation: thumbPop 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+@keyframes thumbPop { 0% { transform: translate(120px, -260px) scale(2.6); opacity: 0; } 55% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+.shutterVideo::after { background: #ff3b30; }
+.shutterRec::after { inset: 20px; border-radius: 9px; background: #ff3b30; }
+.danger { color: #ff453a; }
+
+/* ───── Photos, viewer ───── */
+.photosHead { font: 600 17px/22px var(--ios-font); padding: 8px 16px 8px; }
+.photosNote { font: 400 12px/16px var(--ios-font); color: var(--ios-label-3); padding: 8px 16px 6px; }
+.vidBadge { position: absolute; right: 5px; bottom: 4px; font: 600 11px/1 var(--ios-font); color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
+.viewer { position: absolute; inset: 0; z-index: 40; background: #000; display: grid; place-items: center; animation: fadeIn 200ms ease; }
+.viewer img, .viewer video { max-width: 100%; max-height: 100%; object-fit: contain; }
+.viewerBar { position: absolute; left: 0; right: 0; bottom: 44px; display: flex; justify-content: space-between; padding: 0 20px; }
+@keyframes fadeIn { from { opacity: 0; } }
+
+/* ───── Safari, real ───── */
+.favLetter { width: 100%; height: 100%; border-radius: 22.37%; display: grid; place-items: center; color: #fff; font: 700 22px/1 var(--ios-font); letter-spacing: -0.5px; box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25); }
+.addrBar input { flex: 0 1 270px; min-height: 44px; min-width: 0; border: 0; outline: 0; background: none; color: var(--ios-label); font: 400 17px/22px var(--ios-font); text-align: center; }
+.addrBar input::placeholder { color: var(--ios-label-2); }
+.addrBar:focus-within { justify-content: flex-start; padding-left: 16px; }
+.addrBar:focus-within input { flex: 1; text-align: left; }
+
+/* ───── Settings, more ───── */
+.switch { width: 51px; height: 31px; border: 0; padding: 0; border-radius: 100px; background: var(--ios-fill); position: relative; cursor: pointer; transition: background 200ms ease; flex: none; }
+.switch i { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); transition: transform 220ms cubic-bezier(0.32, 0.72, 0, 1); }
+.switchOn { background: var(--ios-green); }
+.switchOn i { transform: translateX(20px); }
+.wallGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px 18px; }
+.wall { position: relative; border: 0; padding: 0; aspect-ratio: 0.62; border-radius: 14px; overflow: hidden; background: var(--ios-gray5); cursor: pointer; box-shadow: inset 0 0 0 0.5px var(--ios-sep); }
+.wall img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wall[aria-pressed='true'] { box-shadow: 0 0 0 3px var(--ios-blue); }
+.wallLabel { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 6px 6px; font: 500 11px/13px var(--ios-font); color: #fff; text-align: center; background: linear-gradient(transparent, rgba(0, 0, 0, 0.55)); }
+.wallTick { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: var(--ios-blue); color: #fff; display: grid; place-items: center; }
+.brightRow { display: flex; align-items: center; gap: 12px; padding: 6px 18px 18px; color: var(--ios-label-2); }
+.brightBar { flex: 1; height: 28px; border-radius: 100px; background: var(--ios-fill-3); position: relative; overflow: hidden; touch-action: none; cursor: pointer; }
+.brightBar i { position: absolute; left: 0; top: 0; bottom: 0; min-width: 28px; border-radius: 100px; background: #fff; box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.1); }
+[data-theme='dark'] .brightBar i { background: #e5e5ea; }
+
+/* ───── Reminders ───── */
+.remCount { padding: 0 20px 4px; font: 400 17px/22px var(--ios-font); color: var(--ios-label-2); }
+.remRow { display: flex; align-items: center; gap: 12px; padding: 0 14px 0 16px; position: relative; }
+.remRow + .remRow::before { content: ''; position: absolute; top: 0; left: 52px; right: 0; height: 0.5px; background: var(--ios-sep); }
+.remDot { position: relative; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--ios-gray3); background: none; padding: 0; display: grid; place-items: center; color: #fff; flex: none; cursor: pointer; transition: background 160ms, border-color 160ms; }
+.remDot::after { content: ''; position: absolute; inset: -11px; }
+.remDotOn { background: var(--ios-orange); border-color: var(--ios-orange); }
+.remText { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 0; background: none; padding: 14px 0; color: inherit; font: 400 17px/22px var(--ios-font); letter-spacing: -0.43px; text-align: left; cursor: pointer; min-height: 48px; }
+.remDone { color: var(--ios-label-3); text-decoration: line-through; }
+
+/* ───── Wallet ───── */
+.passWrap { padding: 8px 20px 18px; }
+.pass { border-radius: 20px; padding: 18px; color: #fff; background: linear-gradient(150deg, #2a2d3a 0%, #14151c 60%, #0b0c10 100%); box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3), inset 0 0 0 0.5px rgba(255, 255, 255, 0.18); display: grid; gap: 4px; }
+.passTop { display: flex; justify-content: space-between; font: 600 11px/14px var(--ios-font); letter-spacing: 1.2px; opacity: 0.7; }
+.passPhoto { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; margin: 12px 0 6px; }
+.passName { font: 700 26px/30px var(--ios-font); letter-spacing: 0.3px; }
+.passSub { font: 400 14px/19px var(--ios-font); opacity: 0.7; }
+.passRow { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; font: 500 14px/18px var(--ios-font); }
+.passRow small { display: block; font: 600 10px/14px var(--ios-font); letter-spacing: 1px; opacity: 0.55; }
+.walletBtns { display: grid; gap: 10px; padding: 0 20px; }

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Glyph } from './icons.jsx';
+import { usePhone } from './PhoneContext.js';
 import styles from './overlays.module.css';
 
 /* Control Center, laid out on the Figma "Control Center - iPhone" frame
@@ -34,9 +35,15 @@ function Slider({ left, top, value, onChange, children }) {
 }
 
 export default function ControlCenter({ open, onClose, theme, onTheme, brightness, onBrightness, onOpenApp }) {
-  const [on, setOn] = useState({ wifi: true, bt: true, cell: true, air: false, silent: true, rot: true, focus: false, drop: false, hot: false });
+  const { net, setNet, toast, exit } = usePhone();
+  const [local, setLocal] = useState({ silent: true, rot: true, focus: false, drop: false, hot: false, mirror: false });
+  // Connectivity is the phone's (the status bar shows it); the rest is local.
+  const on = { ...local, ...net };
   const [vol, setVol] = useState(0.45);
-  const flip = (k) => setOn((s) => ({ ...s, [k]: !s[k] }));
+  const flip = (k) => {
+    if (k in net) setNet({ ...net, [k]: !net[k] });
+    else setLocal((s) => ({ ...s, [k]: !s[k] }));
+  };
   const dark = theme === 'dark';
 
   return (
@@ -108,14 +115,16 @@ export default function ControlCenter({ open, onClose, theme, onTheme, brightnes
               <div className={styles.trackName} style={{ position: 'absolute', left: 14, top: 74 }}>Spotify</div>
               <div className={styles.trackName} style={{ position: 'absolute', left: 14, top: 92 }}>Tap to open</div>
               <div style={{ position: 'absolute', left: 0, right: 0, bottom: 14, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '0 20px' }}>
-                <Glyph name="backward" size={22} />
-                <Glyph name="play" size={26} />
-                <Glyph name="forward" size={22} />
+                {[['backward', 22, 'Previous'], ['play', 26, 'Play'], ['forward', 22, 'Next']].map(([g, sz, l]) => (
+                  <button key={g} type="button" aria-label={l} onClick={() => onOpenApp({ appKey: 'spotify', label: 'Spotify', custom: 'spotify' })} style={{ border: 0, background: 'none', color: 'inherit', padding: 6, cursor: 'pointer' }}>
+                    <Glyph name={g} size={sz} />
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* row of 70s: camera, silent mode */}
-            <button type="button" className={`${styles.tile} ${styles.round}`} aria-label="Camera" style={{ left: 37, top: 303, width: 70, height: 70, display: 'grid', placeItems: 'center' }}>
+            <button type="button" className={`${styles.tile} ${styles.round}`} aria-label="Camera" onClick={() => onOpenApp({ appKey: 'camera', label: 'Camera', icon: 'camera' })} style={{ left: 37, top: 303, width: 70, height: 70, display: 'grid', placeItems: 'center' }}>
               <Glyph name="camera" size={26} />
             </button>
             <button type="button" className={`${styles.tile} ${styles.round} ${on.silent ? styles.on : ''}`} aria-label="Silent mode" style={{ left: 122, top: 303, width: 70, height: 70, display: 'grid', placeItems: 'center', color: on.silent ? 'var(--ios-red)' : '#fff' }} onClick={() => flip('silent')}>
@@ -156,12 +165,18 @@ export default function ControlCenter({ open, onClose, theme, onTheme, brightnes
             <button type="button" className={`${styles.tile} ${styles.round} ${on.rot ? styles.on : ''}`} aria-label="Orientation lock" style={{ left: 209, top: 475, width: 70, height: 70, display: 'grid', placeItems: 'center', color: on.rot ? 'var(--ios-red)' : '#fff' }} onClick={() => flip('rot')}>
               <Glyph name="rotationLock" size={28} />
             </button>
-            <button type="button" className={`${styles.tile} ${styles.round}`} aria-label="Screen mirroring" style={{ left: 294, top: 475, width: 70, height: 70, display: 'grid', placeItems: 'center' }}>
+            <button type="button" className={`${styles.tile} ${styles.round} ${on.mirror ? styles.on : ''}`} aria-label="Screen mirroring" onClick={() => { flip('mirror'); toast(on.mirror ? 'Screen mirroring stopped' : 'Screen Mirroring: no displays found'); }} style={{ left: 294, top: 475, width: 70, height: 70, display: 'grid', placeItems: 'center' }}>
               <Glyph name="mirror" size={26} />
             </button>
-            <div className={`${styles.tile} ${styles.round}`} style={{ left: 209, top: 560, width: 70, height: 70, display: 'grid', placeItems: 'center', cursor: 'default' }}>
+            <button type="button" className={`${styles.tile} ${styles.round}`} aria-label="Battery" onClick={() => toast('Battery 100%')} style={{ left: 209, top: 560, width: 70, height: 70, display: 'grid', placeItems: 'center' }}>
               <Glyph name="battery" size={30} />
-            </div>
+            </button>
+            {exit && (
+              <button type="button" className={`${styles.tile} ${styles.round}`} aria-label="Back to the story" onClick={() => { onClose(); exit(); }} style={{ left: 37, top: 650, width: 327, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, font: "600 16px/20px var(--ios-font)" }}>
+                <Glyph name="up" size={18} />
+                Back to the story
+              </button>
+            )}
           </motion.div>
         </motion.div>
       )}

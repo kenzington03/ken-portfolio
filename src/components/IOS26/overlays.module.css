@@ -161,7 +161,7 @@
 .trackName { font: 510 15px/18px var(--ios-font); color: #afafaf; letter-spacing: -0.2px; }
 
 
-/* ─────────── The bar under the phone ─────────── */
+/* ─────────── (the bar under the phone was removed) ─────────── */
 .bar {
   position: fixed;
   left: 50%;
@@ -234,3 +234,43 @@
   font: 600 17px/22px var(--ios-font);
   cursor: pointer;
 }
+
+/* ─────────── App switcher ─────────── */
+.switcher { position: absolute; inset: 0; z-index: 80; background: rgba(0, 0, 0, 0.35); display: grid; grid-template-rows: 1fr auto auto; color: #fff; font-family: var(--ios-font); }
+.swRow { display: flex; gap: 22px; align-items: center; overflow-x: auto; overflow-y: visible; padding: 120px 76px 0; scroll-snap-type: x mandatory; scrollbar-width: none; touch-action: pan-x; }
+.swRow::-webkit-scrollbar { display: none; }
+.swCard { flex: 0 0 250px; scroll-snap-align: center; display: grid; gap: 10px; }
+.swHead { display: flex; align-items: center; gap: 8px; justify-content: center; font: 600 15px/20px var(--ios-font); }
+.swHeadIcon { width: 24px; height: 24px; display: block; }
+.swBody { position: relative; width: 250px; height: 480px; border: 0; padding: 0; border-radius: 34px; overflow: hidden; display: grid; place-content: center; justify-items: center; gap: 16px; background: linear-gradient(170deg, rgba(255,255,255,0.3), rgba(255,255,255,0.12)); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35), 0 18px 40px rgba(0, 0, 0, 0.35); color: #fff; cursor: pointer; touch-action: none; }
+.swIcon { width: 96px; height: 96px; display: block; filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.3)); }
+.swName { font: 600 20px/24px var(--ios-font); text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35); }
+.swHint { text-align: center; font: 400 13px/18px var(--ios-font); color: rgba(255, 255, 255, 0.7); padding-bottom: 8px; }
+.swClear { justify-self: center; margin-bottom: 52px; border: 0; border-radius: 100px; padding: 10px 20px; min-height: 44px; background: rgba(255, 255, 255, 0.2); color: #fff; font: 600 15px/20px var(--ios-font); cursor: pointer; }
+
+/* ─────────── Search ─────────── */
+.search { position: absolute; inset: 0; z-index: 85; background: rgba(0, 0, 0, 0.32); color: #fff; font-family: var(--ios-font); padding-top: 78px; display: flex; flex-direction: column; }
+.searchTop { display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+.searchField { flex: 1; height: 44px; border-radius: 100px; display: flex; align-items: center; gap: 8px; padding: 0 14px; background: rgba(255, 255, 255, 0.22); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.3); }
+.searchField input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: #fff; font: 400 17px/22px var(--ios-font); }
+.searchField input::placeholder { color: rgba(255, 255, 255, 0.65); }
+.searchCancel { border: 0; background: none; color: #fff; font: 400 17px/22px var(--ios-font); padding: 10px 4px; min-height: 44px; cursor: pointer; }
+.searchSugg { padding: 22px 20px; }
+.searchHead { font: 600 13px/18px var(--ios-font); color: rgba(255, 255, 255, 0.75); padding-bottom: 12px; }
+.searchGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.searchApp { display: grid; justify-items: center; gap: 6px; border: 0; background: none; color: #fff; font: 510 12px/14px var(--ios-font); cursor: pointer; text-shadow: 0 2px 14px #000; }
+.searchBig { width: 60px; height: 60px; display: block; }
+.searchList { margin: 18px 16px 0; border-radius: 18px; background: rgba(255, 255, 255, 0.16); overflow: hidden; box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25); }
+.searchRow { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: none; padding: 10px 14px; min-height: 56px; color: #fff; font: 400 17px/22px var(--ios-font); text-align: left; cursor: pointer; position: relative; }
+.searchRow + .searchRow::before { content: ''; position: absolute; top: 0; left: 60px; right: 0; height: 0.5px; background: rgba(255, 255, 255, 0.25); }
+.searchIcon { width: 36px; height: 36px; display: block; flex: none; }
+.searchEmpty { padding: 18px; text-align: center; color: rgba(255, 255, 255, 0.75); }
+
+/* ─────────── Toast ─────────── */
+.toast { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9500; max-width: 330px; padding: 10px 18px; border-radius: 100px; background: rgba(28, 28, 30, 0.92); color: #fff; font: 590 14px/18px -apple-system, 'SF Pro', system-ui, sans-serif; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 0 0 0.5px rgba(255, 255, 255, 0.18); pointer-events: none; }
+
+/* ─────────── Edge gestures (invisible strips) ─────────── */
+.edgeBottom { position: absolute; left: 0; right: 0; bottom: 0; height: 34px; z-index: 9000; touch-action: none; cursor: grab; }
+.edgeBottom::after { content: ''; position: absolute; left: 50%; bottom: 8px; width: 144px; height: 5px; margin-left: -72px; border-radius: 100px; background: #fff; mix-blend-mode: difference; }
+.edgeLeft { position: absolute; left: 0; top: 96px; bottom: 44px; width: 18px; z-index: 9000; touch-action: none; }
+.backHint { position: absolute; left: 0; top: 50%; width: 44px; height: 44px; margin-top: -22px; z-index: 9100; border-radius: 50%; display: grid; place-items: center; background: rgba(40, 40, 44, 0.85); color: #fff; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); pointer-events: none; }
