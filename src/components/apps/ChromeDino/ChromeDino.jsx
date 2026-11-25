@@ -293,8 +293,10 @@ export default function ChromeDino({ mobile = false }) {
     >
       {mobile ? (
         <div className={styles.offline}>
-          <p className={styles.offlineTitle}>You Are Not Connected to the Internet</p>
-          <p className={styles.offlineText}>This page can’t be displayed because your iPhone is not connected to the internet. Tap to jump the cacti while you wait.</p>
+          {/* The Wi-Fi bars up top say it is online, so the old "not connected"
+              page contradicted the screen. It is a game, and says so. */}
+          <p className={styles.offlineTitle}>Dino Run</p>
+          <p className={styles.offlineText}>Tap to jump the cacti. How far can you get?</p>
         </div>
       ) : (
         <div className={styles.chromeBar}>

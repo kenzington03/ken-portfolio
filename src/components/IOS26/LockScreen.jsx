@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import StatusBar from './StatusBar.jsx';
 import useClock from '../../hooks/useClock.js';
-import { ICON, NOTIFICATIONS } from './apps.js';
+import AppTile from './AppTile.jsx';
+import { NOTIFICATIONS } from './apps.js';
 import { Glyph } from './icons.jsx';
 import styles from './ios26.module.css';
 
@@ -69,6 +70,7 @@ export default function LockScreen({
   dark = false,
   unlocked = false,
   dragY = 0,
+  under = false,
   onNotifTap,
   onStatusTap,
 }) {
@@ -87,7 +89,7 @@ export default function LockScreen({
 
   return (
     <div
-      className={`${styles.lock} ${showNotifications ? styles.lockNotifs : ''}`}
+      className={`${styles.lock} ${showNotifications ? styles.lockNotifs : ''} ${under ? styles.under : ''}`}
       style={
         unlocked
           ? { transform: 'translateY(-100%)', opacity: 0, pointerEvents: 'none' }
@@ -153,7 +155,9 @@ export default function LockScreen({
               style={{ animationDelay: `${i * 70}ms` }}
               onClick={() => onNotifTap?.(n)}
             >
-              <img className={styles.notifIcon} src={ICON(n.icon)} alt="" />
+              <div className={styles.notifIcon}>
+                <AppTile app={n} />
+              </div>
               <div className={styles.notifText}>
                 <div className={styles.notifTitle}>{n.title}</div>
                 <div className={styles.notifDesc}>{n.body}</div>
@@ -166,7 +170,9 @@ export default function LockScreen({
               <div className={`${styles.peek} ${styles.peek2} ${styles.glass} ${styles.glassBlur}`} />
               <div className={`${styles.peek} ${styles.peek1} ${styles.glass} ${styles.glassBlur}`} />
               <div className={`${styles.glass} ${styles.glassBlur}`} style={{ position: 'absolute', inset: '0 0 14.33px 0', borderRadius: 24 }} />
-              <img className={styles.notifIcon} src={ICON(stacked.icon)} alt="" style={{ position: 'relative' }} />
+              <div className={styles.notifIcon} style={{ position: 'relative' }}>
+                <AppTile app={stacked} />
+              </div>
               <div className={styles.notifText} style={{ position: 'relative' }}>
                 <div className={styles.notifTitle}>{stacked.title}</div>
                 <div className={styles.notifDesc}>{stacked.body}</div>

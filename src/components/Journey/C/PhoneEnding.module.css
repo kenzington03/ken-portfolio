@@ -1,9 +1,9 @@
-/* The phone ending: an iPhone 17 Pro (iOS 26) in a dark room, words above it,
-   then in. Geometry comes from PhoneEnding.jsx as CSS variables (px). */
+/* The phone ending: an iPhone 17 Pro (iOS 26) in a dark room, whole. Geometry
+   comes from PhoneEnding.jsx as CSS variables (px). */
 
 .runway {
   position: relative;
-  height: 400vh;
+  height: 300vh;
   /* Starts as the deck un-pins, so the device is there the moment the lights
      are out (same trick as the Mac runway). */
   margin-top: -100vh;
@@ -18,86 +18,33 @@
   overflow: hidden;
 }
 
-.glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(80% 40% at 50% calc(var(--top) + 30%), color-mix(in srgb, var(--c) 30%, transparent), transparent 72%);
-}
-
-/* Word + line sit centred in the space between the top bar and the phone. */
-.words {
-  position: absolute;
-  top: 64px;
-  left: 0;
-  right: 0;
-  height: calc(var(--top) - 64px - 12px);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  perspective: 800px;
-}
-
-.chapter {
-  grid-area: 1 / 1;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 0 18px;
-  transform-origin: 50% 50%;
-  backface-visibility: hidden;
-  will-change: transform, opacity;
-}
-
-.word {
-  font-family: 'Big Shoulders', 'Cabinet Grotesk', sans-serif;
-  font-size: clamp(54px, 19vw, 92px);
-  font-weight: 900;
-  font-variation-settings: 'opsz' 72;
-  line-height: 0.82;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-}
-
-.caption {
-  max-width: 26ch;
-  font: 500 15px/1.35 'Instrument Sans', 'Satoshi', -apple-system, sans-serif;
-  text-align: center;
-  color: rgba(236, 236, 233, 0.86);
-  text-wrap: balance;
-}
-
-/* Each word rises out of a blur in the chapter's colour and settles to
-   white; --p (0..1) comes from the scroll, --i is the word's place. */
-.captionWord {
-  --t: clamp(0, calc((var(--p) * (var(--n) + 3) - var(--i)) / 3), 1);
-  display: inline-block;
-  white-space: pre;
-  opacity: var(--t);
-  filter: blur(calc((1 - var(--t)) * 8px));
-  transform: translate3d(0, calc((1 - var(--t)) * 0.7em), 0);
-  color: color-mix(in srgb, var(--c) clamp(0%, calc((1 - var(--t)) * 140%), 100%), rgba(236, 236, 233, 0.9));
-}
-
 /* The phone: the Figma kit's iPhone 17 Pro bezel around a still copy of the
-   real lock screen (IOS26Phone, drawn at this size). It scales up from its
-   top centre until its screen fills the viewport. */
+   real lock screen (IOS26Phone, drawn at this size). */
 .device {
   position: absolute;
   left: var(--left);
   top: var(--top);
   width: var(--w);
   height: var(--h);
-  transform-origin: 50% 0;
-  filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.55));
+  transform-origin: 50% 50%;
+}
+
+/* The phone's shadow: a box behind it, not a `filter` (Safari drops every
+   backdrop-filter inside a filtered element). */
+.shadow {
+  position: absolute;
+  left: 3%;
+  top: 2%;
+  width: 94%;
+  height: 96%;
+  border-radius: calc(58px * var(--k));
+  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 }
 
 /* The phone before it wakes: the display, black. */
 .boot {
   position: absolute;
-  left: calc(24px * var(--k));
-  top: calc(23px * var(--k));
-  width: calc(402px * var(--k));
-  height: calc(874px * var(--k));
   border-radius: calc(54px * var(--k));
   background: #000;
   pointer-events: none;

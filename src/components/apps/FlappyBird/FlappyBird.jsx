@@ -129,12 +129,32 @@ function drawPipe(ctx, x, gapY, gap, canvasH) {
   const capW = PIPE_W + 8;
   const capX = x - (capW - PIPE_W) / 2;
 
-  drawPipeBody(ctx, x, 0, PIPE_W, gapY - capH);
+  drawPipeBody(ctx, x, -1400, PIPE_W, gapY - capH + 1400);
   drawPipeCap(ctx, capX, gapY - capH, capW, capH);
 
   const botY = gapY + gap;
   drawPipeCap(ctx, capX, botY, capW, capH);
   drawPipeBody(ctx, x, botY + capH, PIPE_W, canvasH - botY - capH);
+}
+
+function cloud(ctx, cx, cy, r) {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.arc(cx + r * 1.1, cy - r * 0.35, r * 0.8, 0, Math.PI * 2);
+  ctx.arc(cx + r * 2.1, cy, r * 0.9, 0, Math.PI * 2);
+  ctx.arc(cx + r * 1.05, cy + r * 0.2, r * 0.9, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function pill(ctx, x, y, w, h) {
+  const r = h / 2;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
 // Distant hill silhouette, scrolling slower than the pipes for parallax
@@ -229,9 +249,33 @@ export default function FlappyBird({ mobile = false }) {
     if (!canvas) return undefined;
     const ctx = canvas.getContext('2d');
     let raf;
+    // Phone: the canvas fills its box (the whole screen) at its real pixel
+    // density, instead of a 360x520 picture stretched over it, which is what
+    // made it soft. The board keeps its shape and stands on the bottom edge;
+    // the sky carries on above it.
+    const view = { w: W, h: H, dpr: 1, k: 1 };
+    let sky = null;
+    const fit = () => {
+      if (!mobile) return;
+      const w = canvas.clientWidth || W;
+      const h = canvas.clientHeight || H;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      view.w = w;
+      view.h = h;
+      view.dpr = dpr;
+      view.k = Math.min(w / W, h / H);
+      sky = null;
+    };
+    fit();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
+    ro?.observe(canvas);
 
+    let tick = 0;
     const loop = () => {
       const s = stateRef.current;
+      tick += 1;
 
       if (started && !gameOver) {
         const level = levelForScore(s.score);
@@ -274,24 +318,34 @@ export default function FlappyBird({ mobile = false }) {
         }
       }
 
-      // sky
-      ctx.fillStyle = BG_SKY;
-      ctx.fillRect(0, 0, W, H);
+      // sky: a gradient over the whole canvas, then the board on the bottom edge
+      if (mobile) {
+        ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+        if (!sky) {
+          sky = ctx.createLinearGradient(0, 0, 0, view.h);
+          sky.addColorStop(0, '#2f9fe0');
+          sky.addColorStop(0.7, '#8fd6f0');
+          sky.addColorStop(1, '#c6ecf5');
+        }
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, view.w, view.h);
+        ctx.setTransform(view.dpr * view.k, 0, 0, view.dpr * view.k, view.dpr * ((view.w - W * view.k) / 2), view.dpr * (view.h - H * view.k));
+      } else {
+        ctx.fillStyle = BG_SKY;
+        ctx.fillRect(0, 0, W, H);
+      }
 
-      // clouds (static decorative)
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      [[60, 80], [180, 50], [290, 100]].forEach(([cx, cy]) => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, 20, 0, Math.PI * 2);
-        ctx.arc(cx + 22, cy - 6, 16, 0, Math.PI * 2);
-        ctx.arc(cx + 42, cy, 18, 0, Math.PI * 2);
-        ctx.fill();
+      // clouds drift left at their own speeds (slower the higher and further)
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      [[40, 90, 17, 0.12], [210, 48, 13, 0.08], [300, 130, 11, 0.15], [120, -50, 15, 0.06], [260, -150, 18, 0.05], [60, -250, 14, 0.07]].forEach(([bx, cy, r, sp]) => {
+        const cx = ((bx - s.frame * sp - tick * sp * 0.4) % (W + 140) + (W + 140)) % (W + 140) - 70;
+        cloud(ctx, cx, cy, r);
       });
 
       drawHills(ctx, s.hillX);
       s.pipes.forEach((p) => drawPipe(ctx, p.x, p.gapY, p.gap, H - GROUND_H));
       drawGround(ctx, s.groundX);
-      drawBird(ctx, s.birdY, s.birdV, s.frame);
+      drawBird(ctx, started ? s.birdY : s.birdY + Math.sin(tick / 14) * 5, s.birdV, started ? s.frame : tick);
 
       // score
       ctx.fillStyle = '#fff';
@@ -311,20 +365,24 @@ export default function FlappyBird({ mobile = false }) {
       }
 
       if (!started && !gameOver) {
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        ctx.fillRect(W / 2 - 110, H / 2 - 22, 220, 44);
+        ctx.fillStyle = 'rgba(20,30,50,0.55)';
+        pill(ctx, W / 2 - 84, H / 2 + 22, 168, 42);
+        ctx.fill();
         ctx.fillStyle = '#fff';
-        ctx.font = '15px system-ui';
+        ctx.font = '600 16px -apple-system, system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(mobile ? 'Tap to start' : 'Click or Space to start', W / 2, H / 2 + 5);
+        ctx.fillText(mobile ? 'Tap to start' : 'Click or Space to start', W / 2, H / 2 + 49);
       }
 
       raf = requestAnimationFrame(loop);
     };
 
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [started, gameOver]);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+    };
+  }, [started, gameOver, mobile]);
 
   useEffect(() => {
     // While the game-over overlay is up, Space belongs to the name-entry
@@ -352,8 +410,8 @@ export default function FlappyBird({ mobile = false }) {
     >
       <canvas
         ref={canvasRef}
-        width={W}
-        height={H}
+        width={mobile ? undefined : W}
+        height={mobile ? undefined : H}
         className={styles.canvas}
         onClick={mobile ? undefined : flap}
         aria-label="Flappy Bird game"

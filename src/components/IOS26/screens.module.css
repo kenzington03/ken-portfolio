@@ -1,0 +1,229 @@
+/* App screens: Notes, Contacts, Photos, Camera, Safari, Settings, Clock,
+   Calendar, Tips, links. All colours from tokens.css, so Light and Dark are
+   the kit's, and they follow the phone's appearance. */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ios-bg);
+  color: var(--ios-label);
+  font-family: var(--ios-font);
+  overflow: hidden;
+}
+.grouped { background: var(--ios-grouped); }
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-width: none;
+  padding-bottom: 56px;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* the bar under the status bar: a back link on the left */
+.nav {
+  flex: none;
+  height: 44px;
+  margin-top: 62px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  padding: 8px 6px;
+  margin-left: -2px;
+  color: var(--accent, var(--ios-blue));
+  font: 400 17px/22px var(--ios-font);
+  letter-spacing: -0.43px;
+  cursor: pointer;
+  min-height: 44px;
+}
+.largeTitle { font: 700 34px/41px var(--ios-font); letter-spacing: 0.4px; padding: 0 20px 8px; }
+
+/* ───── Notes ───── */
+.notes { --accent: #e0a800; }
+[data-theme='dark'] .notes { --accent: var(--ios-yellow); }
+.noteDate { text-align: center; font: 400 12px/16px var(--ios-font); color: var(--ios-label-3); padding: 6px 20px 14px; }
+.noteBody { padding: 0 20px; }
+.noteTitle { font: 700 28px/34px var(--ios-font); letter-spacing: 0.38px; margin: 0 0 8px; }
+.noteP { font: 400 17px/24px var(--ios-font); letter-spacing: -0.43px; margin: 0 0 14px; }
+.noteH { font: 700 20px/25px var(--ios-font); letter-spacing: -0.45px; margin: 22px 0 8px; }
+.noteRole { font: 600 17px/22px var(--ios-font); letter-spacing: -0.43px; margin: 12px 0 0; }
+.noteOrg { font: 400 15px/20px var(--ios-font); color: var(--ios-label-2); margin: 1px 0 0; }
+.attach {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--ios-fill-3);
+  color: inherit;
+  text-decoration: none;
+}
+.attachIcon { width: 40px; height: 48px; border-radius: 6px; background: #fff; color: #e5362e; display: grid; place-items: center; font: 800 11px/1 var(--ios-font); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12); flex: none; }
+.attachText { min-width: 0; }
+.attachName { font: 600 15px/20px var(--ios-font); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attachSub { font: 400 13px/18px var(--ios-font); color: var(--ios-label-2); }
+.link { color: var(--ios-blue); text-decoration: none; }
+
+/* ───── Contacts ───── */
+.contactTop { display: grid; justify-items: center; gap: 4px; padding: 6px 20px 18px; }
+.avatar { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 0.5px var(--ios-sep); }
+.contactName { font: 700 28px/34px var(--ios-font); letter-spacing: 0.38px; margin-top: 8px; }
+.contactSub { font: 400 15px/20px var(--ios-font); color: var(--ios-label-2); }
+.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 16px 16px; }
+.action {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 0 8px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ios-bg-2);
+  color: var(--ios-blue);
+  font: 500 11px/13px var(--ios-font);
+  text-decoration: none;
+  cursor: pointer;
+  min-height: 62px;
+}
+.group { margin: 0 16px 16px; border-radius: 12px; background: var(--ios-grouped-2); overflow: hidden; }
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 16px;
+  border: 0;
+  width: 100%;
+  background: none;
+  text-align: left;
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+  position: relative;
+}
+.row + .row::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: var(--ios-sep); }
+.rowLabel { font: 400 13px/18px var(--ios-font); color: var(--ios-label-2); }
+.rowValue { font: 400 17px/22px var(--ios-font); letter-spacing: -0.43px; color: var(--ios-blue); }
+.rowValueText { color: var(--ios-label); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 16px 14px; }
+.chip { padding: 5px 11px; border-radius: 100px; background: var(--ios-fill-3); font: 500 13px/18px var(--ios-font); }
+
+/* ───── Photos ───── */
+.photosGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; }
+.photo { position: relative; aspect-ratio: 1; border: 0; padding: 0; background: var(--ios-gray5); overflow: hidden; cursor: pointer; }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo:active { opacity: 0.75; }
+.photosFoot { text-align: center; padding: 14px 20px 8px; font: 400 17px/22px var(--ios-font); color: var(--ios-label); }
+.photosFoot small { display: block; font: 400 13px/18px var(--ios-font); color: var(--ios-label-2); }
+
+/* ───── Camera ───── */
+.camera { background: #000; color: #fff; }
+.viewfinder { position: relative; margin: 62px 0 0; flex: 1; min-height: 0; background: #0b0b0d; overflow: hidden; border-radius: 0 0 22px 22px; display: grid; place-items: center; }
+.viewfinder video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.camMsg { position: relative; text-align: center; padding: 0 28px; font: 400 15px/20px var(--ios-font); color: rgba(255, 255, 255, 0.7); display: grid; gap: 12px; justify-items: center; }
+.pill { border: 0; border-radius: 100px; padding: 9px 18px; background: rgba(255, 255, 255, 0.16); color: #fff; font: 600 15px/20px var(--ios-font); cursor: pointer; min-height: 44px; }
+.camBar { flex: none; height: 168px; display: grid; grid-template-rows: 40px 1fr; padding-bottom: 46px; }
+.modes { display: flex; justify-content: center; gap: 22px; align-items: center; font: 600 13px/16px var(--ios-font); letter-spacing: 0.5px; color: rgba(255, 255, 255, 0.7); }
+.modes b { color: #ffd60a; font-weight: 700; }
+.shutterRow { display: flex; align-items: center; justify-content: space-between; padding: 0 34px; }
+.thumb { width: 46px; height: 46px; border-radius: 10px; background: center / cover #222; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.5); }
+.shutter { width: 72px; height: 72px; border-radius: 50%; border: 4px solid #fff; background: none; padding: 0; position: relative; cursor: pointer; }
+.shutter::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: #fff; transition: transform 120ms; }
+.shutter:active::after { transform: scale(0.88); }
+.flip { width: 46px; height: 46px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.16); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.flash { position: absolute; inset: 0; background: #fff; pointer-events: none; }
+
+/* ───── Safari ───── */
+.safari { background: var(--ios-grouped); }
+.favGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 6px; padding: 8px 14px 24px; }
+.fav { display: grid; justify-items: center; gap: 6px; border: 0; background: none; padding: 0; color: inherit; font: 400 11px/13px var(--ios-font); cursor: pointer; text-decoration: none; }
+.favIcon { width: 58px; height: 58px; }
+.favLabel { max-width: 70px; text-align: center; color: var(--ios-label); }
+.addrBar {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 30px;
+  height: 46px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--ios-bg-elevated);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18), inset 0 0 0 0.5px var(--ios-sep);
+  font: 400 15px/20px var(--ios-font);
+}
+.addrBar svg { color: var(--ios-label-2); }
+
+/* ───── Settings ───── */
+.profile { display: flex; align-items: center; gap: 14px; margin: 6px 16px 18px; padding: 12px 16px; border-radius: 12px; background: var(--ios-grouped-2); }
+.profileAvatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex: none; }
+.profileName { font: 500 20px/25px var(--ios-font); letter-spacing: -0.45px; }
+.profileSub { font: 400 13px/18px var(--ios-font); color: var(--ios-label-2); }
+.sectionHead { font: 400 13px/18px var(--ios-font); letter-spacing: -0.08px; color: var(--ios-label-2); text-transform: uppercase; padding: 0 32px 6px; }
+.appearance { display: flex; justify-content: center; gap: 44px; padding: 16px 16px 14px; }
+.look { display: grid; justify-items: center; gap: 8px; border: 0; background: none; padding: 0; color: var(--ios-label); font: 400 13px/18px var(--ios-font); cursor: pointer; }
+.lookThumb { width: 88px; height: 150px; border-radius: 14px; box-shadow: inset 0 0 0 0.5px var(--ios-sep); background-size: cover; position: relative; overflow: hidden; }
+.lookThumb::after { content: ''; position: absolute; left: 14px; right: 14px; top: 20px; height: 8px; border-radius: 4px; background: currentColor; opacity: 0.18; }
+.lookLight { background: linear-gradient(180deg, #dff3ff, #ffffff); color: #000; }
+.lookDark { background: linear-gradient(180deg, #14213d, #000000); color: #fff; }
+.tick { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--ios-gray3); display: grid; place-items: center; color: #fff; }
+.tickOn { background: var(--ios-blue); border-color: var(--ios-blue); }
+.settingsRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border: 0; width: 100%; background: none; color: inherit; font: 400 17px/22px var(--ios-font); letter-spacing: -0.43px; text-align: left; position: relative; cursor: pointer; }
+.settingsRow + .settingsRow::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: var(--ios-sep); }
+.settingsVal { color: var(--ios-label-2); }
+
+/* ───── Clock ───── */
+.clockRow { display: flex; align-items: baseline; justify-content: space-between; padding: 12px 20px; position: relative; }
+.clockRow + .clockRow::before { content: ''; position: absolute; top: 0; left: 20px; right: 0; height: 0.5px; background: var(--ios-sep); }
+.clockCity { font: 400 22px/28px var(--ios-font); letter-spacing: -0.26px; }
+.clockDay { font: 400 13px/18px var(--ios-font); color: var(--ios-label-2); }
+.clockTime { font: 200 48px/52px var(--ios-font); letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.clockAmpm { font: 300 20px/24px var(--ios-font); margin-left: 4px; }
+
+/* ───── Calendar ───── */
+.calHead { display: flex; align-items: baseline; justify-content: space-between; padding: 0 20px 6px; }
+.calMonth { font: 700 34px/41px var(--ios-font); letter-spacing: 0.4px; color: var(--ios-red); }
+.calYear { font: 400 17px/22px var(--ios-font); color: var(--ios-label-2); }
+.calGrid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 12px; row-gap: 8px; text-align: center; }
+.calDow { font: 500 11px/14px var(--ios-font); color: var(--ios-label-2); padding-bottom: 4px; }
+.calDay { height: 38px; display: grid; place-items: center; font: 400 19px/24px var(--ios-font); position: relative; }
+.calDay i { position: absolute; width: 34px; height: 34px; border-radius: 50%; }
+.calToday { color: #fff; }
+.calToday i { background: var(--ios-red); z-index: 0; }
+.calToday span { position: relative; z-index: 1; font-weight: 600; }
+.calMuted { color: var(--ios-label-4); }
+.bookCard { margin: 18px 16px 0; padding: 16px; border-radius: 16px; background: var(--ios-bg-2); display: grid; gap: 4px; }
+.bookTitle { font: 600 17px/22px var(--ios-font); }
+.bookSub { font: 400 15px/20px var(--ios-font); color: var(--ios-label-2); margin-bottom: 10px; }
+.primary { display: block; width: 100%; box-sizing: border-box; text-align: center; border: 0; border-radius: 14px; padding: 13px; background: var(--ios-blue); color: #fff; font: 600 17px/22px var(--ios-font); letter-spacing: -0.43px; text-decoration: none; cursor: pointer; min-height: 48px; }
+.secondary { display: block; width: 100%; box-sizing: border-box; text-align: center; border: 0; border-radius: 14px; padding: 13px; background: var(--ios-fill-3); color: var(--ios-blue); font: 500 17px/22px var(--ios-font); cursor: pointer; text-decoration: none; min-height: 48px; }
+
+/* ───── Tips ───── */
+.tips { display: grid; gap: 18px; padding: 8px 20px 24px; }
+.tip { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+.tipIcon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; color: #fff; }
+.tipTitle { font: 600 16px/21px var(--ios-font); letter-spacing: -0.31px; }
+.tipText { font: 400 14px/19px var(--ios-font); color: var(--ios-label-2); margin-top: 1px; }
+
+/* ───── Link apps ───── */
+.linkWrap { flex: 1; display: grid; align-content: center; justify-items: center; gap: 8px; padding: 0 28px 70px; text-align: center; }
+.linkIcon { width: 96px; height: 96px; margin-bottom: 8px; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.25)); }
+.linkName { font: 700 28px/34px var(--ios-font); letter-spacing: 0.38px; }
+.linkHandle { font: 400 17px/22px var(--ios-font); color: var(--ios-label-2); }
+.linkLine { font: 400 15px/20px var(--ios-font); color: var(--ios-label-2); margin: 8px 0 18px; max-width: 280px; }
+.linkBtns { display: grid; gap: 10px; width: 100%; max-width: 300px; }

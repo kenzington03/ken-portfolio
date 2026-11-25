@@ -10,6 +10,8 @@ import MobileGame from './MobileGame.jsx';
 import SpotifyApp from './SpotifyApp.jsx';
 import { Brief } from '../Brief/BriefSheet.jsx';
 import { paletteStyle, readPalette } from '../Journey/C/palette.js';
+import { SCREENS, DARK_SCREENS } from '../IOS26/screens.jsx';
+import { usePhone } from '../IOS26/PhoneContext.js';
 import styles from './AppSheet.module.css';
 
 /* The brief, as an app: the same form as the page, on paper. */
@@ -444,7 +446,8 @@ function HomeIndicator({ tone, onClose }) {
   );
 }
 
-export default function AppSheet({ app, onClose }) {
+export default function AppSheet({ app, onClose, closeRequest = 0 }) {
+  const { theme } = usePhone();
   const [shown, setShown] = useState(null);
   const [closing, setClosing] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -455,6 +458,12 @@ export default function AppSheet({ app, onClose }) {
     setClosing(false);
     setSelectedProject(null);
   }, [app]);
+
+  // The phone asks it to close (Home / Back / the browser's Back): it closes the
+  // same way a swipe would, so there is one animation, not a cut.
+  useEffect(() => {
+    if (closeRequest) setClosing(true);
+  }, [closeRequest]);
 
   useEffect(() => {
     if (!shown) return undefined;
@@ -470,12 +479,17 @@ export default function AppSheet({ app, onClose }) {
   const close = () => setClosing(true);
   const appKey = shown.appKey;
   const immersive = IMMERSIVE.has(appKey);
-  const tone = LIGHT.has(appKey) ? 'dark' : 'light';
+  const Screen = !selectedProject ? SCREENS[appKey] : null;
+  // Themed screens (Notes, Contacts, Settings...) draw their own page and follow
+  // the phone's Light / Dark; their status bar glyphs have to as well.
+  const tone = Screen ? (DARK_SCREENS.has(appKey) || theme === 'dark' ? 'light' : 'dark') : LIGHT.has(appKey) ? 'dark' : 'light';
   const clip = iconClip(shown.rect);
 
   let content = null;
   let title = shown.label;
-  if (selectedProject) {
+  if (Screen) {
+    content = <Screen />;
+  } else if (selectedProject) {
     content = <ProjectDetail project={selectedProject} />;
     title = selectedProject.name;
   } else if (appKey === 'about') {
@@ -513,7 +527,8 @@ export default function AppSheet({ app, onClose }) {
 
   return (
     <motion.div
-      className={`${styles.app} ${tone === 'dark' ? styles.appLight : ''}`}
+      className={`${styles.app} ${!Screen && tone === 'dark' ? styles.appLight : ''}`}
+      style={Screen ? { background: DARK_SCREENS.has(appKey) ? '#000' : 'var(--ios-bg)' } : undefined}
       initial={{ clipPath: clip }}
       animate={{ clipPath: closing ? clip : 'inset(0px 0px 0px 0px round 0px)' }}
       transition={SPRING}
@@ -535,21 +550,32 @@ export default function AppSheet({ app, onClose }) {
         transition={closing ? { duration: 0.22 } : { ...SPRING, opacity: { duration: 0.28, delay: 0.1 } }}
       >
         <StatusBar tone={tone} />
-        {/* the bar floats on the iOS 26 screen, so the page starts below it */}
-        <div style={{ height: 62, flexShrink: 0 }} />
-        {immersive ? (
-          <div className={styles.immersive}>{content}</div>
+        {Screen ? (
+          content
+        ) : immersive ? (
+          <>
+            {/* the bar floats on the iOS 26 screen, so the page starts below it */}
+            <div style={{ height: 62, flexShrink: 0 }} />
+            <div className={styles.immersive}>{content}</div>
+            {/* a way home that is always there: a swipe is easy to miss, and in a
+                browser the bottom edge belongs to Safari */}
+            <button type="button" className={styles.homePill} onClick={close}>
+              <svg width="9" height="15" viewBox="0 0 12 20" fill="none" aria-hidden><path d="M10 2L2 10l8 8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              Home
+            </button>
+          </>
         ) : (
           <>
+            <div style={{ height: 62, flexShrink: 0 }} />
             <header className={styles.nav}>
-              {selectedProject && (
-                <button type="button" className={styles.back} onClick={() => setSelectedProject(null)}>
-                  <svg width="12" height="20" viewBox="0 0 12 20" fill="none" aria-hidden>
-                    <path d="M10 2L2 10l8 8" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {shown.label}
-                </button>
-              )}
+              {/* Always a way back on the screen itself: to the list when a project is
+                  open inside an app, otherwise home. */}
+              <button type="button" className={styles.back} onClick={() => (selectedProject ? setSelectedProject(null) : close())}>
+                <svg width="12" height="20" viewBox="0 0 12 20" fill="none" aria-hidden>
+                  <path d="M10 2L2 10l8 8" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {selectedProject ? shown.label : 'Home'}
+              </button>
               <h1 className={styles.largeTitle}>{title}</h1>
             </header>
             <div className={styles.contentArea}>{content}</div>

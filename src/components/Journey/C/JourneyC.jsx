@@ -392,9 +392,15 @@ const HOOP_SHOT = {
   e: 0.36, // each bounce on the line, of the last
 };
 const HOOP_STAGE = 0.3; // the hoop's size, a share of vh
-// Portrait screens hang it lower, clear of the top bar (the board stands
-// well above the rim).
-const rimShare = () => (window.innerHeight > window.innerWidth * 1.2 ? 0.42 : HOOP_SHOT.rimY);
+const isPortrait = () => window.innerHeight > window.innerWidth * 1.2;
+// On a phone the hoop is smaller (it was three times as wide as the ball was
+// round), and hangs lower, clear of the top bar (the board stands well above
+// the rim).
+const hoopStage = () => (isPortrait() ? 0.19 : HOOP_STAGE);
+const rimShare = () => (isPortrait() ? 0.4 : HOOP_SHOT.rimY);
+// The ball's width in the shot: about half the rim's, so it reads as a ball
+// going through a hoop (the rim is about 0.54 of the hoop's stage).
+const shotBall = (vh, heroD) => (isPortrait() ? Math.max(heroD, vh * hoopStage() * 0.32) : heroD);
 // The bounces on the line: [how long, how high (a share of vh)] each.
 const LINE_BOUNCES = [
   [0.055, 0.05],
@@ -407,7 +413,7 @@ function hoopShotAt(b, { x0, y0, cx, vh, yL }) {
   const S = HOOP_SHOT;
   const rimY = vh * rimShare();
   const apexY = vh * S.apex;
-  const netY = rimY + vh * HOOP_STAGE * NET_FOOT;
+  const netY = rimY + vh * hoopStage() * NET_FOOT;
   const tilt = smooth01(within(b, S.tilt)) * vh;
   const T = S.rim - S.launch;
   const k1 = Math.sqrt(Math.max(1, y0 - apexY));
@@ -810,7 +816,9 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
           y = s.y;
           rimT = s.rimT;
           // Its own size all the way up and in; the knob's as it lands.
-          size = heroD * (1 - s.down) + knobD * s.down;
+          // Bigger through the shot (so it reads against the hoop), then back to
+          // the small chrome ball as it lands.
+          size = (heroD + (shotBall(vh, heroD) - heroD) * s.air) * (1 - s.down) + knobD * s.down;
           floor = 1 - smooth01(s.air * 4);
           // Orange to chrome, a step with every bounce.
           chrome = s.hits / BOUNCES;
@@ -863,7 +871,7 @@ function Cast({ progress, go, reduced, instant, phone, rootRef, tg, onScrollOn, 
         put(hf, 'hop2', 'opacity', String(k));
         if (k > 0) {
           // The rim (y 30 of the drawing's 120) on the shot's rim line.
-          const hs = vh * HOOP_STAGE;
+          const hs = vh * hoopStage();
           const tf = `translate3d(${(vw / 2 - hs / 2).toFixed(1)}px, ${(vh * rimShare() - hs * 0.25 + ho.y).toFixed(1)}px, 0) rotate(${ho.rot.toFixed(2)}deg)`;
           put(hb, 'htf', 'transform', tf);
           put(hf, 'htf2', 'transform', tf);
@@ -1202,6 +1210,7 @@ const REVEAL_END = 0.42; // where it rests, closed, waiting to be opened
 const HEART_REACH = 13.6;
 // What the closed Mac says, once it has been revealed. "|" breaks the line.
 const STORY_LINE = 'Open the laptop | to see the work.';
+const STORY_LINE_PHONE = 'Open the iPhone | to see the work.';
 // From here (as a share of "now"), the story is at its end (the idle hint).
 const END_FROM = 0.84;
 
@@ -1567,7 +1576,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // Phones: how far into the iPhone ending (0..1). The logo rests on the dark
   // screen until it lights up; the bar and links step aside as the phone grows.
   const phoneP = useMotionValue(0);
-  const chromeOut = useTransform(phoneP, (v) => 1 - within(v, [0.8, 0.9]));
+  const chromeOut = useTransform(phoneP, (v) => 1 - within(v, [0.04, 0.2]));
   const cueOpacity = useTransform(sayT, (k) => within(k, [0.75, 1]));
   const use3DRef = useRef(use3D);
   use3DRef.current = use3D;
@@ -1605,7 +1614,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const x = x0 + (f.x - x0) * w;
     const y = y0 + (f.y - y0) * w;
     // Phones: the logo rests on the dark screen, and goes as it lights up.
-    const phoneOff = phone ? 1 - within(phoneP.get(), [0.7, 0.78]) : 1;
+    const phoneOff = phone ? 1 - within(phoneP.get(), [0.5, 0.6]) : 1;
     const shown = (t >= REWIND[1] ? 1 : 0) * phoneOff * (flatRef.current || !hasLid() ? 1 : 1 - within(rp, [HAND[1] - 0.02, HAND[1]]));
     return {
       transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`,
@@ -2378,7 +2387,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const macIntro = (
     <div ref={introOuterRef} className={styles.storyOuter}>
       <div className={styles.storyLineWrap}>
-        <RiseWords text={STORY_LINE} reveal={sayT} className={styles.bridgeLine} />
+        <RiseWords text={phone ? STORY_LINE_PHONE : STORY_LINE} reveal={sayT} className={styles.bridgeLine} />
         {flat && (
           <button type="button" className={styles.btnLight} onClick={() => onReachScreen?.()}>
             See my work

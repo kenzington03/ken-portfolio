@@ -1,39 +1,82 @@
+import useClock from '../../hooks/useClock.js';
+
 /* Icons the Figma kit doesn't have.
 
-   1. CustomIcon: the portfolio's own apps (About, Brief, Resume), drawn as
-      iOS 26 app tiles: a colour field with a soft top light, a white glyph.
-   2. Glyph: small hand-drawn SF-Symbol-style glyphs for Control Center
+   1. CustomIcon: tiles for the portfolio's own apps and the brands (Contacts,
+      Get a Design, Claude, Instagram, LinkedIn, WhatsApp, Tips), drawn as iOS 26
+      app tiles: a colour field, a soft top light, a clean glyph. All SVG in a
+      64-unit box, so they stay crisp from 18px (a folder's face) to 64px.
+   2. CalendarIcon: Apple's Calendar tile with today's real weekday and date.
+   3. Glyph: small hand-drawn SF-Symbol-style glyphs for Control Center
       (SF Symbols are Apple's, so these are drawn, not copied). */
 
 const TILE = {
-  about: { bg: 'linear-gradient(165deg, #7dd3ff 0%, #2f8bff 55%, #0a63e8 100%)' },
-  brief: { bg: 'linear-gradient(165deg, #ffe08a 0%, #ffae3d 52%, #ff7a1a 100%)' },
-  resume: { bg: 'linear-gradient(165deg, #a9a6ff 0%, #6f63f2 55%, #4a3fd6 100%)' },
+  // Contacts: pale grey tile, a grey person, the alphabet tabs down the edge.
+  contacts: { bg: 'linear-gradient(180deg, #fbfbfc 0%, #d6d6dc 100%)', light: false },
+  // Get a Design: a pencil on a warm gradient.
+  design: { bg: 'linear-gradient(165deg, #ffa07a 0%, #ff5d8f 48%, #8b5cff 100%)' },
+  claude: { bg: 'linear-gradient(165deg, #efa987 0%, #d97757 55%, #c25d3c 100%)' },
+  instagram: { bg: 'radial-gradient(circle at 30% 106%, #fdd876 0%, #fa8a23 28%, #e0306b 56%, #8f33c8 82%, #4f5bd5 100%)', light: false },
+  linkedin: { bg: 'linear-gradient(165deg, #2f8fe6 0%, #0a66c2 100%)' },
+  whatsapp: { bg: 'linear-gradient(165deg, #6af58f 0%, #25d366 50%, #0fa84a 100%)' },
+  tips: { bg: 'linear-gradient(165deg, #ffe27a 0%, #ffbf2f 55%, #ff9f0a 100%)' },
 };
 
 const GLYPHS = {
-  // a person: head and shoulders
-  about: (
+  contacts: (
     <>
-      <circle cx="32" cy="23.5" r="8.5" fill="#fff" />
-      <path d="M14.5 50c1.2-9.7 8.4-15 17.5-15s16.3 5.3 17.5 15z" fill="#fff" />
+      <defs>
+        <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#9a9aa1" />
+          <stop offset="1" stopColor="#5f5f66" />
+        </linearGradient>
+      </defs>
+      <circle cx="29" cy="24" r="8.6" fill="url(#cg)" />
+      <path d="M12.5 51c.9-9.6 8-15.4 16.5-15.4S44.6 41.4 45.5 51z" fill="url(#cg)" />
+      {/* the alphabet tabs */}
+      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+        <rect key={i} x="52.5" y={11.5 + i * 6.3} width="7.5" height="3.2" rx="1.6" fill={['#ff6b6b', '#ff9f43', '#feca57', '#54d48a', '#48b3ff', '#7d7bff', '#c46bff'][i]} />
+      ))}
     </>
   ),
-  // a page with a pencil: write to me
-  brief: (
+  design: (
     <>
-      <path d="M17 14.5h22.5l9 9V49a3.5 3.5 0 0 1-3.5 3.5H20.5A3.5 3.5 0 0 1 17 49z" fill="#fff" />
-      <path d="M39.5 14.5v6.5a2.5 2.5 0 0 0 2.5 2.5h6.5z" fill="#000" fillOpacity="0.14" />
-      <path d="M23 33.5h18M23 40h12" stroke="#ff9a2e" strokeWidth="3" strokeLinecap="round" />
+      <g transform="rotate(42 32 32)">
+        <rect x="26.5" y="8" width="11" height="34" rx="2.4" fill="#fff" />
+        <rect x="26.5" y="8" width="11" height="7" rx="2.4" fill="#ffd1dc" />
+        <path d="M26.5 42h11L32 53z" fill="#ffe7d0" />
+        <path d="M30 49l2 4 2-4z" fill="#3a2a4a" />
+      </g>
+      <path d="M13 49.5c4-.5 6 1.3 8.4 2.2" stroke="#fff" strokeOpacity="0.7" strokeWidth="2.4" strokeLinecap="round" fill="none" />
     </>
   ),
-  // a document with a header block and lines
-  resume: (
+  claude: (
+    <path d="M32 9l4.4 14.2L50 18.6l-9.4 11 13.9 4.2-14 3.4L43 51 32 41l-11 10 2.5-13.8-14-3.4 13.9-4.2L14 18.6l13.6 4.6z" fill="#fff" />
+  ),
+  instagram: (
     <>
-      <rect x="16" y="12.5" width="32" height="39" rx="4" fill="#fff" />
-      <circle cx="26" cy="24" r="3.6" fill="#6f63f2" />
-      <path d="M33 22.5h9M33 27h6" stroke="#6f63f2" strokeWidth="2.6" strokeLinecap="round" />
-      <path d="M22 36.5h20M22 42h20M22 47h12" stroke="#a9a6ff" strokeWidth="2.6" strokeLinecap="round" />
+      <rect x="15" y="15" width="34" height="34" rx="10" fill="none" stroke="#fff" strokeWidth="3.6" />
+      <circle cx="32" cy="32" r="8" fill="none" stroke="#fff" strokeWidth="3.6" />
+      <circle cx="42.6" cy="21.6" r="2.3" fill="#fff" />
+    </>
+  ),
+  linkedin: (
+    <>
+      <circle cx="18.5" cy="19" r="4.2" fill="#fff" />
+      <rect x="14.6" y="26.4" width="7.8" height="22.6" rx="1.4" fill="#fff" />
+      <path d="M27.6 26.4h7.4v3.2c1.3-2.2 3.7-3.8 7-3.8 6 0 8.6 3.6 8.6 9.6V49h-7.8V37c0-2.8-1-4.4-3.4-4.4-2.5 0-3.8 1.7-3.8 4.4v12h-7.8z" fill="#fff" />
+    </>
+  ),
+  whatsapp: (
+    <>
+      <path d="M32 11.5a20.5 20.5 0 0 0-17.6 31L11.5 52.5l10.3-2.7A20.5 20.5 0 1 0 32 11.5z" fill="none" stroke="#fff" strokeWidth="3.6" strokeLinejoin="round" />
+      <path d="M25 22.5c-1.2.5-2.4 2-2.4 4 0 4.6 7 12.2 12.4 13.6 2 .5 3.8-.8 4.4-2.2.2-.6 0-1.2-.5-1.5l-3.6-1.6c-.6-.2-1.2 0-1.5.5l-.9 1.2c-3-.9-6.3-4.2-7.2-7.2l1.2-.9c.5-.3.7-1 .4-1.5l-1.7-3.5c-.3-.6-1-.9-1.6-.7z" fill="#fff" />
+    </>
+  ),
+  tips: (
+    <>
+      <path d="M32 11a15 15 0 0 0-8.6 27.3c1.4 1 2.2 2.4 2.2 4.1v1.3h12.8v-1.3c0-1.7.8-3.1 2.2-4.1A15 15 0 0 0 32 11z" fill="#fff" />
+      <path d="M26.2 48.6h11.6M27.8 53.4h8.4" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
     </>
   ),
 };
@@ -55,9 +98,43 @@ export function CustomIcon({ kind }) {
       }}
     >
       {/* the soft light along the top edge that iOS 26 tiles have */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 46%)' }} />
-      <svg viewBox="0 0 64 64" width="100%" height="100%" style={{ position: 'absolute', inset: 0, filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.22))' }} aria-hidden>
+      {t.light !== false && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 46%)' }} />}
+      <svg viewBox="0 0 64 64" width="100%" height="100%" style={{ position: 'absolute', inset: 0 }} aria-hidden>
         {GLYPHS[kind]}
+      </svg>
+    </div>
+  );
+}
+
+/* ───────── Calendar: today's real weekday and date ───────── */
+
+const weekday = (d) => d.toLocaleDateString('en-US', { weekday: 'short' });
+const dayOfMonth = (d) => String(d.getDate());
+
+export function CalendarIcon() {
+  // useClock re-reads on each minute boundary and when the tab comes back, so
+  // the icon turns over at midnight without a reload.
+  const wd = useClock(weekday);
+  const day = useClock(dayOfMonth);
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        borderRadius: '22.37%',
+        background: 'linear-gradient(180deg, #ffffff 0%, #f1f1f4 100%)',
+        overflow: 'hidden',
+        boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.9)',
+      }}
+    >
+      <svg viewBox="0 0 64 64" width="100%" height="100%" style={{ position: 'absolute', inset: 0 }} role="img" aria-label={`${wd} ${day}`}>
+        <text x="32" y="19.5" textAnchor="middle" fontFamily="-apple-system, 'SF Pro', system-ui, sans-serif" fontSize="11.5" fontWeight="600" fill="#ff3b30">
+          {wd}
+        </text>
+        <text x="32" y="52" textAnchor="middle" fontFamily="-apple-system, 'SF Pro Display', system-ui, sans-serif" fontSize={day.length > 1 ? 36 : 40} fontWeight="300" fill="#1c1c1e" letterSpacing="-1">
+          {day}
+        </text>
       </svg>
     </div>
   );
@@ -166,6 +243,15 @@ export const GLYPH = {
     </g>
   ),
   heart: <path d="M12 20.6s-8-4.9-8-10.9A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.7c0 6-8 10.9-8 10.9z" fill="currentColor" />,
+  home: <path d="M3.5 11.2L12 3.8l8.5 7.4M5.6 9.8V20h4.6v-5.2h3.6V20h4.6V9.8" {...s} />,
+  back: <path d="M14.6 4.6L7.2 12l7.4 7.4" {...s} strokeWidth="2.6" />,
+  help: (
+    <g {...s}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.4 9.4a2.7 2.7 0 1 1 3.9 2.4c-.9.5-1.3 1-1.3 2" />
+      <circle cx="12" cy="17" r="0.5" fill="currentColor" />
+    </g>
+  ),
 };
 
 export function Glyph({ name, size = 22, style }) {

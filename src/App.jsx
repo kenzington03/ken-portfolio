@@ -3,6 +3,7 @@ import { OSProvider, useOS } from './context/OSContext.jsx';
 import { useGlobalKeyboard } from './hooks/useGlobalKeyboard.js';
 import { useWindowSize } from './hooks/useWindowSize.js';
 import { useTheme } from './components/IOS26/theme.js';
+import LaptopHint from './components/IOS26/LaptopHint.jsx';
 import Desktop from './components/Desktop/Desktop.jsx';
 import MenuBar from './components/MenuBar/MenuBar.jsx';
 import Dock from './components/Dock/Dock.jsx';
@@ -145,9 +146,10 @@ function PhoneFlow() {
           <JourneyC phone onReachScreen={toPhone} onSkip={toHome} />
         </Suspense>
       )}
+      {phase === 'intro' && <LaptopHint />}
       {phase === 'phone' && (
         <Suspense fallback={fallback}>
-          <IOS26Phone framed={false} theme={theme} onThemeChange={setTheme} screen={screen} onScreenChange={setScreen} autoNotifs />
+          <IOS26Phone device theme={theme} onThemeChange={setTheme} screen={screen} onScreenChange={setScreen} autoNotifs />
         </Suspense>
       )}
       {phase === 'work' && (
