@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useState } fro
 import { OSProvider, useOS } from './context/OSContext.jsx';
 import { useGlobalKeyboard } from './hooks/useGlobalKeyboard.js';
 import { useWindowSize } from './hooks/useWindowSize.js';
+import { useTheme } from './components/IOS26/theme.js';
 import Desktop from './components/Desktop/Desktop.jsx';
 import MenuBar from './components/MenuBar/MenuBar.jsx';
 import Dock from './components/Dock/Dock.jsx';
@@ -43,7 +44,9 @@ const INTRO_ENABLED = (() => {
 })();
 // Its own chunk (with three.js), so the desktop never waits on it.
 const JourneyC = lazy(() => import('./components/Journey/C/JourneyC.jsx'));
-// Phones: the same story as the laptop, then the work as a page.
+// Phones: the same story as the laptop, then an iPhone (iOS 26) in place of the Mac.
+const IOS26Phone = lazy(() => import('./components/IOS26/IOS26Phone.jsx'));
+// A shared link to one project opens its page.
 const PhonePage = lazy(() => import('./components/PhonePage/PhonePage.jsx'));
 
 const BLACKOUT_MS = 380;
@@ -105,42 +108,57 @@ function AppShell() {
   return INTRO_ENABLED ? <IntroFlow /> : <DesktopShell />;
 }
 
-/** Phones: the laptop's story (hero, About, the career, the logo, the
- *  MacBook opening), then "hello", then the work, as a page. A link to a
- *  project, or `?intro=0`, goes straight to the work. */
+/** Phones: the laptop's story (hero, About, the career, the logo), then, where
+ *  the laptop opens, an iPhone. Its screen grows until it is the visitor's
+ *  screen: the iOS 26 lock screen. Swipe up and it is the home screen: About,
+ *  Brief, Resume, Contact, the Work folder, the games. A link to a project
+ *  (/work/<slug>) goes straight to that project's page; `?intro=0` straight to
+ *  the home screen. */
 function PhoneFlow() {
-  const [phase, setPhase] = useState(() => (!INTRO_ENABLED || workSlugFromUrl() ? 'work' : 'intro'));
+  const [phase, setPhase] = useState(() => (workSlugFromUrl() ? 'work' : INTRO_ENABLED ? 'intro' : 'phone'));
+  const [screen, setScreen] = useState(() => (INTRO_ENABLED ? 'lock' : 'home'));
+  const [theme, setTheme] = useTheme();
   useLayoutEffect(() => {
     const root = document.documentElement;
-    root.classList.add('intro-scroll');
-    // The work page mounts under "hello", at its top, and holds still
-    // until "hello" has gone.
+    // The story scrolls the page; the phone is a fixed surface that does not.
+    root.classList.toggle('intro-scroll', phase !== 'work');
     if (phase !== 'intro') window.scrollTo(0, 0);
-    root.style.overflow = phase === 'welcome' ? 'hidden' : '';
+    root.style.overflow = phase === 'phone' ? 'hidden' : '';
     return () => {
       root.classList.remove('intro-scroll');
       root.style.overflow = '';
     };
   }, [phase]);
-  const toWork = useCallback(() => setPhase('work'), []);
-  const replay = useCallback(() => {
-    if (workSlugFromUrl()) clearWork();
-    window.scrollTo(0, 0);
-    setPhase('intro');
+  const toPhone = useCallback(() => {
+    setScreen('lock');
+    setPhase('phone');
   }, []);
+  const toHome = useCallback(() => {
+    setScreen('home');
+    setPhase('phone');
+  }, []);
+  const fallback = <div style={{ minHeight: '100svh', background: '#000' }} />;
   return (
     <>
       {phase === 'intro' && (
         <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
-          <JourneyC phone onReachScreen={() => setPhase('welcome')} onSkip={toWork} />
+          <JourneyC phone onReachScreen={toPhone} onSkip={toHome} />
         </Suspense>
       )}
-      {phase !== 'intro' && (
+      {phase === 'phone' && (
+        <Suspense fallback={fallback}>
+          <IOS26Phone framed={false} theme={theme} onThemeChange={setTheme} screen={screen} onScreenChange={setScreen} autoNotifs />
+        </Suspense>
+      )}
+      {phase === 'work' && (
         <Suspense fallback={<div style={{ minHeight: '100svh', background: '#ededea' }} />}>
-          <PhonePage onReplay={replay} />
+          <PhonePage onReplay={() => {
+            if (workSlugFromUrl()) clearWork();
+            window.scrollTo(0, 0);
+            setPhase('intro');
+          }} />
         </Suspense>
       )}
-      {phase === 'welcome' && <WelcomeScreen onDone={toWork} />}
     </>
   );
 }

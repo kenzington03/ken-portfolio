@@ -1,0 +1,498 @@
+/* iOS 26 screens, built to the Figma kit's 402×874 numbers.
+   All colors come from tokens.css (.ios26 root). */
+
+/* ─────────── Device (bezel + scaling) ─────────── */
+.stage {
+  position: relative;
+  width: 450px;
+  height: 920px;
+  transform-origin: top left;
+}
+.deviceBox {
+  position: relative;
+  /* the display sits 24px / 23px inside the 450×920 bezel art */
+  width: 402px;
+  height: 874px;
+  left: 24px;
+  top: 23px;
+}
+.bezel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 450px;
+  height: 920px;
+  pointer-events: none;
+  z-index: 50;
+}
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 48px; /* hidden under the bezel; keeps wallpaper off the corners */
+  background: #000;
+  color: var(--ios-white);
+  font-family: var(--ios-font);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  touch-action: none;
+  isolation: isolate;
+  /* Makes the screen (not the bezel's stage) the box that fixed-position app
+     sheets fill, so an open app is exactly the display. */
+  transform: translateZ(0);
+}
+/* Edge-to-edge on a real phone: no bezel, the screen fills the viewport. */
+.screenFull {
+  position: fixed;
+  inset: 0;
+  border-radius: 0;
+}
+
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 400ms ease;
+}
+.wallpaperDark {
+  filter: brightness(0.62) saturate(1.05);
+}
+
+/* ─────────── Status bar ─────────── */
+.status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--ios-status-h);
+  display: flex;
+  gap: 154px;
+  align-items: center;
+  justify-content: center;
+  padding: 21px 24px 19px;
+  box-sizing: border-box;
+  z-index: 20;
+  pointer-events: none;
+}
+.statusTime {
+  flex: 1 0 0;
+  min-width: 1px;
+  height: 22px;
+  padding-top: 1.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 590 17px/22px var(--ios-font);
+  white-space: nowrap;
+}
+.statusLevels {
+  flex: 1 0 0;
+  min-width: 1px;
+  height: 22px;
+  padding: 1px 1px 0 0;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+}
+.statusLevels img { display: block; }
+.statusDark img { filter: invert(1); }
+.statusDark .statusTime { color: #000; }
+
+/* ─────────── Home indicator ─────────── */
+.homeIndicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34px;
+  z-index: 30;
+  cursor: grab;
+}
+.homeIndicator::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 144px;
+  height: 5px;
+  margin-left: -72px;
+  border-radius: 100px;
+  background: var(--ios-white);
+}
+
+/* ─────────── Liquid Glass primitive ───────────
+   Figma "Clear Glass": 7% white, blend screen, soft drop shadow. The kit
+   blurs behind it (30px on dock/search); a thin inner highlight gives the
+   glass its edge. */
+.glass {
+  position: relative;
+  isolation: isolate;
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--ios-glass-fill);
+  mix-blend-mode: screen;
+  box-shadow: var(--ios-glass-shadow);
+  z-index: -1;
+}
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+  z-index: -1;
+}
+.glassBlur {
+  backdrop-filter: blur(var(--ios-glass-blur)) saturate(1.5) brightness(0.92);
+  -webkit-backdrop-filter: blur(var(--ios-glass-blur)) saturate(1.5) brightness(0.92);
+}
+
+/* ─────────── Lock screen ─────────── */
+.lock {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  transition: transform 520ms cubic-bezier(0.32, 0.72, 0, 1), opacity 320ms ease;
+}
+.lockScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05)), rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.lockNotifs .lockScrim { opacity: 1; }
+
+.lockInline {
+  position: absolute;
+  top: 82px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 590 22px/26px var(--ios-font);
+  letter-spacing: -0.2px;
+  color: #fff;
+  mix-blend-mode: plus-lighter;
+}
+.lockDate {
+  position: absolute;
+  top: 76px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 510 22px/26px var(--ios-font);
+  color: #f5f5f5;
+  opacity: 0;
+}
+.lockNotifs .lockInline { opacity: 0; }
+.lockNotifs .lockDate { opacity: 1; }
+.lockInline, .lockDate { transition: opacity 240ms ease; }
+
+.lockClock {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 700 118px/118px var(--ios-font);
+  letter-spacing: -9px;
+  padding-right: 0;
+  color: transparent;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.72) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: plus-lighter;
+  font-variant-numeric: tabular-nums;
+  transition: transform 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.lockNotifs .lockClock { transform: translateY(8px) scale(0.84); transform-origin: top center; }
+
+.lockWidgets {
+  position: absolute;
+  top: 214px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  transition: opacity 240ms ease;
+}
+.lockNotifs .lockWidgets { opacity: 0; pointer-events: none; }
+.wTable {
+  flex: 1 0 0;
+  min-width: 1px;
+  height: 72px;
+  padding: 0 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  mix-blend-mode: plus-lighter;
+}
+.wTableHead {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  font: 510 15px/20px var(--ios-font);
+  color: #999;
+}
+.wTableRow { font: 510 15px/18px var(--ios-font); color: #fff; }
+.wRight { flex: 1 0 0; min-width: 1px; display: flex; gap: 16px; justify-content: flex-end; }
+.wCircle {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 100px;
+  /* no backdrop-filter here: it would isolate the plus-lighter blend inside */
+}
+.wGauge { position: relative; width: 58px; height: 58px; mix-blend-mode: plus-lighter; }
+.wGaugeVal {
+  position: absolute;
+  left: 0; right: 0; top: 13px;
+  text-align: center;
+  font: 510 24px/28px var(--ios-font);
+}
+.wGaugeLo, .wGaugeHi { position: absolute; bottom: 0; font: 510 11px/13px var(--ios-font); }
+.wGaugeLo { left: 10px; }
+.wGaugeHi { right: 12px; }
+.wStack {
+  width: 58px; height: 58px;
+  border-radius: 100px;
+  background: #333;
+  mix-blend-mode: plus-lighter;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font: 510 15px/18px var(--ios-font);
+}
+.wStack small { font: 510 9px/11px var(--ios-font); }
+
+.lockControls {
+  position: absolute;
+  bottom: 50px;
+  left: 46px;
+  width: 310px;
+  display: flex;
+  justify-content: space-between;
+  transition: opacity 240ms ease;
+}
+.lockNotifs .lockControls { opacity: 1; }
+.lockBtn {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 100px;
+  display: grid;
+  place-items: center;
+  color: #d9d9d9;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+.lockBtn svg { position: relative; mix-blend-mode: plus-lighter; opacity: 0.9; }
+
+.swipeHint {
+  position: absolute;
+  right: 47.8px;
+  top: 46.8px;
+  width: 48px;
+  height: 2.333px;
+  border-radius: 1.167px;
+  background: #fff;
+  opacity: 0.35;
+}
+
+/* ─────────── Notifications ─────────── */
+.notifs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 122px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  z-index: 5;
+  pointer-events: none;
+}
+.notifs > * { pointer-events: auto; }
+.notif {
+  position: relative;
+  width: 100%;
+  max-width: var(--ios-notif-w);
+  min-height: 64px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: var(--ios-notif-radius);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 420ms cubic-bezier(0.34, 1.4, 0.5, 1), opacity 260ms ease;
+}
+.notifIn { animation: notifIn 620ms cubic-bezier(0.34, 1.4, 0.5, 1) both; }
+@keyframes notifIn {
+  from { opacity: 0; transform: translateY(26px) scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+.notif:active { transform: scale(0.97); }
+.notifIcon { width: var(--ios-notif-icon); height: var(--ios-notif-icon); flex: none; display: block; }
+.notifText { flex: 1 0 0; min-width: 0; font: 400 15px/18px var(--ios-font); letter-spacing: -0.23px; color: #fff; }
+.notifTitle { font: 590 15px/17px var(--ios-font); }
+.notifDesc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notifTime { align-self: flex-start; font: 400 15px/17px var(--ios-font); color: #4d4d4d; mix-blend-mode: plus-lighter; white-space: nowrap; }
+/* A stack of three: two thin banners peek out under the front card. */
+.notifStack { padding-bottom: 27px; }
+.notifStack .peek {
+  position: absolute;
+  left: 0; right: 0;
+  height: 8px;
+  border-radius: 24px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.notifStack .peek1 { bottom: 6.33px; left: 20px; right: 20px; opacity: 0.9; }
+.notifStack .peek2 { bottom: -1.67px; left: 40px; right: 40px; opacity: 0.8; }
+
+/* ─────────── Home screen ─────────── */
+.home {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  transition: transform 520ms cubic-bezier(0.32, 0.72, 0, 1), opacity 320ms ease;
+}
+.homeLocked { transform: scale(0.94); opacity: 0; pointer-events: none; }
+.grid {
+  position: absolute;
+  top: var(--ios-status-h);
+  left: 0;
+  right: 0;
+  padding: var(--ios-home-top) var(--ios-home-side) 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-content: flex-start;
+  row-gap: var(--ios-home-row-gap);
+}
+.cell {
+  width: var(--ios-icon-cell);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ios-icon-label-gap);
+  border: 0;
+  padding: 0;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.cell:active .iconBox { transform: scale(0.92); filter: brightness(0.85); }
+.cellEmpty { height: 79px; }
+.iconBox {
+  position: relative;
+  width: var(--ios-icon);
+  height: var(--ios-icon);
+  transition: transform 220ms cubic-bezier(0.34, 1.4, 0.5, 1), filter 160ms ease;
+}
+.iconBox > img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.label {
+  font: 510 12px/normal var(--ios-font);
+  text-shadow: 0 2px 25px #000;
+  /* no overflow clip: it would cut the shadow into a visible box */
+  white-space: nowrap;
+}
+.badge {
+  position: absolute;
+  top: -12px;
+  left: calc(50% + 21px);
+  min-width: 24px;
+  box-sizing: border-box;
+  padding: 2.5px 7px;
+  border-radius: 100px;
+  background: var(--ios-red);
+  color: #fff;
+  font: 400 16px/19px var(--ios-font);
+  text-align: center;
+}
+
+/* Folder: a glass tile with a 3×3 of its apps. */
+.folder {
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  padding: 6px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.26);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.3);
+}
+.mini { width: 100%; height: 100%; border-radius: 22%; overflow: hidden; }
+.mini img { border-radius: 0; }
+.folder img { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+/* Search pill + dock */
+.search {
+  position: absolute;
+  left: 50%;
+  bottom: 140px;
+  transform: translateX(-50%);
+  height: var(--ios-search-h);
+  box-sizing: border-box;
+  padding: 7px 12px;
+  border-radius: 100px;
+  display: flex;
+  gap: 2px;
+  align-items: flex-start;
+  font: 590 11.5px/16px var(--ios-font);
+  color: #fff;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.dock {
+  position: absolute;
+  left: 17px;
+  right: 17px;
+  bottom: 17px;
+  height: 103px;
+  box-sizing: border-box;
+  padding: 20px 19px 19px;
+  border-radius: var(--ios-dock-radius);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dock .cell { width: 64px; }
+.pageDots {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 140px;
+  height: var(--ios-search-h);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dim { position: absolute; inset: 0; background: #000; pointer-events: none; z-index: 40; }
+.lockBtnOn { color: #111; }
+.lockBtnOn::before { background: rgba(255, 255, 255, 0.92) !important; mix-blend-mode: normal !important; }
+
+/* ─────────── Lab chrome (not part of the phone) ─────────── */
+.hit { position: absolute; inset: 0; z-index: 40; }

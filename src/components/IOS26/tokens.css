@@ -1,0 +1,122 @@
+/* iOS and iPadOS 26 (Community) design tokens.
+   Source: Figma file "iOS and iPadOS 26 (Community)", collection "Colors",
+   modes Light + Dark. Every color below was read from the file's variables
+   (all 78 resolved, 2026-11-25), not typed from memory.
+   Scope: .ios26 root; theme via data-theme="light" | "dark".
+
+   Still tagged [U]: type tracking for Title1-3, Callout, Caption1-2 (sizes and
+   line-heights are from the file; tracking is Apple's table). */
+
+.ios26 {
+  /* ── Type: SF Pro, "Large (Default)" Dynamic Type ── */
+  --ios-font: -apple-system, 'SF Pro', 'SF Pro Text', 'SF Pro Display', BlinkMacSystemFont, system-ui, sans-serif;
+  --ios-t-large-title: 34px/41px var(--ios-font);        /* 700, tracking +0.40 */
+  --ios-t-title1: 28px/34px var(--ios-font);             /* tracking +0.38 [U] */
+  --ios-t-title2: 22px/28px var(--ios-font);             /* tracking -0.26 [U] */
+  --ios-t-title3: 20px/25px var(--ios-font);             /* tracking -0.45 [U] */
+  --ios-t-headline: 590 17px/22px var(--ios-font);       /* tracking -0.43 */
+  --ios-t-body: 17px/22px var(--ios-font);               /* tracking -0.43 */
+  --ios-t-callout: 16px/21px var(--ios-font);            /* tracking -0.31 [U] */
+  --ios-t-subhead: 15px/20px var(--ios-font);            /* tracking -0.23 */
+  --ios-t-footnote: 13px/18px var(--ios-font);           /* tracking -0.08 */
+  --ios-t-caption1: 12px/16px var(--ios-font);           /* tracking 0 [U] */
+  --ios-t-caption2: 11px/13px var(--ios-font);           /* tracking +0.06 [U] */
+
+  /* ── Liquid Glass (Home Screen example) ── */
+  --ios-glass-fill: rgba(255, 255, 255, 0.07);           /* "Glass Effect", blend: screen */
+  --ios-glass-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+  --ios-glass-blur: 30px;                                /* dock + search field */
+  --ios-glass-scrim: rgba(0, 0, 0, 0.4);                 /* blend: hard-light */
+  --ios-glass-tint: rgba(0, 0, 0, 0.2);                  /* blend: screen */
+  --ios-scroll-edge-blur: 10px;
+
+  /* ── Metrics: 402×874 screen (iPhone 17 Pro) ── */
+  --ios-screen-w: 402px;
+  --ios-screen-h: 874px;
+  --ios-icon: 64px;
+  --ios-icon-cell: 72px;
+  --ios-icon-label-gap: 5px;
+  --ios-home-side: 26px;
+  --ios-home-top: 28.666px;
+  --ios-home-row-gap: 17.333px;
+  --ios-dock-radius: 38px;
+  --ios-search-h: 30px;
+  --ios-notif-radius: 24px;
+  --ios-notif-icon: 38.333px;
+  --ios-notif-w: 362px;
+  --ios-status-h: 62px;
+}
+
+/* ───────────────────────── Light ───────────────────────── */
+.ios26[data-theme='light'] {
+  color-scheme: light;
+
+  --ios-red: #ff383c;    --ios-orange: #ff8d28;  --ios-yellow: #ffcc00;
+  --ios-green: #34c759;  --ios-mint: #00c8b3;    --ios-teal: #00c3d0;
+  --ios-cyan: #00c0e8;   --ios-blue: #0088ff;    --ios-indigo: #6155f5;
+  --ios-purple: #cb30e0; --ios-pink: #ff2d55;    --ios-brown: #ac7f5e;
+
+  --ios-black: #000000;  --ios-white: #ffffff;
+  --ios-gray: #8e8e93;   --ios-gray2: #aeaeb2;   --ios-gray3: #c7c7cc;
+  --ios-gray4: #d1d1d6;  --ios-gray5: #e5e5ea;   --ios-gray6: #f2f2f7;
+
+  --ios-bg: #ffffff;           --ios-bg-2: #f2f2f7;           --ios-bg-3: #ffffff;
+  --ios-bg-elevated: #ffffff;  --ios-bg-2-elevated: #f2f2f7;  --ios-bg-3-elevated: #ffffff;
+  --ios-grouped: #f2f2f7;           --ios-grouped-2: #ffffff;           --ios-grouped-3: #f2f2f7;
+  --ios-grouped-elevated: #f2f2f7;  --ios-grouped-2-elevated: #ffffff;  --ios-grouped-3-elevated: #f2f2f7;
+
+  --ios-label: #000000;    --ios-label-2: #3c3c4399;
+  --ios-label-3: #3c3c434d; --ios-label-4: #3c3c432e;
+
+  --ios-fill: #78788033;   --ios-fill-2: #78788029;
+  --ios-fill-3: #7676801f; --ios-fill-4: #74748014;
+
+  --ios-vlabel: #1a1a1a;  --ios-vlabel-2: #727272;  --ios-vlabel-3: #bfbfbf;  --ios-vlabel-4: #d9d9d9;
+  --ios-vfill: #cccccc;   --ios-vfill-2: #e0e0e0;   --ios-vfill-3: #ededed;
+
+  --ios-sep: #c6c6c8;  --ios-sep-non-opaque: #0000001f;  --ios-sep-vibrant: #e6e6e6;
+  --ios-overlay: #00000033;  --ios-overlay-activity: #00000033;  --ios-alert-overlay: #29293a3b;
+
+  --ios-tab-unselected: #999999;  --ios-tab-selected: #0088ff;
+  --ios-seg-selected: #ffffff;
+  --ios-textfield-bg: #ffffff;  --ios-textfield-outline: #3c3c434a;
+  --ios-kb-keys: #141414;  --ios-kb-glyph: #595959;  --ios-kb-glyph-2: #b3b3b3;
+  --ios-destructive-bg: #ff383c24;  --ios-destructive-bg-prominent: #ff383c33;
+}
+
+/* ───────────────────────── Dark ───────────────────────── */
+.ios26[data-theme='dark'] {
+  color-scheme: dark;
+
+  --ios-red: #ff4245;    --ios-orange: #ff9230;  --ios-yellow: #ffd600;
+  --ios-green: #30d158;  --ios-mint: #00dac3;    --ios-teal: #00d2e0;
+  --ios-cyan: #3cd3fe;   --ios-blue: #0091ff;    --ios-indigo: #6d7cff;
+  --ios-purple: #db34f2; --ios-pink: #ff375f;    --ios-brown: #b78a66;
+
+  --ios-black: #000000;  --ios-white: #ffffff;
+  --ios-gray: #8e8e93;   --ios-gray2: #636366;   --ios-gray3: #48484a;
+  --ios-gray4: #3a3a3c;  --ios-gray5: #2c2c2e;   --ios-gray6: #1c1c1e;
+
+  --ios-bg: #000000;           --ios-bg-2: #1c1c1e;           --ios-bg-3: #2c2c2e;
+  --ios-bg-elevated: #1c1c1e;  --ios-bg-2-elevated: #2c2c2e;  --ios-bg-3-elevated: #3a3a3c;
+  --ios-grouped: #000000;           --ios-grouped-2: #1c1c1e;           --ios-grouped-3: #2c2c2e;
+  --ios-grouped-elevated: #1c1c1e;  --ios-grouped-2-elevated: #2c2c2e;  --ios-grouped-3-elevated: #3a3a3c;
+
+  --ios-label: #ffffff;    --ios-label-2: #ebebf5b2;
+  --ios-label-3: #ebebf54d; --ios-label-4: #ebebf529;
+
+  --ios-fill: #7878805c;   --ios-fill-2: #78788052;
+  --ios-fill-3: #7676803d; --ios-fill-4: #7676802e;
+
+  --ios-vlabel: #f5f5f5;  --ios-vlabel-2: #8a8a8a;  --ios-vlabel-3: #404040;  --ios-vlabel-4: #262626;
+  --ios-vfill: #333333;   --ios-vfill-2: #1f1f1f;   --ios-vfill-3: #121212;
+
+  --ios-sep: #38383a;  --ios-sep-non-opaque: #ffffff2b;  --ios-sep-vibrant: #1a1a1a;
+  --ios-overlay: #0000007a;  --ios-overlay-activity: #0000004a;  --ios-alert-overlay: #1212128f;
+
+  --ios-tab-unselected: #7e7e7e;  --ios-tab-selected: #ffffff;
+  --ios-seg-selected: #ffffff45;
+  --ios-textfield-bg: #000000;  --ios-textfield-outline: #ebebf54d;
+  --ios-kb-keys: #454545;  --ios-kb-glyph: #a6a6a6;  --ios-kb-glyph-2: #4d4d4d;
+  --ios-destructive-bg: #ff424524;  --ios-destructive-bg-prominent: #ff424533;
+}

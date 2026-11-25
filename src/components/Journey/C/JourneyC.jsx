@@ -23,6 +23,7 @@ import DotField, { addRipple } from './DotField.jsx';
 import MacRoom from '../MacRoom.jsx';
 import { loadModel, stopWatching } from '../../Intro/model.js';
 import TimelineC, { TIMELINE_NOW, TIP_R, timelineBallAt, timelineSpinAt, timelineDrift, timelineGrid, timelineLayout, timelineStops } from './TimelineC.jsx';
+import PhoneEnding, { PHONE_STOPS, phoneLogoPoint } from './PhoneEnding.jsx';
 import MePanel, { ABOUT_BEAT } from './MePanel.jsx';
 import useClock from '../../../hooks/useClock.js';
 import { PALETTES, paletteStyle, readPalette, savePalette } from './palette.js';
@@ -1438,16 +1439,16 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const [reduced] = useState(prefersReducedMotion);
   // The chrome logo is drawn in WebGL (ChromeLogo); without it, a flat one.
   const [chromeOk] = useState(() => hasWebGL2() && !prefersReducedMotion());
-  // Phones get the same MacBook as laptops (the model is under 1 MB).
-  const [use3D, setUse3D] = useState(() => hasWebGL2() && !prefersReducedMotion());
+  // Phones get an iPhone ending (DOM, iOS 26), so they never load the 3D MacBook.
+  const [use3D, setUse3D] = useState(() => !phone && hasWebGL2() && !prefersReducedMotion());
   const [loaded, setLoaded] = useState(() => closing || seenBefore());
   const [lines, setLines] = useState([false, false]);
   const [dark, setDark] = useState(closing);
   const [contactOpen, setContactOpen] = useState(false);
   const [idle, setIdle] = useState(false);
   const deckRef = useRef(null);
-  const flatRef = useRef(!use3D);
-  flatRef.current = !use3D;
+  const flatRef = useRef(!use3D && !phone);
+  flatRef.current = !use3D && !phone;
   const runwayRef = useRef(null);
   const cancelRef = useRef(null);
   const timersRef = useRef([]);
@@ -1514,8 +1515,8 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   //     than the lid's own (painted) logo until they match, so it covers it.
   // Phones (and the flat fallback) have no lid: the logo turns white once,
   // with the line, and rests where the lock-screen clock will be.
-  const lidRef = useRef(use3D);
-  lidRef.current = use3D;
+  const lidRef = useRef(!phone && use3D);
+  lidRef.current = !phone && use3D;
   const hasLid = () => lidRef.current && logoRef.current?.lidW > 0;
   const nowT = useTransform(progress, (v) => within(v, SPAN.now));
   // The night comes as the ball opens into the logo: paper to black, so the
@@ -1548,13 +1549,14 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const finalLogo = () => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const l = logoRef.current;
+    const l = !phone && logoRef.current;
     if (l && l.lidW > 0) {
       const wpp = (LID_LOGO_W * l.lidW) / LOGO_EL_W; // lid units per element px
       const drop = LID_LOGO_DROP * l.lidW;
       return { x: l.x + l.ez[0] * drop, y: l.y + l.ez[1] * drop, m: [-l.ex[0] * wpp, -l.ex[1] * wpp, -l.ez[0] * wpp, -l.ez[1] * wpp] };
     }
     const k = (51 / 900) * (vh / LOGO_EL_W);
+    if (phone) return { ...phoneLogoPoint(), m: [k, 0, 0, k] };
     return { x: vw / 2, y: vh * 0.638, m: [-k, 0, 0, -k * 0.857] };
   };
   // How far into the Mac's runway (MacRoom's own, eased, progress): beat 2
@@ -1562,6 +1564,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const macP = useRef(0);
   // The line about the Mac: 0..1 as it comes in (driven from MacRoom's frame).
   const sayT = useMotionValue(0);
+  // Phones: how far into the iPhone ending (0..1). The logo rests on the dark
+  // screen until it lights up; the bar and links step aside as the phone grows.
+  const phoneP = useMotionValue(0);
+  const chromeOut = useTransform(phoneP, (v) => 1 - within(v, [0.8, 0.9]));
   const cueOpacity = useTransform(sayT, (k) => within(k, [0.75, 1]));
   const use3DRef = useRef(use3D);
   use3DRef.current = use3D;
@@ -1598,7 +1604,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const sin = Math.sin(th);
     const x = x0 + (f.x - x0) * w;
     const y = y0 + (f.y - y0) * w;
-    const shown = (t >= REWIND[1] ? 1 : 0) * (flatRef.current || !hasLid() ? 1 : 1 - within(rp, [HAND[1] - 0.02, HAND[1]]));
+    // Phones: the logo rests on the dark screen, and goes as it lights up.
+    const phoneOff = phone ? 1 - within(phoneP.get(), [0.7, 0.78]) : 1;
+    const shown = (t >= REWIND[1] ? 1 : 0) * phoneOff * (flatRef.current || !hasLid() ? 1 : 1 - within(rp, [HAND[1] - 0.02, HAND[1]]));
     return {
       transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`,
       shown,
@@ -1607,7 +1615,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     };
   };
   const logoTransform = useTransform(nowT, () => logoState().transform);
-  const logoOpacity = useTransform(nowT, () => logoState().shown);
+  const logoOpacity = useTransform([nowT, phoneP], () => logoState().shown);
   // The flat fallback (no WebGL) still uses these.
   const inkOpacity = useTransform(nowT, (t) => within(t, OPEN));
   const whiteOpacity = useTransform(nowT, () => 1);
@@ -1773,7 +1781,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       const r = runwayRef.current;
       if (!r) return null;
       const top = r.offsetTop;
-      const end = maxScroll();
+      const end = phone ? top + r.offsetHeight - vh() : maxScroll();
       return top + (end - top) * t;
     };
     const stops = () => {
@@ -1797,9 +1805,10 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
       ];
       // Beat 2: the pull-back that shows the logo was on the closed Mac. It
       // rests there, waiting to be opened (beat 3: one scroll or a click).
-      if (runwayRef.current && use3DRef.current) list.push({ id: 'mac', y: runAt(REVEAL_END), ms: 1900 });
+      if (runwayRef.current && !phone && use3DRef.current) list.push({ id: 'mac', y: runAt(REVEAL_END), ms: 1900 });
       // Phones: the iPhone ending's own stops. The Mac has none: from the
       // closed laptop, one scroll (or a click) opens it and goes in.
+      if (runwayRef.current && phone) PHONE_STOPS.forEach((t, i) => list.push({ id: `chapter${i}`, y: runAt(t), ms: 1300 }));
       return list;
     };
     const glide = (y, ms, via, path, ease = sineInOut) => {
@@ -2333,7 +2342,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   const liveFrom = useCallback(() => nowY(0.5), [nowY]);
   const sceneFadeTo = useCallback(() => runY(LIGHT[1]), [runY]);
 
-  const flat = !use3D;
+  const flat = !use3D && !phone;
 
   // On the hero (the remix button shows only there, and edit mode ends if
   // the page moves on).
@@ -2352,7 +2361,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
   // The line comes in once the closed Mac is in view (with no 3D Mac, with
   // the logo).
   useMotionValueEvent(nowT, 'change', (t) => {
-    if (!use3D) sayT.set(smooth01(within(t, SAY)));
+    if (!use3D || phone) sayT.set(smooth01(within(t, SAY)));
   });
   const onMacFrame = useCallback((y, p) => {
     macP.current = p;
@@ -2488,7 +2497,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         ))}
       </ul>
 
-      <header className={styles.bar}>
+      <motion.header className={styles.bar} style={phone ? { opacity: chromeOut } : undefined}>
         <nav className={styles.barLinks} aria-label="Quick links">
           {/* Straight to the work, for anyone who wants proof first. */}
           <button type="button" className={styles.barLink} onClick={seeWork}>
@@ -2499,7 +2508,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
             Work with me
           </button>
         </nav>
-      </header>
+      </motion.header>
 
       <div className={styles.page}>
         <div ref={deckRef} className={styles.deck} style={{ height: `${TOTAL + 100}vh` }}>
@@ -2577,7 +2586,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
 
           </div>
         </div>
-        {!flat && <div ref={runwayRef} className={styles.runway} aria-hidden />}
+        {phone ? <PhoneEnding onReach={onReachScreen} innerRef={runwayRef} progressOut={phoneP} /> : !flat && <div ref={runwayRef} className={styles.runway} aria-hidden />}
       </div>
 
       {/* At the end of the story only: the ball does the asking before that. */}
@@ -2595,7 +2604,9 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
         </button>
       )}
 
-      <SectionNav bounds={navBounds} goTo={(id) => goToIdRef.current?.(id)} dark={dark} />
+      <motion.div style={phone ? { opacity: chromeOut } : undefined}>
+        <SectionNav bounds={navBounds} goTo={(id) => goToIdRef.current?.(id)} dark={dark} />
+      </motion.div>
 
       {/* Remix the poster: on the hero, wide screens with a mouse only. */}
       {canEdit && !editing && heroOn && (

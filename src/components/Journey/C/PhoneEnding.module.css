@@ -1,6 +1,5 @@
-/* The phone ending: an iPhone 15 Pro in a dark room, words above it, then in.
-   Geometry comes from PhoneEnding.jsx as CSS variables (px), so corners stay
-   circular (percentage radii would turn elliptical and skew the shape). */
+/* The phone ending: an iPhone 17 Pro (iOS 26) in a dark room, words above it,
+   then in. Geometry comes from PhoneEnding.jsx as CSS variables (px). */
 
 .runway {
   position: relative;
@@ -79,91 +78,27 @@
   color: color-mix(in srgb, var(--c) clamp(0%, calc((1 - var(--t)) * 140%), 100%), rgba(236, 236, 233, 0.9));
 }
 
-/* The body: natural titanium edge, black glass bezel. */
+/* The phone: the Figma kit's iPhone 17 Pro bezel around a still copy of the
+   real lock screen (IOS26Phone, drawn at this size). It scales up from its
+   top centre until its screen fills the viewport. */
 .device {
   position: absolute;
   left: var(--left);
   top: var(--top);
   width: var(--w);
   height: var(--h);
-  padding: var(--bezel);
-  border-radius: var(--corner);
-  background: #050506;
-  box-shadow:
-    inset 0 0 0 1.5px #6c6c72,
-    inset 0 0 0 3px #2a2a2e,
-    inset 0 0 0 4px #0b0b0c,
-    0 40px 90px -30px rgba(0, 0, 0, 0.9);
   transform-origin: 50% 0;
-  will-change: transform;
+  filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.55));
 }
 
-/* Side buttons: action + volume on the left, power on the right. */
-.button {
+/* The phone before it wakes: the display, black. */
+.boot {
   position: absolute;
-  width: 3px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #4a4a50, #2a2a2e);
-}
-
-.button[data-side='left'] {
-  left: -2px;
-  top: calc(var(--w) * 0.36);
-  height: calc(var(--w) * 0.16);
-  box-shadow: 0 calc(var(--w) * 0.22) 0 #3a3a3f;
-}
-
-.button[data-side='right'] {
-  right: -2px;
-  top: calc(var(--w) * 0.5);
-  height: calc(var(--w) * 0.26);
-}
-
-.screen {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: calc(var(--corner) - var(--bezel));
-  background: #000 url('/assets/ui/wallpaper-mobile.jpg') center top / cover;
-  overflow: hidden;
-}
-
-/* Dynamic Island: 126 x 37 pt on a 393 pt wide screen, 11 pt from the top. */
-.island {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--sw) * 0.028);
-  width: calc(var(--sw) * 0.32);
-  height: calc(var(--sw) * 0.094);
-  border-radius: 999px;
+  left: calc(24px * var(--k));
+  top: calc(23px * var(--k));
+  width: calc(402px * var(--k));
+  height: calc(874px * var(--k));
+  border-radius: calc(54px * var(--k));
   background: #000;
-  transform: translateX(-50%);
-}
-
-/* Lock screen: date over the large clock, as iOS 16 sets them. */
-.lock {
-  position: absolute;
-  top: calc(var(--sw) * 0.17);
-  left: 0;
-  right: 0;
-  display: grid;
-  justify-items: center;
-  gap: calc(var(--sw) * 0.005);
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.18);
-}
-
-.date {
-  font-size: calc(var(--sw) * 0.052);
-  font-weight: 600;
-  opacity: 0.92;
-}
-
-.time {
-  font-size: calc(var(--sw) * 0.25);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.015em;
-  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }

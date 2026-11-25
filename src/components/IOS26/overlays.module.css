@@ -1,0 +1,165 @@
+/* Folder overlay + Control Center. Colors from tokens.css; sizes from the
+   Figma "Control Center - iPhone" frame (402-wide canvas). */
+
+/* ─────────── Folder ─────────── */
+.folderBack {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(34px) saturate(1.4);
+  -webkit-backdrop-filter: blur(34px) saturate(1.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 150px;
+}
+.folderTitle {
+  font: 700 28px/34px var(--ios-font);
+  letter-spacing: 0.3px;
+  color: #fff;
+  margin-bottom: 22px;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.25);
+}
+.folderPanel {
+  width: 338px;
+  box-sizing: border-box;
+  padding: 26px 22px 12px;
+  border-radius: 38px;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35), 0 12px 50px rgba(0, 0, 0, 0.25);
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  justify-content: space-between;
+  row-gap: 18px;
+  max-height: 520px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.folderPanel::-webkit-scrollbar { display: none; }
+.folderCell {
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.folderCell:active > div { transform: scale(0.92); filter: brightness(0.85); }
+.folderIcon { width: 64px; height: 64px; transition: transform 220ms cubic-bezier(0.34, 1.4, 0.5, 1), filter 160ms; }
+.folderLabel {
+  font: 510 12px/14px var(--ios-font);
+  text-shadow: 0 2px 25px #000;
+  max-width: 76px;
+  text-align: center;
+  text-wrap: balance;
+  /* no overflow clip / line-clamp: either would cut the shadow into a box */
+}
+
+/* ─────────── Control Center ─────────── */
+.cc {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  font-family: var(--ios-font);
+  touch-action: none;
+}
+.ccStatus {
+  position: absolute;
+  top: 89px;
+  left: 50%;
+  width: 306px;
+  height: 14px;
+  margin-left: -153px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: 510 15px/14px var(--ios-font);
+}
+.ccStatusL { display: flex; gap: 6px; align-items: center; }
+.ccStatusR { display: flex; gap: 6px; align-items: center; }
+
+/* A control's glass: Figma "Fill" #242424 plus-lighter under a Glass Effect.
+   Plus-lighter needs the wallpaper to add to, which a blurred backdrop is; the
+   result reads as light translucent grey. */
+.tile {
+  position: absolute;
+  box-sizing: border-box;
+  border: 0;
+  padding: 0;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.17);
+  backdrop-filter: blur(26px) saturate(1.5);
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 24px rgba(0, 0, 0, 0.18);
+  transition: transform 220ms cubic-bezier(0.34, 1.4, 0.5, 1), background 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.tile:active { transform: scale(0.95); }
+.tile.on { background: rgba(255, 255, 255, 0.86); color: #111; }
+.round { border-radius: 100px; }
+.sq { border-radius: 30px; }
+
+.chip {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  border-radius: 100px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background 200ms ease, transform 200ms cubic-bezier(0.34, 1.4, 0.5, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.chip:active { transform: scale(0.92); }
+.chip.on { color: #fff; }
+
+.slider {
+  position: absolute;
+  width: 70px;
+  height: 155px;
+  border-radius: 34px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.17);
+  backdrop-filter: blur(26px) saturate(1.5);
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.3), 0 6px 24px rgba(0, 0, 0, 0.18);
+  touch-action: none;
+  cursor: ns-resize;
+}
+.sliderFill {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  border-radius: 0 0 24px 24px;
+  background: rgba(236, 242, 255, 0.92);
+}
+.sliderIcon { position: absolute; left: 0; right: 0; bottom: 14px; display: grid; place-items: center; pointer-events: none; }
+
+.tileTitle { font: 590 14px/normal var(--ios-font); letter-spacing: -0.08px; }
+.tileDetail { font: 510 14px/18px var(--ios-font); color: rgba(255, 255, 255, 0.5); letter-spacing: -0.08px; }
+.on .tileDetail { color: rgba(0, 0, 0, 0.5); }
+.symbolDisc {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 100px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.24);
+}
+.on .symbolDisc { background: rgba(0, 0, 0, 0.1); }
+.trackName { font: 510 15px/18px var(--ios-font); color: #afafaf; letter-spacing: -0.2px; }

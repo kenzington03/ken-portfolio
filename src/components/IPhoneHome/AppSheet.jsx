@@ -7,7 +7,18 @@ import MobileProjectGallery from './MobileProjectGallery.jsx';
 import StatusBar from './StatusBar.jsx';
 import MobileGame from './MobileGame.jsx';
 import SpotifyApp from './SpotifyApp.jsx';
+import { Brief } from '../Brief/BriefSheet.jsx';
+import { paletteStyle, readPalette } from '../Journey/C/palette.js';
 import styles from './AppSheet.module.css';
+
+/* The brief, as an app: the same form as the page, on paper. */
+function BriefContent() {
+  return (
+    <div style={{ ...paletteStyle(readPalette()), padding: '0 0 40px' }}>
+      <Brief headingId="phone-brief-heading" />
+    </div>
+  );
+}
 
 /* ─── Project list ─── */
 function ProjectList({ onProjectTap }) {
@@ -370,9 +381,11 @@ const LIGHT = new Set(['chrome']);
 const SPRING = { type: 'spring', stiffness: 320, damping: 36, mass: 0.9 };
 
 function iconClip(rect) {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  if (!rect) return `inset(${vh * 0.36}px ${vw * 0.32}px ${vh * 0.36}px ${vw * 0.32}px round 28px)`;
+  // Percentages when there is no icon to grow from; and `rect` carries the phone
+  // canvas's own size (it can be scaled, so the window's is the wrong yardstick).
+  if (!rect) return 'inset(36% 32% 36% 32% round 28px)';
+  const vw = rect.vw ?? window.innerWidth;
+  const vh = rect.vh ?? window.innerHeight;
   return `inset(${rect.top}px ${vw - rect.right}px ${vh - rect.bottom}px ${rect.left}px round ${rect.width * 0.225}px)`;
 }
 
@@ -442,6 +455,8 @@ export default function AppSheet({ app, onClose }) {
     title = selectedProject.name;
   } else if (appKey === 'about') {
     content = <AboutContent />;
+  } else if (appKey === 'brief') {
+    content = <BriefContent />;
   } else if (appKey === 'resume') {
     content = <ResumeContent />;
   } else if (appKey === 'contact') {
@@ -489,6 +504,8 @@ export default function AppSheet({ app, onClose }) {
         transition={closing ? { duration: 0.22 } : { ...SPRING, opacity: { duration: 0.28, delay: 0.1 } }}
       >
         <StatusBar tone={tone} />
+        {/* the bar floats on the iOS 26 screen, so the page starts below it */}
+        <div style={{ height: 62, flexShrink: 0 }} />
         {immersive ? (
           <div className={styles.immersive}>{content}</div>
         ) : (
