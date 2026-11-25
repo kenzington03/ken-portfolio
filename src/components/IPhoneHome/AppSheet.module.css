@@ -857,3 +857,26 @@
 .suggestion:active {
   background: #2c2c2e;
 }
+
+
+/* ─── Best Work: five whole ideas, one after another ─── */
+.bwList { list-style: none; margin: 0; padding: 4px 20px 44px; display: grid; gap: 30px; }
+.bwItem {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bwItem:active { opacity: 0.8; }
+.bwShot { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 18px; background: #1c1c1e; display: block; }
+.bwMeta { font: 510 13px/16px -apple-system, 'SF Pro', system-ui, sans-serif; color: rgba(235, 235, 245, 0.6); display: flex; gap: 10px; }
+.bwNum { color: rgba(235, 235, 245, 0.3); font-variant-numeric: tabular-nums; }
+.bwTitle { font: 700 24px/28px -apple-system, 'SF Pro', system-ui, sans-serif; letter-spacing: 0.3px; }
+.bwLine { font: 400 15px/20px -apple-system, 'SF Pro', system-ui, sans-serif; color: rgba(235, 235, 245, 0.6); }

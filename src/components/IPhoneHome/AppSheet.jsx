@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { projects, getProjectCoverUrl } from '../../data/projects.js';
+import { projects, getProjectCoverUrl, getProjectById, BEST_WORK_ID } from '../../data/projects.js';
+import { BEST_WORK } from '../../data/bestWork.js';
 import { CLAUDE_GREETING, CLAUDE_TOPICS, getClaudeResponse } from '../../utils/claudeBot.js';
 import { ROLES } from '../../data/about.js';
 import { motion } from 'framer-motion';
@@ -42,6 +43,30 @@ function ProjectList({ onProjectTap }) {
         );
       })}
     </div>
+  );
+}
+
+/* ─── Best Work: the five that prove it, each opening the project it came from ─── */
+function BestWorkContent({ onProjectTap }) {
+  return (
+    <ol className={styles.bwList}>
+      {BEST_WORK.map((b, i) => {
+        const p = getProjectById(b.projectId);
+        return (
+          <li key={b.title}>
+            <button type="button" className={styles.bwItem} onClick={() => p && onProjectTap(p)}>
+              <img className={styles.bwShot} src={`/assets/phone/best/${i + 1}.webp`} alt={b.pieces[0].alt} loading={i ? 'lazy' : 'eager'} decoding="async" />
+              <span className={styles.bwMeta}>
+                <span className={styles.bwNum}>{String(i + 1).padStart(2, '0')}</span>
+                {b.client} · {b.kind}
+              </span>
+              <b className={styles.bwTitle}>{b.title}</b>
+              <span className={styles.bwLine}>{b.line}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -475,7 +500,13 @@ export default function AppSheet({ app, onClose }) {
     content = <MobileGame appKey={appKey} />;
   } else if (appKey && appKey.startsWith('project-')) {
     const project = projects.find((p) => p.slug === appKey.replace('project-', ''));
-    content = project ? <ProjectDetail project={project} /> : <ProjectList onProjectTap={setSelectedProject} />;
+    content = !project ? (
+      <ProjectList onProjectTap={setSelectedProject} />
+    ) : project.id === BEST_WORK_ID ? (
+      <BestWorkContent onProjectTap={setSelectedProject} />
+    ) : (
+      <ProjectDetail project={project} />
+    );
   } else {
     content = <ProjectList onProjectTap={setSelectedProject} />;
   }
