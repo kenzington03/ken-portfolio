@@ -40,7 +40,43 @@
   -webkit-backface-visibility: hidden;
 }
 .back {
-  transform: rotateY(180deg);
+  transform: translateZ(calc(var(--w) * -0.05)) rotateY(180deg);
+  overflow: hidden;
+  border-radius: calc(68px * var(--k));
+}
+/* the thickness: layers of the body's outline, stacked in depth */
+.slab {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.slab i {
+  position: absolute;
+  border-radius: calc(68px * var(--k));
+}
+.slab b {
+  position: absolute;
+  border-radius: calc(3px * var(--k));
+  background: linear-gradient(90deg, #3b3d43, #8a8d95 50%, #3b3d43);
+}
+/* a pool of light behind the phone, so a black phone still reads on a black room */
+.glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 55% 42% at 50% 46%, rgba(120, 130, 150, 0.16), transparent 70%);
+  pointer-events: none;
+}
+/* a soft light that slides across the glass as the phone turns */
+.sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 60%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.16) 50%, transparent 100%);
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 .backLogo {
   position: absolute;

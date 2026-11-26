@@ -8,7 +8,7 @@
 // place, so you are inside it.
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
+import { motion, useAnimationFrame, useMotionValue, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import IOS26Phone from '../../IOS26/IOS26Phone.jsx';
 import { APPLE_BOX, APPLE_PATH } from '../../IOS26/applePath.js';
 import { deviceFit, INSET_X, INSET_Y, SCREEN_H, SCREEN_W, ROOM } from '../../IOS26/geometry.js';
@@ -21,12 +21,15 @@ const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const outCubic = (t) => 1 - (1 - t) ** 3;
 
 const RISE = [0.02, 0.3]; // slides up into place, back to us
-const TURN = [0.44, 0.72]; // the half-turn
-const WAKE = [0.64, 0.76]; // the screen lights
+const LAND = [0.34, 0.4]; // the chrome logo settles into the back (it hands over to the back's own)
+const TURN = [0.46, 0.76]; // the half-turn
+const WAKE = [0.67, 0.78]; // the screen lights
 const HANDOFF = 0.8; // the live phone takes over
 // Where the journey rests: the phone is up, its back to us, the logo on it.
 export const PHONE_STOPS = [0.4];
 export const LOGO_VH = 0.12; // the Apple logo's height, a share of the viewport
+const SLICES = 22; // the phone's thickness, in layers
+const DEPTH = 0.1; // its depth, a share of its width
 const LOGO_AT = 0.42; // and where it sits on the back, a share of the phone's height
 
 /** Where the journey's Apple logo rests: the middle of the phone's back. */
@@ -38,21 +41,21 @@ export function phoneLogoPoint() {
 /* The back of an iPhone 17 Pro: brushed titanium, the wide camera plateau
    across the top (three lenses, flash), the logo in frosted glass. Drawn in the
    bezel art's own 450 x 920 units, so it fits the phone at any size. */
-function Back({ k, vh, opacity }) {
+function Back({ k, vh, opacity, sheen, logoOp }) {
   const logoH = vh * LOGO_VH;
   return (
     <motion.div className={styles.back} style={{ '--k': k, opacity }}>
       <svg viewBox="0 0 450 920" width="100%" height="100%" aria-hidden>
         <defs>
           <linearGradient id="ti" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#e9eaec" />
-            <stop offset="0.32" stopColor="#c4c6ca" />
-            <stop offset="0.62" stopColor="#dcdee1" />
-            <stop offset="1" stopColor="#b3b5ba" />
+            <stop offset="0" stopColor="#2a2b2f" />
+            <stop offset="0.35" stopColor="#141518" />
+            <stop offset="0.7" stopColor="#1d1e22" />
+            <stop offset="1" stopColor="#0b0b0d" />
           </linearGradient>
           <linearGradient id="plateau" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#f2f3f4" />
-            <stop offset="1" stopColor="#cfd1d5" />
+            <stop offset="0" stopColor="#2f3035" />
+            <stop offset="1" stopColor="#1a1b1f" />
           </linearGradient>
           <radialGradient id="lens" cx="0.4" cy="0.35" r="0.8">
             <stop offset="0" stopColor="#3a4150" />
@@ -62,10 +65,10 @@ function Back({ k, vh, opacity }) {
         </defs>
         {/* the body */}
         <rect x="9" y="9" width="432" height="902" rx="68" fill="url(#ti)" />
-        <rect x="9.5" y="9.5" width="431" height="901" rx="67.5" fill="none" stroke="#fff" strokeOpacity="0.55" />
+        <rect x="9.5" y="9.5" width="431" height="901" rx="67.5" fill="none" stroke="#fff" strokeOpacity="0.16" />
         {/* the camera plateau: wide, across the top */}
         <path d="M9 77a68 68 0 0 1 68-68h296a68 68 0 0 1 68 68v118a32 32 0 0 1-32 32H41a32 32 0 0 1-32-32z" fill="url(#plateau)" />
-        <path d="M9 77a68 68 0 0 1 68-68h296a68 68 0 0 1 68 68v118a32 32 0 0 1-32 32H41a32 32 0 0 1-32-32z" fill="none" stroke="#fff" strokeOpacity="0.7" strokeWidth="1.5" />
+        <path d="M9 77a68 68 0 0 1 68-68h296a68 68 0 0 1 68 68v118a32 32 0 0 1-32 32H41a32 32 0 0 1-32-32z" fill="none" stroke="#fff" strokeOpacity="0.2" strokeWidth="1.5" />
         {/* three lenses */}
         {[
           [96, 74],
@@ -73,21 +76,29 @@ function Back({ k, vh, opacity }) {
           [180, 116],
         ].map(([cx, cy], i) => (
           <g key={i}>
-            <circle cx={cx} cy={cy} r="37" fill="#a9acb2" />
+            <circle cx={cx} cy={cy} r="37" fill="#4b4d54" />
             <circle cx={cx} cy={cy} r="33" fill="#1b1d23" />
             <circle cx={cx} cy={cy} r="26" fill="url(#lens)" />
             <circle cx={cx - 8} cy={cy - 9} r="6" fill="#fff" fillOpacity="0.16" />
           </g>
         ))}
         {/* flash, lidar, microphone */}
-        <circle cx="300" cy="70" r="14" fill="#f6efd6" stroke="#b9b9bd" strokeWidth="3" />
-        <circle cx="300" cy="148" r="13" fill="#0e1015" stroke="#a9acb2" strokeWidth="3" />
+        <circle cx="300" cy="70" r="14" fill="#e9e2c8" stroke="#55575d" strokeWidth="3" />
+        <circle cx="300" cy="148" r="13" fill="#0a0b0e" stroke="#4b4d54" strokeWidth="3" />
         <circle cx="362" cy="74" r="5" fill="#2a2c33" />
       </svg>
+      <motion.div className={styles.sheen} style={{ x: sheen }} />
       {/* the logo, frosted into the glass back */}
-      <svg className={styles.backLogo} viewBox={`${APPLE_BOX.x} ${APPLE_BOX.y} ${APPLE_BOX.w} ${APPLE_BOX.h}`} style={{ height: logoH, top: `${LOGO_AT * 100}%` }} aria-hidden>
-        <path d={APPLE_PATH} fill="#8d9097" fillOpacity="0.55" />
-      </svg>
+      <motion.svg className={styles.backLogo} viewBox={`${APPLE_BOX.x} ${APPLE_BOX.y} ${APPLE_BOX.w} ${APPLE_BOX.h}`} style={{ height: logoH, top: `${LOGO_AT * 100}%`, opacity: logoOp }} aria-hidden>
+        <defs>
+          <linearGradient id="logoMetal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#f4f5f7" />
+            <stop offset="0.5" stopColor="#aab0ba" />
+            <stop offset="1" stopColor="#e3e5e9" />
+          </linearGradient>
+        </defs>
+        <path d={APPLE_PATH} fill="url(#logoMetal)" />
+      </motion.svg>
     </motion.div>
   );
 }
@@ -112,15 +123,39 @@ export default function PhoneEnding({ onReach, innerRef, progressOut }) {
   // did not hide the back): the back until it is edge-on, then the screen.
   const frontOp = useTransform(angle, (a) => (a <= 90 ? 1 : 0));
   const backOp = useTransform(angle, (a) => (a > 90 ? 1 : 0));
-  const transform = useTransform(q, (v) => {
+  // After the logo lands, the phone idles: a slow sway about its own axis, so
+  // you see its depth. It eases in by the clock (not the scroll), then gives way
+  // to the turn.
+  const clock = useMotionValue(0);
+  const amp = useRef(0);
+  useAnimationFrame((time) => {
+    const v = q.get();
+    const target = v >= LAND[1] - 0.015 && v < TURN[1] ? 1 : 0;
+    amp.current += (target - amp.current) * 0.045;
+    if (amp.current < 0.002 && target === 0) {
+      amp.current = 0;
+      if (clock.get() !== 0) clock.set(0);
+      return;
+    }
+    clock.set(time / 1000);
+  });
+  const transform = useTransform([q, clock], ([v, s]) => {
     const rise = outCubic(within(v, RISE));
     const turn = inOut(within(v, TURN));
     const y = (1 - rise) * g.vh * 0.6;
     if (turn >= 1) return `translate3d(0, ${y.toFixed(1)}px, 0)`; // flat again: no 3D (Safari drops the glass in 3D)
-    const angle = 180 * (1 - turn);
-    const lift = Math.sin(Math.PI * turn) * 0.05;
-    return `perspective(1700px) translate3d(0, ${y.toFixed(1)}px, 0) rotateY(${angle.toFixed(2)}deg) scale(${(1 + lift).toFixed(4)})`;
+    const w = amp.current * (1 - turn);
+    const swayY = 15 * Math.sin(s * 1.05) * w;
+    const swayX = 5 * Math.sin(s * 0.8 + 1) * w;
+    const angle = 180 * (1 - turn) + swayY;
+    const arc = Math.sin(Math.PI * turn);
+    const lift = arc * 0.06;
+    return `perspective(1500px) translate3d(0, ${y.toFixed(1)}px, 0) rotateX(${(-8 * arc + swayX).toFixed(2)}deg) rotateY(${angle.toFixed(2)}deg) scale(${((1 + lift) * (1 - (g.w * DEPTH * 0.5) / 1500)).toFixed(4)})`;
   });
+  const logoOp = useTransform(q, (v) => within(v, LAND));
+  const glow = useTransform(q, (v) => within(v, [0.02, 0.3]));
+  const slabOp = useTransform(q, (v) => (within(v, TURN) >= 1 ? 0 : 1));
+  const sheen = useTransform(angle, (a) => (a - 90) * -2.4 * g.k);
   const deviceIn = useTransform(q, (v) => within(v, [0, 0.08]));
   // The screen stays dark until the turn is nearly done, then lights.
   const bootOpacity = useTransform(q, (v) => 1 - inOut(within(v, WAKE)));
@@ -143,14 +178,51 @@ export default function PhoneEnding({ onReach, innerRef, progressOut }) {
   return (
     <section ref={ref} className={styles.runway} style={vars} aria-label="Open the iPhone">
       <div className={styles.stage}>
+        <motion.div className={styles.glow} style={{ opacity: glow }} aria-hidden />
         <motion.div className={styles.device} style={{ transform, opacity: deviceIn }} aria-hidden>
           <div className={styles.shadow} />
-          <motion.div className={styles.front} style={{ opacity: frontOp }}>
+          <motion.div className={styles.slab} style={{ opacity: slabOp }}>
+            {Array.from({ length: SLICES }, (_, i) => {
+              const m = Math.sin((Math.PI * (i + 0.5)) / SLICES); // brighter mid-edge, like a rounded titanium rail
+              const c = Math.round(36 + 78 * m);
+              const cham = (1 - m) ** 3 * 5 * g.k; // the body's edge rolls in toward the glass
+              return (
+                <i
+                  key={i}
+                  style={{
+                    transform: `translateZ(${((i + 0.5) / SLICES - 0.5) * g.w * DEPTH}px)`,
+                    background: `rgb(${c},${c + 1},${c + 5})`,
+                    inset: `${9 * g.k + cham}px`,
+                  }}
+                />
+              );
+            })}
+            {/* the buttons: action + volume on the left, power on the right, camera control low right */}
+            {[
+              ['L', 150, 40],
+              ['L', 225, 78],
+              ['L', 320, 78],
+              ['R', 300, 120],
+              ['R', 560, 70],
+            ].map(([side, y, len], i) => (
+              <b
+                key={i}
+                style={{
+                  width: g.w * DEPTH * 0.6,
+                  height: len * g.k,
+                  top: y * g.k,
+                  left: (side === 'L' ? 9 * g.k - 2 * g.k : 441 * g.k + 2 * g.k) - g.w * DEPTH * 0.3,
+                  transform: `rotateY(${side === 'L' ? -90 : 90}deg)`,
+                }}
+              />
+            ))}
+          </motion.div>
+          <motion.div className={styles.front} style={{ opacity: frontOp, transform: `translateZ(${g.w * DEPTH * 0.5}px)` }}>
             {/* A still copy of the real lock screen, at the phone's size. */}
             <IOS26Phone theme={theme} framed inert scaleOverride={g.k} screen="lock" />
             <motion.div className={styles.boot} style={{ opacity: bootOpacity, left: INSET_X * g.k, top: INSET_Y * g.k, width: SCREEN_W * g.k, height: SCREEN_H * g.k }} />
           </motion.div>
-          <Back k={g.k} vh={g.vh} opacity={backOp} />
+          <Back k={g.k} vh={g.vh} opacity={backOp} sheen={sheen} logoOp={logoOp} />
         </motion.div>
       </div>
     </section>

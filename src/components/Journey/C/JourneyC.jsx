@@ -1615,7 +1615,7 @@ export default function JourneyC({ mode = 'open', active = true, onReachScreen, 
     const x = x0 + (f.x - x0) * w;
     const y = y0 + (f.y - y0) * w;
     // Phones: the logo rests on the dark screen, and goes as it lights up.
-    const phoneOff = phone ? 1 - within(phoneP.get(), [0.44, 0.5]) : 1;
+    const phoneOff = phone ? 1 - within(phoneP.get(), [0.34, 0.4]) : 1;
     const shown = (t >= REWIND[1] ? 1 : 0) * phoneOff * (flatRef.current || !hasLid() ? 1 : 1 - within(rp, [HAND[1] - 0.02, HAND[1]]));
     return {
       transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) translate(-50%, -50%) matrix(${(cos * ssx).toFixed(5)}, ${(sin * ssx).toFixed(5)}, ${(cos * ssk - sin * ssy).toFixed(5)}, ${(sin * ssk + cos * ssy).toFixed(5)}, 0, 0)`,
