@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Toothless, the new body</title>
+    <style>
+      :root { color-scheme: dark; --bg: #1c1c1e; --panel: #2a2a2d; --ink: #f2f2f4; --dim: #9a9aa2; --pop: #e8462c; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 -apple-system, BlinkMacSystemFont, 'Instrument Sans', sans-serif; }
+      header { padding: 20px 24px 8px; }
+      h1 { margin: 0; font-size: 20px; font-weight: 600; }
+      header p { margin: 4px 0 0; color: var(--dim); max-width: 70ch; }
+      .bar { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 24px; align-items: center; }
+      .bar b { color: var(--dim); font-weight: 500; margin-right: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+      button { background: var(--panel); color: var(--ink); border: 0; border-radius: 7px; padding: 7px 11px; font: inherit; cursor: pointer; }
+      button[aria-pressed='true'] { background: var(--ink); color: #111; }
+      label { display: inline-flex; gap: 6px; align-items: center; color: var(--dim); }
+      input[type='range'] { width: 180px; }
+      canvas { display: block; width: 100%; }
+      .stage { margin: 6px 24px; border-radius: 12px; overflow: hidden; }
+      .note { color: var(--dim); padding: 4px 24px 24px; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Toothless, the new body</h1>
+      <p>Side on, head in profile, one flat black shape, no outline or glow. Pick a pose or a speed. The strip at the bottom is his real size on the desktop and on a dark window.</p>
+    </header>
+    <div class="bar" id="poses"><b>Pose</b></div>
+    <div class="bar" id="moves"><b>Move</b></div>
+    <div class="bar">
+      <b>Speed</b>
+      <input id="speed" type="range" min="0" max="520" value="58" />
+      <span id="speedOut">58 px/s, walk</span>
+      <b style="margin-left: 16px">Look</b>
+      <label><input type="checkbox" id="light" /> light along his back</label>
+      <label><input type="checkbox" id="onion" /> walk cycle sheet</label>
+      <button id="pause">Pause</button>
+      <button id="turn">Turn round</button>
+    </div>
+    <div class="bar" id="face"><b>Face</b></div>
+    <div class="stage"><canvas id="big"></canvas></div>
+    <div class="stage"><canvas id="small"></canvas></div>
+    <p class="note">Dev preview only (not part of the site). Nothing on the desktop changes until this body is approved.</p>
+    <script type="module" src="/src/catlab/catlab.js"></script>
+  </body>
+</html>
